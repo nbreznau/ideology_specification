@@ -1,0 +1,59 @@
+---
+title: "01 Data Prep"
+output: html_notebook
+---
+Replication workflow for:
+
+"Ideological Bias in Estimates of the Impact of Immigration"
+
+[George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
+[Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
+
+The original workflow was developed by Borjas using Stata, and this version is an identical set of analyses by Breznau in R. 
+
+The files cri.csv and cri_team.csv were generated in [Breznau, Rinke, Wuttke et al. 2022](https://www.pnas.org/doi/10.1073/pnas.2203150119) study, available in their [Github Repository](https://github.com/nbreznau/CRI). These data are supplemented from the original participant survey; public version available on the [Harvard Dataverse](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/UUP8CX).
+
+## Setup
+
+```{r setup}
+
+packages <- c("tidyverse",
+              "pacman",
+              "here")
+
+pacman::p_load(packages, character.only = T)
+
+```
+
+## Data
+
+The files cri_new_peer_scores.csv (model-level peer review) and peer_model_dyad.csv (model-participant dyad scores) were generated from the R files in the folder /data/data_prep/: <br>
+001_subjective_voting_prep.R <br>
+002_subjective_voting_indiv_model_dyads.R <br>
+
+These files rely on the original fourth wave of the participant survey W4_export.sav which has participant identifiers and therefore cannot be publicly shared.
+
+
+```{r data}
+
+cri <- read_csv(here("data", "cri.csv"))
+cri_team <- read_csv(here("data", "cri_team.csv"))
+peer_model_dyad <- read_csv(here("data", "peer_model_dyad.csv"))
+cri_new_peer_scores <- read_csv(here("data", "cri_new_peer_scores.csv"))
+
+```
+
+## Citations
+
+```{r cites}
+
+```
+
+## Colophon
+
+```{r colo}
+
+sessionInfo()
+
+```
+
