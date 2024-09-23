@@ -9,9 +9,9 @@ Replication workflow for:
 [George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
 [Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
 
-The original workflow was developed by Borjas using Stata, and this version is an identical set of analyses by Breznau in R. 
+The original workflow was developed by Borjas using Stata (see `reg_model.do` in this repository), and this workflow is an identical set of analyses by Breznau done in R. 
 
-The files cri.csv and cri_team.csv were generated in [Breznau, Rinke, Wuttke et al. 2022](https://www.pnas.org/doi/10.1073/pnas.2203150119) study, available in their [Github Repository](https://github.com/nbreznau/CRI). These data are supplemented from the original participant survey; public version available on the [Harvard Dataverse](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/UUP8CX).
+The files `cri.csv` and `cri_team.csv` were generated in [Breznau, Rinke, Wuttke et al. 2022](https://www.pnas.org/doi/10.1073/pnas.2203150119) study, available in their [Github Repository](https://github.com/nbreznau/CRI). These data are supplemented from the original participant survey; public version available on the [Harvard Dataverse](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/UUP8CX).
 
 ## Setup
 
@@ -27,12 +27,11 @@ pacman::p_load(packages, character.only = T)
 
 ## Data
 
-The files cri_new_peer_scores.csv (model-level peer review) and peer_model_dyad.csv (model-participant dyad scores) were generated from the R files in the folder /data/data_prep/: <br>
-001_subjective_voting_prep.R <br>
-002_subjective_voting_indiv_model_dyads.R <br>
+The files `cri_new_peer_scores.csv` (model-level peer review) and `peer_model_dyad.csv` (model-participant dyad scores) were generated from the R files in the folder `/data/data_prep/`: <br>
+`001_subjective_voting_prep.R` <br>
+`002_subjective_voting_indiv_model_dyads.R` <br>
 
-These files rely on the original fourth wave of the participant survey W4_export.sav which has participant identifiers and therefore cannot be publicly shared.
-
+These files rely on the original fourth wave of the participant survey `W4_export.sav` which has participant identifiers and therefore cannot be publicly shared.
 
 ```{r data}
 
@@ -43,9 +42,221 @@ cri_new_peer_scores <- read_csv(here("data", "cri_new_peer_scores.csv"))
 
 ```
 
+### Cleaning
+
+Drop original study from Brady and Finnigan which the Breznau, Rinke, Wuttke et al. study was based on, remove missings and remove unused variables. 
+
+```{r clean}
+df <- cri %>%
+  subset(u_teamid != 0 & !is.na(AME), select = -c(AU:VE, emigration_ivC:fbXleftright))
+
+```
+
+### Recoding
+
+1. Generate percent of team that are male (impute 0.67 for the team with missing, see Borjas Stata explanation)
+2. Generate implied standard error as ame/z
+3. Generate degree combinations (see Stata code for logic)
+4. Generate pro-immigration and team-index
+5. Generate topic_knowledge and stat_skill (impute one missing team, see Stata)
+6. Generate belief in hypothesis variables
+
+
+```{r recode}
+df <- df %>%
+  mutate(p1_male = case_when(v_1101 == 2 ~ 0,
+                             .default = v_1101),
+         p2_male = case_when(v_1102 == 2 ~ 0,
+                             .default = v_1102),
+         p3_male = case_when(v_1103 == 2 ~ 0,
+                             .default = v_1103)) %>%
+  rowwise() %>%
+  mutate(nmale = sum(p1_male, p2_male, p3_male, na.rm = T)/team_size) %>%
+  ungroup() %>%
+  mutate(nmale = ifelse(u_teamid == 27, 0.6666667, nmale),
+         std = AME/abs(z),
+         d1 = ifelse(!is.na(backgr_degree1), as.numeric(backgr_degree1), 0),
+         d2 = ifelse(!is.na(backgr_degree2), as.numeric(backgr_degree2), 0),
+         d3 = ifelse(!is.na(backgr_degree2), as.numeric(backgr_degree2), 0),
+         counter = d1*100 + d2*10 + d3,
+         counter2 = team_size*1000 + counter,
+         mdegree = ifelse(counter2 == 1100, 1, NA),
+         mdegree = case_when(
+           counter2 == 1100 ~ 1,
+           counter2 == 1200 ~ 2,
+           counter2 == 1300 ~ 3,
+           counter2 == 2303 ~ 3,
+           counter2 == 3333 ~ 3,
+           counter2 == 1400 ~ 4,
+           counter2 == 2400 ~ 4,
+           counter2 == 2404 ~ 4,
+           counter2 == 3444 ~ 4,
+           counter2 == 1500 ~ 5,
+           counter2 == 2505 ~ 5,
+           counter2 == 3555 ~ 5,
+           counter2 == 1600 ~ 6,
+           counter2 == 2606 ~ 6,
+           team_size == 2 & is.na(mdegree) ~ 20,
+           counter2 == 2606 ~ 20,
+           team_size == 3 & is.na(mdegree) ~ 30,
+           counter2 == 3323 ~ 31,
+           counter2 == 3336 ~ 31,
+           counter2 == 3343 ~ 31,
+           counter2 == 3244 ~ 32,
+           counter2 == 3414 ~ 32,
+           counter2 == 3443 ~ 32,
+           counter2 == 3344 ~ 33,
+           counter2 == 3433 ~ 34),
+         pro_index = pro_immigrant,
+         att1 = 7 - attitude_immigration_11,
+         att2 = 7 - attitude_immigration_12,
+         att3 = 7 - attitude_immigration_13,
+         team = rowSums(!is.na(across(c(att1, att2, att3)))),
+         npro = (ifelse(!is.na(att1) & att1 > 4, 1, 0)) +
+            (ifelse(!is.na(att2) & att2 > 4, 1, 0)) +
+            (ifelse(!is.na(att3) & att3 > 4, 1, 0)),
+         npro = ifelse(is.na(npro), 0, npro),
+         pindex = npro/team,
+         dindex = ifelse(pindex >= .5, 1, 0),
+         att1 = ifelse(is.na(att1), 0, att1),
+         att2 = ifelse(is.na(att2), 0, att2),
+         att3 = ifelse(is.na(att3), 0, att3),
+         npro1 = (ifelse(att1==1, 1, 0)) +
+                 (ifelse(att2==1, 1, 0)) +
+                 (ifelse(att3==1, 1, 0)),
+         npro2 = (ifelse(att1==2, 1, 0)) +
+                 (ifelse(att2==2, 1, 0)) +
+                 (ifelse(att3==2, 1, 0)),
+         npro3 = (ifelse(att1==3, 1, 0)) +
+                 (ifelse(att2==3, 1, 0)) +
+                 (ifelse(att3==3, 1, 0)),
+         npro4 = (ifelse(att1==4, 1, 0)) +
+                 (ifelse(att2==4, 1, 0)) +
+                 (ifelse(att3==4, 1, 0)),
+         npro5 = (ifelse(att1==5, 1, 0)) +
+                 (ifelse(att2==5, 1, 0)) +
+                 (ifelse(att3==5, 1, 0)),
+         npro6 = (ifelse(att1==6, 1, 0)) +
+                 (ifelse(att2==6, 1, 0)) +
+                 (ifelse(att3==6, 1, 0)),
+         npro1 = ifelse(is.na(npro1), 0, npro1),
+         npro2 = ifelse(is.na(npro2), 0, npro2),
+         npro3 = ifelse(is.na(npro3), 0, npro3),
+         npro4 = ifelse(is.na(npro4), 0, npro4),
+         npro5 = ifelse(is.na(npro5), 0, npro5),
+         npro6 = ifelse(is.na(npro6), 0, npro6),
+         p1 = npro1/team,
+         p2 = npro2/team,
+         p3 = npro3/team,
+         p4 = npro4/team,
+         p5 = npro5/team,
+         p6 = npro6/team,
+         p12 = p1+p2,
+         p34 = p3+p4,
+         p56 = p5+p6,
+         group1 = ifelse(p12>0, 1, 0),
+         group3 = ifelse(pindex>=.5, 1, 0),
+         group3 = ifelse(group1==1 & group3==1, 1, group3),
+         group1 = ifelse(group1==1 & group3==1, 0, group1),
+         group2 = ifelse(group1==0 & group3==0, 1, 0),
+         group1 = ifelse(is.na(group1), 0, group1),
+         group2 = ifelse(is.na(group2), 0, group2),
+         group3 = ifelse(is.na(group3), 0, group3),
+         index = 1*group1 + 2*group2 + 3*group3,
+         topic_knowledge = ifelse(u_teamid==27, "Low", TOPIC_KNOWLEDGE),
+         topic_ipred = ifelse(u_teamid == 27, -0.253722245526001, topic_ipred),
+         topic_cat = case_match(topic_knowledge,
+                                "Low" ~ 1,
+                                "Mid" ~ 2,
+                                "High" ~ 3),
+         topic_brw = topic_ipred,
+         statistics_skill = ifelse(u_teamid == 27, "Mid", STATISTICS_SKILL),
+         stats_ipred = ifelse(u_teamid == 27, 0.102538885683808, stats_ipred),
+         stats_cat = case_match(statistics_skill,
+                                "Low" ~ 1,
+                                "Mid" ~ 2,
+                                "High" ~ 3),
+         stats_brw = ifelse(u_teamid == 8, 0.649019158901927, stats_ipred),
+         model_cat = case_match(MODEL_SCORE,
+                               "Low" ~ 1,
+                               "Mid" ~ 2,
+                               "High" ~ 3),
+         model_brw = total_score,
+         quality = case_match(MODEL_SCORE,
+                              "High" ~ 1,
+                              .default = 0),
+         belief_hypothesis = ifelse(u_teamid == 27, "Low", BELIEF_HYPOTHESIS),
+         belief_ipred = ifelse(u_teamid == 27, -1.13508799270782, belief_ipred),
+         belief_cat = case_match(belief_hypothesis,
+                                 "Low" ~ 1,
+                                 "Mid" ~ 2,
+                                 "High" ~ 3),
+         nbelief = (ifelse(belief_H1_11<=2 & !is.na(belief_H1_11), 1, 0)) + 
+           (ifelse(belief_H1_12<=2 & !is.na(belief_H1_12), 1, 0)) + 
+           (ifelse(belief_H1_13<=2 & !is.na(belief_H1_13), 1, 0)),
+         teamx = (ifelse(!is.na(belief_H1_11), 1, 0)) +
+           (ifelse(!is.na(belief_H1_12), 1, 0)) +
+           (ifelse(!is.na(belief_H1_13), 1, 0)),
+         nbelief = (ifelse(belief_H1_11 < 2, 1, 0)) +
+                      (ifelse(belief_H1_12 < 2, 1, 0)) +
+                      (ifelse(belief_H1_13 < 2, 1, 0)),
+         pbelief = nbelief/teamx,
+         dep = as.factor(DV)
+         
+  )
+
+```
+
+### Merge Peer Review
+
+The new scores generated here in data/data_prep.
+
+Generate variable for high peer reivew.
+
+```{r npr}
+
+df2 <- df %>%
+  left_join(cri_new_peer_scores, by = "id") %>%
+  mutate(
+    quality2 = case_when(
+      peer_mean > 4.5 ~ 1,
+      peer_mean <= 4.5 ~ 0,
+      .default = NA)
+  )
+  
+```
+
+### Impute Peer Scores
+
+```{r imp}
+
+m_imp <- lm(peer_mean ~ model_brw + Jobs + Unemp + IncDiff + OldAge + House + Health + logit + ols + Stock + Flow + ChangeFlow + w1985 + w1990 + w1996 + w2006 + w2016 + orig13 + eeurope + allavailable + twowayfe + level_cyear + mlm_fe + mlm_re + anynonlin, data = df2)
+
+df2$phat <- predict(m_imp, newdata = df2)
+
+df2 <- df2 %>%
+  mutate(pscore = ifelse(is.na(peer_mean), phat, peer_mean))
+
+```
+
+## Save DF
+
+In both RDS and csv formats, to be user friendly
+
+```{r save}
+
+write_rds(df2, here("data", "df.rds"))
+write.csv(df2, here("data", "df.csv"), row.names = F)
+
+```
+
 ## Citations
 
 ```{r cites}
+
+packages %>%
+  map(citation) %>%
+  print(style = "text")
 
 ```
 

@@ -1,0 +1,156 @@
+---
+title: "01 Data Prep"
+output: html_notebook
+---
+Replication workflow for:
+
+"Ideological Bias in Estimates of the Impact of Immigration"
+
+[George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
+[Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
+
+The original workflow was developed by Borjas using Stata (see `reg_model.do` in this repository), and this workflow is an identical set of analyses by Breznau done in R. 
+
+The file `df.rds` (also available as csv) was generated in the file `01_Data_Prep.Rmd`.
+
+## Setup
+
+```{r setup}
+
+packages <- c("tidyverse",
+              "pacman",
+              "here",
+              "ragg",
+              "jtools",
+              "sjPlot")
+
+pacman::p_load(packages, character.only = T)
+
+```
+
+## Data
+
+```{r save}
+
+df <- read_rds(here("data", "df.rds")) %>%
+  # add in variables for distributional analyses
+  mutate(negsig = ifelse(AME < 0 & abs(z) > 1.645, 1, 0),
+         possig = ifelse(AME > 0 & abs(z) > 1.645, 1, 0),
+         pos10 = ifelse(AME > .052, 1, 0),
+         neg10 = ifelse(AME < -.071, 1, 0),
+         pos10s = ifelse(AME > .052 & abs(z) > 1.645, 1, 0),
+         neg10s = ifelse(AME < -.071 & abs(z) > 1.645, 1, 0),
+         highstats = ifelse(statistics_skill == "High", 1, 0),
+         hightopic = ifelse(topic_knowledge == "High", 1, 0),
+         highmodel = ifelse(MODEL_SCORE == "High", 1, 0),
+         proindex = pro_immigrant)
+
+df <- df %>%
+  group_by(u_teamid) %>%
+  mutate(nmodel = n()) %>%
+  ungroup()
+
+```
+
+## Analyses
+
+### Table 1. Summary Stats
+
+```{r tbl1}
+tbl1_team <- df %>%
+  select(u_teamid, index, AME, neg10s, pos10s, proindex, dindex, p12, p34, p56, group1, group2, group3, pbelief,  nmodel, team_size,
+	stats_brw, topic_brw, model_brw, peer_mean, quality, quality2, Hrej, highstats:highmodel) %>%
+  group_by(u_teamid) %>%
+  summarise_all(., mean, na.rm = T) %>%
+  select(-u_teamid) %>%
+  ungroup()
+
+tbl1_model <- df %>%
+  select(index, AME, neg10s, pos10s, proindex, dindex, p12, p34, p56, group1, group2, group3, pbelief,  nmodel, team_size,
+	stats_brw, topic_brw, model_brw, peer_mean, quality, quality2, Hrej, highstats:highmodel)
+```
+
+#### Model Level
+
+```{r tbl1_model}
+mean1 <- tbl1_model %>%
+  summarise(across(-index, mean, na.rm = T)) %>%
+  mutate(sample = "All teams")
+
+mean2 <- tbl1_model %>%
+  filter(index == 1) %>%
+  summarise(across(-index, mean, na.rm = T)) %>%
+  mutate(sample = "Anti-imm")
+
+mean3 <- tbl1_model %>%
+  filter(index == 2) %>%
+  summarise(across(-index, mean, na.rm = T)) %>%
+  mutate(sample = "Moderate")
+
+mean4 <- tbl1_model %>%
+  filter(index == 3) %>%
+  summarise(across(-index, mean, na.rm = T)) %>%
+  mutate(sample = "Pro-imm")
+
+Table_1_model <- bind_rows(mean1, mean2, mean3, mean4) %>%
+  pivot_longer(cols = -sample, names_to = "Variable", values_to = "Mean") %>%
+  pivot_wider(names_from = sample, values_from = Mean)
+
+Table_1_model[,2:5] <- round(Table_1_model[,2:5], 3)
+
+```
+
+#### Team Level
+
+```{r tbl1_team}
+n1 <- length(tbl1_team$index)
+n2 <- length(tbl1_team$index[tbl1_team$index == 1])
+n3 <- length(tbl1_team$index[tbl1_team$index == 2])
+n4 <- length(tbl1_team$index[tbl1_team$index == 3])
+
+mean1 <- tbl1_team %>%
+  summarise(across(-index, mean, na.rm = T)) %>%
+  mutate(sample = "All teams")
+
+mean2 <- tbl1_team %>%
+  filter(index == 1) %>%
+  summarise(across(-index, mean, na.rm = T)) %>%
+  mutate(sample = "Anti-imm")
+
+mean3 <- tbl1_team %>%
+  filter(index == 2) %>%
+  summarise(across(-index, mean, na.rm = T)) %>%
+  mutate(sample = "Moderate")
+
+mean4 <- tbl1_team %>%
+  filter(index == 3) %>%
+  summarise(across(-index, mean, na.rm = T)) %>%
+  mutate(sample = "Pro-imm")
+
+Table_1_team <- bind_rows(mean1, mean2, mean3, mean4) %>%
+  pivot_longer(cols = -sample, names_to = "Variable", values_to = "Mean") %>%
+  pivot_wider(names_from = sample, values_from = Mean)
+
+Table_1_team[,2:5] <- round(Table_1_team[,2:5], 3)
+
+```
+
+
+## Citations
+
+```{r cites}
+
+packages %>%
+  map(citation) %>%
+  print(style = "text")
+
+```
+
+## Colophon
+
+```{r colo}
+
+sessionInfo()
+
+```
+
