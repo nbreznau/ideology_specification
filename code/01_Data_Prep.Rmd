@@ -75,9 +75,9 @@ df <- df %>%
   ungroup() %>%
   mutate(nmale = ifelse(u_teamid == 27, 0.6666667, nmale),
          std = AME/abs(z),
-         d1 = ifelse(!is.na(backgr_degree1), as.numeric(backgr_degree1), 0),
-         d2 = ifelse(!is.na(backgr_degree2), as.numeric(backgr_degree2), 0),
-         d3 = ifelse(!is.na(backgr_degree2), as.numeric(backgr_degree2), 0),
+         d1 = ifelse(is.na(backgr_degree1), 0, as.numeric(backgr_degree1)),
+         d2 = ifelse(is.na(backgr_degree2), 0, as.numeric(backgr_degree2)),
+         d3 = ifelse(is.na(backgr_degree3), 0, as.numeric(backgr_degree3)),
          counter = d1*100 + d2*10 + d3,
          counter2 = team_size*1000 + counter,
          mdegree = ifelse(counter2 == 1100, 1, NA),
@@ -98,7 +98,7 @@ df <- df %>%
            counter2 == 2606 ~ 6,
            team_size == 2 & is.na(mdegree) ~ 20,
            counter2 == 2606 ~ 20,
-           team_size == 3 & is.na(mdegree) ~ 30,
+           team_size == 3 & is.na(mdegree) & counter2 != 3433 & counter2 != 3344 & counter2 != 3443 & counter2 != 3414 & counter2 != 3244 & counter2 != 3343 & counter2 != 3336 & counter2 != 3323 ~ 30,
            counter2 == 3323 ~ 31,
            counter2 == 3336 ~ 31,
            counter2 == 3343 ~ 31,
@@ -106,7 +106,8 @@ df <- df %>%
            counter2 == 3414 ~ 32,
            counter2 == 3443 ~ 32,
            counter2 == 3344 ~ 33,
-           counter2 == 3433 ~ 34),
+           counter2 == 3433 ~ 34,
+           .default = mdegree),
          pro_index = pro_immigrant,
          att1 = 7 - attitude_immigration_11,
          att2 = 7 - attitude_immigration_12,
@@ -191,15 +192,12 @@ df <- df %>%
                                  "Low" ~ 1,
                                  "Mid" ~ 2,
                                  "High" ~ 3),
-         nbelief = (ifelse(belief_H1_11<=2 & !is.na(belief_H1_11), 1, 0)) + 
-           (ifelse(belief_H1_12<=2 & !is.na(belief_H1_12), 1, 0)) + 
-           (ifelse(belief_H1_13<=2 & !is.na(belief_H1_13), 1, 0)),
-         teamx = (ifelse(!is.na(belief_H1_11), 1, 0)) +
-           (ifelse(!is.na(belief_H1_12), 1, 0)) +
-           (ifelse(!is.na(belief_H1_13), 1, 0)),
-         nbelief = (ifelse(belief_H1_11 < 2, 1, 0)) +
-                      (ifelse(belief_H1_12 < 2, 1, 0)) +
-                      (ifelse(belief_H1_13 < 2, 1, 0)),
+         teamx = (ifelse(is.na(belief_H1_11), 0, 1)) +
+           (ifelse(is.na(belief_H1_12), 0, 1)) +
+           (ifelse(is.na(belief_H1_13), 0, 1)),
+         nbelief = (ifelse(is.na(belief_H1_11), 0, ifelse(belief_H1_11 <= 2, 1, 0))) +
+                      (ifelse(is.na(belief_H1_12), 0, ifelse(belief_H1_12 <= 2, 1, 0))) +
+                      (ifelse(is.na(belief_H1_13), 0, ifelse(belief_H1_13 <= 2, 1, 0))),
          pbelief = nbelief/teamx,
          dep = as.factor(DV)
          

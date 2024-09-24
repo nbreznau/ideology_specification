@@ -18,11 +18,14 @@ The file `df.rds` (also available as csv) was generated in the file `01_Data_Pre
 ```{r setup}
 
 packages <- c("tidyverse",
+              "knitr",
+              "miceadds",
               "pacman",
               "here",
               "ragg",
               "jtools",
-              "sjPlot")
+              "sjPlot",
+              "stringr")
 
 pacman::p_load(packages, character.only = T)
 
@@ -43,12 +46,19 @@ df <- read_rds(here("data", "df.rds")) %>%
          highstats = ifelse(statistics_skill == "High", 1, 0),
          hightopic = ifelse(topic_knowledge == "High", 1, 0),
          highmodel = ifelse(MODEL_SCORE == "High", 1, 0),
-         proindex = pro_immigrant)
+         proindex = pro_immigrant,
+         t2 = case_when(team_size==1 ~ 1,
+                        .default = 0),
+         t3 = case_when(team_size==3 ~ 1,
+                        .default = 0))
 
 df <- df %>%
   group_by(u_teamid) %>%
   mutate(nmodel = n()) %>%
   ungroup()
+
+# original dataset taken from Stata
+df_stata <- read_dta(here("data", "model.dta"))
 
 ```
 
@@ -73,6 +83,11 @@ tbl1_model <- df %>%
 #### Model Level
 
 ```{r tbl1_model}
+n1 <- length(tbl1_model$index)
+n2 <- length(tbl1_model$index[tbl1_model$index == 1])
+n3 <- length(tbl1_model$index[tbl1_model$index == 2])
+n4 <- length(tbl1_model$index[tbl1_model$index == 3])
+
 mean1 <- tbl1_model %>%
   summarise(across(-index, mean, na.rm = T)) %>%
   mutate(sample = "All teams")
@@ -103,10 +118,10 @@ Table_1_model[,2:5] <- round(Table_1_model[,2:5], 3)
 #### Team Level
 
 ```{r tbl1_team}
-n1 <- length(tbl1_team$index)
-n2 <- length(tbl1_team$index[tbl1_team$index == 1])
-n3 <- length(tbl1_team$index[tbl1_team$index == 2])
-n4 <- length(tbl1_team$index[tbl1_team$index == 3])
+nm1 <- length(tbl1_team$index)
+nm2 <- length(tbl1_team$index[tbl1_team$index == 1])
+nm3 <- length(tbl1_team$index[tbl1_team$index == 2])
+nm4 <- length(tbl1_team$index[tbl1_team$index == 3])
 
 mean1 <- tbl1_team %>%
   summarise(across(-index, mean, na.rm = T)) %>%
@@ -135,6 +150,144 @@ Table_1_team[,2:5] <- round(Table_1_team[,2:5], 3)
 
 ```
 
+#### Build Table
+
+```{r buildt1}
+
+Table_1 <- as.data.frame(matrix(nrow = 15, ncol = 5))
+
+Table_1[,1] <- c("Variable", "Mean AME", "% AME negative and significant", "% AME positive and significant", "Mean immigration sentiment", "% Anti-immigration teams", "% Moderate teams", "% Pro-immigration teams", "% Believe hypothesis", "% High statistical skills", "% High topic experience", "% High referee score", "Team size", "N models", "N teams")
+
+Table_1[1,2:5] <- c("All teams", "Anti-imm", "Moderate", "Pro-imm")
+
+# Model-level summaries
+Table_1[2:4,2:5] <- Table_1_model[1:3,2:5]
+
+# Team-level summaries
+Table_1_team <- subset(Table_1_team, Variable %in% c("proindex", "group1", "group2", "group3", "pbelief", "highstats", "hightopic", "team_size"))
+
+Table_1[c(5:11,13),2:5] <- Table_1_team[,2:5]
+
+Table_1[12,2:5] <- Table_1_model[20,2:5]
+Table_1[14,2:5] <- c(n1, n2, n3, n4)
+Table_1[15,2:5] <- c(nm1, nm2, nm3, nm4)
+
+kable(Table_1, col.names = c("","","","",""))
+
+```
+
+
+### Table 2. Basic Regressions
+
+#### Build Models
+
+```{r t2rs}
+
+m_1 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+# check that I have produced an identical dataset
+#m1s <- lm.cluster(formula=ame ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df_stata$nmodel, cluster = "u_teamid", data = df_stata)
+
+m_2 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_3 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_4 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_5 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_6 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_1 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+
+p_2 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_3 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+
+p_4 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+
+p_5 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+
+p_6 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+
+```
+
+#### Build Results
+
+```{r t2r}
+
+Table_2 <- as.data.frame(matrix(nrow = 28, ncol = 7))
+
+Table_2[,1] <- c("Variable", "A. Main regressions\nMean pro-imm. index", "", "Anti-immigration team", "", "Pro-immigration team", "", "Belief in hypothesis", "", "Statistical skills", "", "Topic experience", "", "R-squared", "", "B. Weighted by referee score\nMean pro-imm. index", "", "Anti-immigration team", "", "Pro-immigration team", "", "Belief in hypothesis", "", "Statistical skills", "", "Topic experience", "", "R-squared")
+
+Table_2[1,2:7] <- c("(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
+
+# function to get r-squared
+
+r2ext <- function(model) {
+  summary_output <- capture.output(summary(model))
+  combined_output <- paste(summary_output, collapse = " ")
+  r2_pattern <- "R\\^2\\s*[:=]\\s*(\\d+\\.\\d+|\\d+)"
+  cleaned_output <- str_replace(combined_output, "R\\^2\\s*[:=]\\s*", "")
+  first_number <- round(as.numeric(str_extract(cleaned_output, "\\d+\\.\\d+|\\d+")),3)
+  return(first_number)
+}
+
+#m_ models
+Table_2[c(2,10,12),2] <- round(as.numeric(m_1$lm_res$coefficients[2:4]),3)
+Table_2[c(3,11,13),2] <- sprintf("(%s)", round(as.numeric(summary(m_1)[2:4,2]),3))
+
+Table_2[c(2,8,10,12),3] <- round(as.numeric(m_2$lm_res$coefficients[2:5]),3)
+Table_2[c(3,9,11,13),3] <- sprintf("(%s)", round(as.numeric(summary(m_2)[2:5,2]),3))
+
+Table_2[c(6,10,12),4] <- round(as.numeric(m_3$lm_res$coefficients[2:4]),3)
+Table_2[c(7,11,13),4] <- sprintf("(%s)", round(as.numeric(summary(m_3)[2:4,2]),3))
+
+Table_2[c(6,8,10,12),5] <- round(as.numeric(m_4$lm_res$coefficients[2:5]),3)
+Table_2[c(7,9,11,13),5] <- sprintf("(%s)", round(as.numeric(summary(m_4)[2:5,2]),3))
+
+Table_2[c(4,6,10,12),6] <- round(as.numeric(m_5$lm_res$coefficients[2:5]),3)
+Table_2[c(5,7,11,13),6] <- sprintf("(%s)", round(as.numeric(summary(m_5)[2:5,2]),3))
+
+Table_2[c(4,6,8,10,12),7] <- round(as.numeric(m_6$lm_res$coefficients[2:6]),3)
+Table_2[c(5,7,9,11,13),7] <- sprintf("(%s)", round(as.numeric(summary(m_6)[2:6,2]),3))
+
+Table_2[14,2:7] <- c(r2ext(m_1), r2ext(m_2), r2ext(m_3), r2ext(m_4), r2ext(m_5), r2ext(m_6))
+
+#p_ models
+Table_2[c(16,24,26),2] <- round(as.numeric(p_1$lm_res$coefficients[2:4]),3)
+Table_2[c(17,25,27),2] <- sprintf("(%s)", round(as.numeric(summary(p_1)[2:4,2]),3))
+
+Table_2[c(16,22,24,26),3] <- round(as.numeric(p_2$lm_res$coefficients[2:5]),3)
+Table_2[c(17,23,25,27),3] <- sprintf("(%s)", round(as.numeric(summary(p_2)[2:5,2]),3))
+
+Table_2[c(20,24,26),4] <- round(as.numeric(p_3$lm_res$coefficients[2:4]),3)
+Table_2[c(21,25,27),4] <- sprintf("(%s)", round(as.numeric(summary(p_3)[2:4,2]),3))
+
+Table_2[c(20,22,24,26),5] <- round(as.numeric(p_4$lm_res$coefficients[2:5]),3)
+Table_2[c(21,23,25,27),5] <- sprintf("(%s)", round(as.numeric(summary(p_4)[2:5,2]),3))
+
+Table_2[c(18,20,24,26),6] <- round(as.numeric(p_5$lm_res$coefficients[2:5]),3)
+Table_2[c(19,21,25,27),6] <- sprintf("(%s)", round(as.numeric(summary(p_5)[2:5,2]),3))
+
+Table_2[c(18,20,22,24,26),7] <- round(as.numeric(p_6$lm_res$coefficients[2:6]),3)
+Table_2[c(19,21,23,25,27),7] <- sprintf("(%s)", round(as.numeric(summary(p_6)[2:6,2]),3))
+
+Table_2[28,2:7] <- c(r2ext(p_1), r2ext(p_2), r2ext(p_3), r2ext(p_4), r2ext(p_5), r2ext(p_6))
+
+Table_2[is.na(Table_2)] <- ""
+
+kable(Table_2, col.names = c("","","","","","",""))
+
+```
+
+### Table 3
+
+#### Build Models
+
+```{r t3}
+
+```
 
 ## Citations
 
