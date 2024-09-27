@@ -1,0 +1,93 @@
+---
+title: "03 Data Viz"
+output: html_notebook
+---
+Replication workflow for:
+
+"Ideological Bias in Estimates of the Impact of Immigration"
+
+[George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
+[Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
+
+The original workflow was developed by Borjas using Stata (see `reg_model.do` in this repository), and this workflow is an identical set of analyses by Breznau done in R. 
+
+The file `df.rds` (also available as csv) was generated in the file `01_Data_Prep.Rmd`.
+
+## Setup
+
+```{r setup}
+
+packages <- c("tidyverse",
+              "knitr",
+              "pacman",
+              "here",
+              "ragg",
+              "margins",
+              "ggplot2",
+              "viridis",
+              "ggridges")
+
+pacman::p_load(packages, character.only = T)
+
+```
+
+
+## Data
+
+```{r data}
+
+df <- read_rds(here("data", "df.rds")) %>%
+  # add in variables for distributional analyses
+  mutate(negsig = ifelse(AME < 0 & abs(z) > 1.645, 1, 0),
+         possig = ifelse(AME > 0 & abs(z) > 1.645, 1, 0),
+         pos10 = ifelse(AME > .052, 1, 0),
+         neg10 = ifelse(AME < -.071, 1, 0),
+         pos10s = ifelse(AME > .052 & abs(z) > 1.645, 1, 0),
+         neg10s = ifelse(AME < -.071 & abs(z) > 1.645, 1, 0),
+         highstats = ifelse(statistics_skill == "High", 1, 0),
+         hightopic = ifelse(topic_knowledge == "High", 1, 0),
+         highmodel = ifelse(MODEL_SCORE == "High", 1, 0),
+         proindex = pro_immigrant,
+         t2 = case_when(team_size==1 ~ 1,
+                        .default = 0),
+         t3 = case_when(team_size==3 ~ 1,
+                        .default = 0))
+
+df <- df %>%
+  group_by(u_teamid) %>%
+  mutate(nmodel = n()) %>%
+  ungroup()
+
+```
+
+## Hist
+
+```{r h}
+
+ggplot(df, aes(y = AME)) +
+  geom_violin(
+    aes(x = factor(index), fill = index)
+  ) +
+  stat_summary(
+    aes(x = index-0.2, fill= index),
+    fun = mean,
+  ) +
+  scale_fill_viridis() +
+  coord_cartesian(ylim = c(-0.05,0.05)) +
+  theme_classic() +
+  theme(
+    legend.position = "none"
+  ) 
+  
+  
+
+```
+
+```{r ridges}
+ggplot(df, aes(x = AME, fill = factor(index), y = factor(index))) +
+  geom_density_ridges2() +
+  coord_cartesian(xlim = c(-0.5,0.5)) +
+  theme_classic()
+  
+```
+

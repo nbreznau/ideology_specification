@@ -78,23 +78,15 @@ tabulate index, sum(w2016);
 
 
 
-*THESE REGRESSIONS PROBABLY SHOULDN'T BE WEIGHTED BY NUMBER OF MODELS;
-*EACH MODEL REPRESENTS A UNIQUE SPECIFICATION;
-*NO CLEAR NEED FOR REGRESSIONS AT MODEL LEVEL TO REPLICATE REGRESSIONS AT TEAM LEVEL;
+
 
 
 *REGRESSIONS ON PREDICTED AME;
 
 
-
-
 reg mame proindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=1/nmodel],  cluster(teamid);
 reg mame dindex     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
 reg mame group1 group3     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
-
-reg mame proindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanscore/nmodel],  cluster(teamid);
-reg mame dindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanscore/nmodel],  cluster(teamid);
-reg mame group1 group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanscore/nmodel],  cluster(teamid);
 
 reg mame proindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
 reg mame dindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
@@ -111,10 +103,6 @@ reg residual proindex     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],
 reg residual dindex     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
 reg residual group1 group3     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
 
-reg residual proindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanscore/nmodel],  cluster(teamid);
-reg residual dindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanscore/nmodel],  cluster(teamid);
-reg residual group1 group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanscore/nmodel],  cluster(teamid);
-
 reg residual proindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
 reg residual dindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
 reg residual group1 group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
@@ -124,7 +112,7 @@ reg residual group1 group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpe
 
 
 *THIS PRODUCES THE GRAPH SHOWING DISTRIBUTION DIFFERENCES IN PREDICTED AME ACROSS TEAMS;
-twoway (kdensity mame if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) bwidth(.03) )
+*twoway (kdensity mame if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) bwidth(.03) )
 	(kdensity mame if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(medium) bwidth(.03) ) 
 	(kdensity mame if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(.03)) ,
 	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams"))
@@ -133,7 +121,7 @@ twoway (kdensity mame if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) l
 
 
 *THIS SAVES THE GRAPH;
-twoway (kdensity mame if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) bwidth(.03) )
+*twoway (kdensity mame if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) bwidth(.03) )
 	(kdensity mame if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(medium) bwidth(.03) ) 
 	(kdensity mame if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(.03)) ,
 	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams"))
