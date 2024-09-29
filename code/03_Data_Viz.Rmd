@@ -63,23 +63,48 @@ df <- df %>%
 ## Hist
 
 ```{r h}
+agg_png(here::here("results", "Fig1.png"), res = 144, width = 600, height = 550)
 
 ggplot(df, aes(y = AME)) +
   geom_violin(
     aes(x = factor(index), fill = index)
   ) +
   stat_summary(
-    aes(x = index-0.2, fill= index),
-    fun = mean,
+    aes(x = index-0.13, fill= index),
+    fun = mean, color = "grey40",
   ) +
-  scale_fill_viridis() +
-  coord_cartesian(ylim = c(-0.05,0.05)) +
+  stat_summary(
+    aes(x = index-0.13, fill= index),
+    fun.data = mean_sdl, fun.args = list(mult = 1),
+    geom = "errorbar", color = "grey40",
+    width = 0.2,
+  ) +
+  annotate("text", label = round(mean(df$AME[df$index == 1]), 3), 
+           x = 1.2, y = .07, 
+           color = "grey40", size = 3) +
+  annotate("text", label = expression(italic("means:")), 
+           x= 1.2, y = .13, 
+           color = "grey40", size = 3) +
+  annotate("text", label = format(round(mean(df$AME[df$index == 2]), 3), nsmall = 3),
+           x = 2.2, y = .07, 
+           color = "grey40", size = 3) +
+  annotate("text", label = format(round(mean(df$AME[df$index == 3]), 3), nsmall = 3),
+           x = 3.2, y = .07, 
+           color = "grey40", size = 3) +
+  scale_fill_viridis(begin = 0.2) +
+  coord_cartesian(ylim = c(-0.4,0.4)) +
+  scale_x_discrete(labels = c("1" = "Anti-imm",
+                              "2" = "Moderate",
+                              "3" = "Pro-imm")) +
   theme_classic() +
   theme(
-    legend.position = "none"
-  ) 
+    legend.position = "none",
+    axis.title.x = element_blank()
+  )
   
-  
+dev.off()
+
+knitr::include_graphics(here::here("results", "Fig1.png"))
 
 ```
 
