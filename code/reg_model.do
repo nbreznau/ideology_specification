@@ -114,8 +114,11 @@ tabulate nmodel;
 
 
 *TEAM SIZE;
+*TEAM 93 HAS TEAM SIZE MISCODED;
+replace team_size=3 if teamid==93;
 tabulate team_size;
-generate t2=(team_size==1);
+
+generate t2=(team_size==2);
 generate t3=(team_size==3);
 unique teamid if team_size==1;
 unique teamid if team_size==2;
@@ -208,7 +211,7 @@ replace mdegree=5 if counter2==1500 | counter2==2505 | counter2==3555;
 replace mdegree=6 if counter2==1600 | counter2==2606;
 
 *ALL MIXED DEGREES FOR ACTUAL TEAM SIZE 2;
-replace mdegree=20 if (team==2 & mdegree==.) | counter2==2654 ;
+replace mdegree=20 if (team==2 & mdegree==.) ;
 tabulate counter2 if mdegree==20;
 
 
@@ -216,14 +219,15 @@ tabulate counter2 if mdegree==20;
 
 *NOW BREAK UP TEAM SIZE 3 INTO 4 CATEGORIES;
 
-tabulate counter2 if mdegree==30;
 replace mdegree=31 if (counter2==3323 | counter2==3336
 	| counter2==3343);
 replace mdegree=32 if (counter2==3244 
 	| counter2==3414 | counter2==3443);
 *THE FOLLOWING 2 CATEGORIES USE DIFFERENT LEAD AUTHOR IN SOCIO OR POLI SCI TO CLASSIFY;
+*ALSO SEPARATES OUT STRANGE TEAM WITH 3 DISTINCT FIELDS;
 replace mdegree=33 if (counter2==3344 );
-replace mdegree=34 if ( counter2==3433);
+replace mdegree=34 if (counter2==3433);
+replace mdegree=35 if (counter2==3654);
 tabulate counter2 if team==3 & mdegree==.;
 tabulate counter2 if team_size==3 & mdegree==.;
 replace mdegree=30 if team_size==3 & mdegree==.;
@@ -327,9 +331,12 @@ tabulate group3 dindex;
 
 tabulate group1 group3;
 list teamid att1 att2 att3 if group1==1 & group3==1;
-unique teamid if group1==10 & group3==1;
+unique teamid if group1==1 & group3==1;
+replace group3=1 if group1==1 & group3==1;
 replace group1=0 if group1==1 & group3==1;
-replace group1=1 if group1==1 & group3==1;
+
+
+
 
 generate group2=(group1==0 & group3==0);
 generate index=1*group1 +2*group2 + 3*group3;
@@ -487,17 +494,10 @@ generate belief_cat=1*(belief_hypothesis=="Low") + 2*(belief_hypothesis=="Mid")
 tabulate belief_hypothesis belief_cat, missing;
 
 
-destring belief_ipred, force replace;
-generate belief_brw=belief_ipred;
-summ belief_brw belief_cat;
-
-
 
 
 
 *THERE IS PROBABLY A MISCODING OF WHAT "HIGH BELIEF" MEANS IN DATA SET;
-*SEE DISTRIBUTION.DO PROGRAM;
-*ALSO APPENDIX SAYS THERE ARE 161 RESEARCHERS IN 73 TEAMS, P. 5;
 *USING TEAM LEVEL DATA AND RESHAPING IT LEADS TO 159 PARTICIPANTS;
 *DOING TABULATION OF THE BELIEF_H1_Hx VARIABLES LEADS TO DISTRIBUTION OF BELIEF;
 *SIMILAR TO THAT IN APPENDIX QUESTIONNAIRE, P. 84, WHERE 1 MEANS BELIEF IMM STRONGLY REDUCES SOCIAL POLICY SUPPORT;
@@ -536,7 +536,22 @@ generate pbelief=nbelief/team;
 tabulate pbelief;
 
 
+destring belief_ipred, force replace;
 
+*FIXES CODING ISSUE IN BELIEF_IPRED;
+generate belief_brw=-belief_ipred;
+
+
+
+
+
+
+
+*GENERATE DUMMY VARIABLES FOR STATS, TOPIC, AND BELIEF;
+*NOTE THAT CODING OF BELIEF IS IN REVERSE;
+generate hstats=(statistics_skill=="High");
+generate htopic=(topic_knowledge=="High");
+generate hbelief=(belief_hypothesis=="Low");
 
 
 
@@ -776,7 +791,7 @@ margins, dydx(group1-topic_brw);
 
 
 
-
+/*
 
 ********************************************************************;
 
@@ -837,14 +852,10 @@ margins, dydx(group1-t3);
 
 
 
-
-
-
-
-
-
-
 ********************************************************************;
+
+*/
+
 
 
 
@@ -943,33 +954,31 @@ tabulate topic_knowledge, sum(topic_brw);
 tabulate statistics_skill, sum(stats_brw);
 tabulate model_score, sum(model_brw);
 
-generate highstats=(statistics_skill=="High");
-generate hightopic=(topic_knowledge=="High");
-generate highmodel=(model_score=="High");
+generate hmodel=(model_score=="High");
 
 
 summ dindex group1 group2 group3;
 tabulate dindex group3;
 
-summ ame neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel ;
-summ ame neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel if index==1 ;
-summ ame neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel if index==2;
-summ ame neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel if index==3;
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel ;
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel if index==1 ;
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel if index==2;
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel if index==3;
 
 
 *SUMMARY STATS WEIGHTED BY THE INVERSE OF THE NUMBER OF MODELS;
-summ ame neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel  [aw=1/nmodel];
-summ ame neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel if index==1  [aw=1/nmodel];
-summ ame neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel if index==2 [aw=1/nmodel];
-summ ame neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel if index==3 [aw=1/nmodel];
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel  [aw=1/nmodel];
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel if index==1  [aw=1/nmodel];
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel if index==2 [aw=1/nmodel];
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel if index==3 [aw=1/nmodel];
 
 
 
@@ -984,18 +993,18 @@ summ ame neg10s pos10s proindex dindex p12 p34 p56 group1 group2 group3 pbelief 
 
 
 collapse (mean) ame proindex dindex group1 group2 group3 p12 p34 p56 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel index, by(teamid);
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel index, by(teamid);
 
 
 
 summ ame proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size 
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel ;
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel ;
 summ ame proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size 
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel if index==1;
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel if index==1;
 summ ame proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel if index==2 ;
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel if index==2 ;
 summ ame proindex dindex p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
-	stats_brw topic_brw model_brw peer_mean quality quality2 hrej highstats-highmodel if index==3;
+	stats_brw topic_brw model_brw peer_mean quality quality2 hrej hstats-hmodel if index==3;
 
 
 

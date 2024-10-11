@@ -31,7 +31,8 @@ packages <- c("tidyverse",
               "haven",
               "margins",
               "numDeriv",
-              "pscl")
+              "pscl",
+              "mediation")
 
 pacman::p_load(packages, character.only = T)
 
@@ -740,11 +741,10 @@ m4_5 <- glm(quality2 ~ dindex + t2 + t3 + stats_brw + topic_brw + factor(mdegree
 
 # problem with too many parameters here, combine a few to ease in estimation
 df_p <- df_p %>%
-  mutate(mdegreex = case_match(mdegree,
-                               "1" ~ "30",
-                               "6" ~ "30",
-                               "2" ~ "30",
-                               .default = mdegree))
+  mutate(mdegreex = case_when(mdegree == 1 ~ 30,
+                              mdegree == 6 ~ 30,
+                              mdegree == 2 ~ 30,
+                              .default = mdegree))
 
 m4_6 <- glm(quality2 ~ group1 + group3 + t2 + t3 + stats_brw + topic_brw + mdegreex,
              data = df_p,
@@ -857,6 +857,158 @@ Refer to Stata code for now
 
 ```{r t6}
 
+```
+
+## Effect Decomp
+
+
+### Data
+
+From George Stata
+
+```{r edecomp}
+
+df_junkrej <- read_dta(here("Data", "junkrej.dta"))
+
+# there is something wrong with the variable hreject in these data, generate new
+
+minR <- min(1/df_junkrej$inv_weight_H)
+
+df_junkrej <- df_junkrej %>%
+  mutate(h_sup = ifelse(Hresult == "Support", 1, 0),
+         h_nosup = ifelse(Hresult == "Reject" | Hresult == "No test", 1, 0),
+         h_rej = ifelse(Hresult == "Reject", 1, 0),
+         rate_categories = case_when(
+           pos_test_pct_p05 < 0.075 ~ 1,
+           pos_test_pct_p05 < 0.325 ~ 2,
+           pos_test_pct_p05 < 0.5 ~ 3,
+           TRUE ~ 4),
+         inv_weight_R = (1/inv_weight_H)/minR,
+         team_size = factor(as.numeric(team_size)),
+         mdegree = factor(as.numeric(mdegree)))
+```
+
+
+### Models
+
+pb1 is if more than half the team believes in the hypothesis
+
+```{r emodels}
+
+e_tot <- lm(h_sup ~ proindex + pb1 + stats_brw + topic_brw + team_size + mdegree, data = df_junkrej, weights = inv_weight_R)
+
+e_tot_r <- lm(h_rej ~ proindex + pb1 + stats_brw + topic_brw + team_size + mdegree, data = df_junkrej, weights = inv_weight_R)
+
+e_dir <- lm(h_sup ~ meaname + proindex + pb1 +  stats_brw + topic_brw + team_size + mdegree, data = df_junkrej, weights = inv_weight_R)
+
+e_dir_both <- lm(h_sup ~ pos_test_pct_p05 + neg_test_pct_p05 + proindex + pb1 +  stats_brw + topic_brw + team_size + mdegree, data = df_junkrej, weights = inv_weight_R)
+
+e_dir_r <- lm(h_rej ~ meaname + proindex + pb1 +  stats_brw + topic_brw + team_size + mdegree, data = df_junkrej, weights = inv_weight_R)
+
+e_ind <- lm(meaname ~ proindex + pb1 + stats_brw + topic_brw + team_size + mdegree, data = df_junkrej, weights = inv_weight_R)
+
+e_ind_both <- lm(pos_test_pct_p05 ~ proindex + pb1 + stats_brw + neg_test_pct_p05 + topic_brw + team_size + mdegree, data = df_junkrej, weights = inv_weight_R)
+
+e_ind_r <- lm(meaname ~ proindex + pb1 + stats_brw + topic_brw + team_size + mdegree, data = df_junkrej, weights = inv_weight_R)
+
+e_ind2 <- lm(pb1 ~ proindex + stats_brw + topic_brw + team_size + mdegree, data = df_junkrej, weights = inv_weight_R)
+
+
+```
+
+### Sobel's test Pos
+
+```{r esobp}
+
+a <- coef(e_ind)["proindex"]  # Coefficient of proindex in the indirect model
+b <- coef(e_dir)["meaname"]  # Coefficient of pos_test_pct_p05 in the direct model
+
+# Step 2: Extract the standard errors
+se_a <- summary(e_ind)$coefficients["proindex", "Std. Error"]  # Standard error for proindex in e_ind
+se_b <- summary(e_dir)$coefficients["meaname", "Std. Error"]  # Standard error for pos_test_pct_p05 in e_dir
+
+# Step 3: Calculate the indirect effect and its standard error
+indirect_effect <- a * b
+se_indirect_effect <- sqrt((b^2 * se_a^2) + (a^2 * se_b^2))
+
+# Step 4: Perform Sobel's test
+z_value <- indirect_effect / se_indirect_effect
+p_value <- 2 * (1 - pnorm(abs(z_value)))
+
+cat("Indirect effect: ", indirect_effect, "\n")
+cat("Standard error of indirect effect: ", se_indirect_effect, "\n")
+cat("Z-value: ", z_value, "\n")
+cat("P-value: ", p_value, "\n")
+```
+
+
+### Sobel's test Neg
+
+```{r esobn}
+a <- coef(e_ind_r)["proindex"]  # Coefficient of proindex in the indirect model
+b <- coef(e_dir_r)["meaname"]  # Coefficient of pos_test_pct_p05 in the direct model
+
+# Step 2: Extract the standard errors
+se_a <- summary(e_ind_r)$coefficients["proindex", "Std. Error"]  # Standard error for proindex in e_ind
+se_b <- summary(e_dir_r)$coefficients["meaname", "Std. Error"]  # Standard error for pos_test_pct_p05 in e_dir
+
+# Step 3: Calculate the indirect effect and its standard error
+indirect_effect <- a * b
+se_indirect_effect <- sqrt((b^2 * se_a^2) + (a^2 * se_b^2))
+
+# Step 4: Perform Sobel's test
+z_value <- indirect_effect / se_indirect_effect
+p_value <- 2 * (1 - pnorm(abs(z_value)))
+
+cat("Indirect effect: ", indirect_effect, "\n")
+cat("Standard error of indirect effect: ", se_indirect_effect, "\n")
+cat("Z-value: ", z_value, "\n")
+cat("P-value: ", p_value, "\n")
+```
+
+### Mediation Bootstrap
+
+Doesn't work because it leaves out levels due to bootstrapping
+```{r esobnmed}
+mediate_model <- mediate(e_ind, e_dir, treat = "proindex", mediator = "meaname", 
+                         boot = TRUE, sims = 1000)
+
+# Summary of the results with bootstrapped standard errors
+summary(mediate_model)
+```
+### Table
+
+```{r tbl}
+
+Table_Effects <- as.data.frame(matrix(nrow = 11, ncol = 7))
+
+colnames(Table_Effects) <- c("Var", "Total_Pos", "Direct_Pos", "Indirect_Pos", "Total_Neg", "Direct_Neg", "Indirect_Neg")
+
+Table_Effects[1,2:7] <- c("H Supported", "H Supported", "Mean AME", "H Rejected", "H Rejected", "Mean AME")
+
+Table_Effects[,1] <- c("DV =", "Mean AME", "", "Pro-Immigrant", "", "Belief in H", "", "Stat Skills", "", "Topic Experience", "")
+
+# pos
+Table_Effects[c(4,6,8,10),2] <- round(as.numeric(e_tot$coefficients[2:5]),3)
+Table_Effects[c(5,7,9,11),2] <-  round(as.numeric(summary(e_tot)$coefficients[2:5, "Std. Error"]),3)
+
+Table_Effects[c(2,4,6,8,10),3] <- round(as.numeric(e_dir$coefficients[2:6]),3)
+Table_Effects[c(3,5,7,9,11),3] <-  round(as.numeric(summary(e_dir)$coefficients[2:6, "Std. Error"]),3)
+
+Table_Effects[c(4,6,8,10),4] <- round(as.numeric(e_ind$coefficients[2:5]),3)
+Table_Effects[c(5,7,9,11),4] <-  round(as.numeric(summary(e_ind)$coefficients[2:5, "Std. Error"]),3)
+
+# neg
+Table_Effects[c(4,6,8,10),5] <- round(as.numeric(e_tot_r$coefficients[2:5]),3)
+Table_Effects[c(5,7,9,11),5] <-  round(as.numeric(summary(e_tot_r)$coefficients[2:5, "Std. Error"]),3)
+
+Table_Effects[c(2,4,6,8,10),6] <- round(as.numeric(e_dir_r$coefficients[2:6]),3)
+Table_Effects[c(3,5,7,9,11),6] <-  round(as.numeric(summary(e_dir_r)$coefficients[2:6, "Std. Error"]),3)
+
+Table_Effects[c(4,6,8,10),7] <- round(as.numeric(e_ind_r$coefficients[2:5]),3)
+Table_Effects[c(5,7,9,11),7] <-  round(as.numeric(summary(e_ind_r)$coefficients[2:5, "Std. Error"]),3)
+
+write_csv(Table_Effects, here("Results", "Table_Effects.csv"))
 ```
 
 ## Citations
