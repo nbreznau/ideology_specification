@@ -23,9 +23,13 @@ packages <- c("tidyverse",
               "here",
               "ragg",
               "margins",
+              "miceadds",
               "ggplot2",
               "viridis",
-              "ggridges")
+              "ggridges",
+              "haven",
+              "broom",
+              "lm.beta")
 
 pacman::p_load(packages, character.only = T)
 
@@ -58,9 +62,174 @@ df <- df %>%
   mutate(nmodel = n()) %>%
   ungroup()
 
+# From the original Stata
+df_stata <- read_dta(here("data", "model.dta"))
+
 ```
 
-## Hist
+## Regressions
+
+```{r fig1adj}
+
+m_5 <- lm(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+
+m_4 <- lm(formula=AME ~ group1 + group3 + pbelief + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+
+m_4_beta <- lm.beta(m_4)
+
+df$AME_hat <- predict.lm(m_4, newdata = df)
+
+```
+
+
+## Coeffplot
+
+```{r coeff}
+# Extract coefficients and 90% confidence intervals using broom
+coef_df <- tidy(m_4, conf.int = TRUE, conf.level = 0.90)  # Set conf.level to 0.90
+
+
+# Extract the standardized coefficients directly from the summary of lm.beta
+std_coefficients <- summary(m_4_beta)$coefficients[, "Standardized"]
+# Convert the standardized coefficients into a data frame for easy joining
+coef_standardized <- data.frame(
+  term = names(std_coefficients),  # Names of the coefficients (e.g., group1, group3)
+  std_estimate = std_coefficients  # The standardized coefficients
+)
+
+# Filter for the specific terms (group1, group3, pbelief, stats_brw, topic_brw)
+coef_filtered <- coef_df %>%
+  filter(term %in% c("topic_brw", "stats_brw", "pbelief", "group3", "group1")) %>%
+  left_join(coef_standardized, by = "term") %>%  # Join with standardized coefficients
+  mutate(term = factor(term, levels = c("group1", "group3", "pbelief", "stats_brw", "topic_brw")))
+
+
+```
+
+
+```{r coeff2}
+agg_png(here("results", "Fig1cplot.png"), res = 144, height = 500, width = 650)
+
+ggplot(coef_filtered, aes(x = term, y = estimate)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
+  labs(x = "Variables", y = "Regression Coefficients", title = "") +
+    geom_hline(yintercept = 0, linetype = "dotted", color = "grey") +  
+    scale_x_discrete(labels = c("group1" = "Pro-\nimmigration", 
+                              "group3" = "Anti-\nimmigration", 
+                              "pbelief" = "Believes\nhypothesis\nis true", 
+                              "topic_brw" = "Prior knowledge\nof this topic")) +
+    geom_text(aes(label = format(round(std_estimate, 2), nsmall = 2)), vjust = -0.5, color = "#20A387FF")  +
+  #annotate("text", y = .04, x = 4, label = "XY-Standardized\nCoefficients", size = 2, color = "#20A387FF") +
+  theme_classic() +
+  coord_flip() +
+  theme(axis.text.y = element_text(hjust = 0)) 
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig1cplot.png"))
+```
+
+## 58 Categories
+
+### Create
+Create unique combinations of variables
+
+```{r the58}
+df_stata <- df_stata %>%
+  mutate(unique_combo = paste(scale, stock, flow, level_cyear, allavailable, w1996, w2006, w2016, sep = "_")) %>%
+  mutate(indicator = as.numeric(factor(unique_combo)))
+
+df_stata <- df_stata %>%
+  # Group by the unique combination
+  group_by(unique_combo) %>%
+  # Calculate the mean of 'ame' for each unique combination and create a new variable 'ame_combo_mean'
+  mutate(ame_combo_mean = mean(ame, na.rm = TRUE)) %>%
+  ungroup()
+```
+
+
+### Plot
+
+```{r the58plot}
+
+# Cap the count at 50
+df_summary <- df_stata %>%
+  group_by(unique_combo, index) %>%
+  summarise(count = n(), ame_combo_mean = mean(ame, na.rm = TRUE)) %>%
+  ungroup() %>%
+  mutate(count = pmin(count, 25))  # Cap the count at 50
+
+# Order unique_combo by ame_combo_mean
+df_summary <- df_summary %>%
+  arrange(ame_combo_mean) %>%
+  mutate(unique_combo = factor(unique_combo, levels = unique(unique_combo)))
+
+# Create the heatmap
+ggplot(df_summary, aes(x = unique_combo, y = index, fill = count)) +
+  geom_tile() +
+  scale_fill_gradient(low = "white", high = "steelblue") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  labs(x = "Model Combinations", y = "Index Group", fill = "Count (Capped at 25)", 
+       title = "Heatmap of Model Combinations by Group (Capped at 25)")
+
+```
+
+
+```{r dens58}
+df_stata <- df_stata %>%
+  arrange(ame_combo_mean) %>%
+  mutate(unique_combo_numeric = as.integer(factor(unique_combo, levels = unique(unique_combo))))
+
+# Step 2: Calculate the density for each index group and adjust y-axis positions to avoid overlap
+# Define offsets for each index group (adjust these values as needed)
+offsets <- c(0.2, 0, -0.2)  # Offset for index == 1, index == 2, and index == 3
+```
+
+
+```{r dens58p}
+
+agg_png(here("results", "Fig5.png"), res = 144, height = 550, width = 700 )
+
+viridis_colors <- viridis_pal()(5)  # Get 2 colors from the viridis palette
+color_index_1 <- viridis_colors[1]  # Color for index == 1
+color_index_2 <- viridis_colors[4]
+
+
+# Step 3: Plot using geom_density with the offset
+df_stata %>%
+  subset(index != 2) %>%
+ggplot(aes(x = unique_combo_numeric, group = index, color = factor(index), fill = factor(index))) +
+  geom_density( alpha = 0.5, adjust = 0.5, position = "identity") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  labs(x = "Unique Model Specifications\nOrdered by Average AME", 
+       y = "Density", 
+       title = "",
+       fill = "Index Group", color = "Index Group") +
+  scale_x_continuous(breaks = 1:58)  +
+  annotate("text", x = 1, y = 0.044, label = "Anti-immigration teams\ntended to select\nunique specifications\nproducing negative\nresults", size = 3, color = color_index_1, hjust = 0) +
+  annotate("text", x = 58, y = 0.044, label = "Pro-immigration teams\ntended to select\nunique specifications\nproducing positive\nresults", size = 3, color = color_index_2, hjust = 1) +
+  scale_color_manual(values = c(color_index_1, color_index_2)) +
+  scale_fill_manual(values = c(color_index_1, color_index_2)) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        legend.position = "none")
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig5.png"))
+
+```
+
+
+
+
+
+
+
+## Old stuff
+
+### Hist
 
 ```{r h}
 agg_png(here::here("results", "Fig1.png"), res = 144, width = 600, height = 550)
@@ -115,4 +284,108 @@ ggplot(df, aes(x = AME, fill = factor(index), y = factor(index))) +
   theme_classic()
   
 ```
+### Adj Mean Differences
+
+
+
+
+### Predicted values at means
+
+```{r meanadj}
+# Step 1: Calculate means of the variables to be fixed
+mean_stats_brw <- mean(df$stats_brw, na.rm = TRUE)
+mean_topic_brw <- mean(df$topic_brw, na.rm = TRUE)
+mean_t2 <- mean(df$t2, na.rm = TRUE)
+mean_t3 <- mean(df$t3, na.rm = TRUE)
+mean_mdegree <- mean(as.numeric(df$mdegree), na.rm = TRUE)
+mean_pbelief <- mean(as.numeric(df$pbelief), na.rm = TRUE)
+
+# Step 2: Create a new dataset for prediction
+# Keep group1 and group3 at their actual values, and others at their means
+new_data <- data.frame(
+  group1 = df$group1,
+  group3 = df$group3,
+  stats_brw = mean_stats_brw,
+  topic_brw = mean_topic_brw,
+  t2 = mean_t2,
+  t3 = mean_t3,
+  pbelief = mean_pbelief,
+  index = df$index,
+  mdegree = 1)
+
+# Step 3: Predict using the new data
+df$AME_hat <- predict(m_4, newdata = new_data)
+
+#mean center, as it has no natural metric
+df$AME_hat = df$AME_hat - mean(df$AME_hat)
+
+```
+
+### Viz
+
+```{r fig1viz}
+set.seed(90211)
+
+df %>%
+  mutate(AME_hat = AME_hat + rnorm(n(), mean = 0, sd = 0.01)) %>%
+  ggplot(aes(x = AME_hat, fill = factor(index), y = factor(index))) +
+  #geom_density_ridges2(height = "density") +
+  geom_density_ridges2(
+                       rel_min_height = 0.005, 
+                       scale = 1, 
+                       stat = "density", 
+                       #bw = 0.05,
+                       aes(height = after_stat(density))) +
+  scale_fill_viridis_d() +
+  coord_cartesian(xlim = c(-0.2,0.2)) +
+  theme_classic()
+
+```
+
+```{r ha}
+agg_png(here::here("results", "Fig1adj.png"), res = 144, width = 600, height = 550)
+
+ggplot(df, aes(y = AME_hat)) +
+  geom_violin(
+    aes(x = factor(index), fill = index)
+  ) +
+  stat_summary(
+    aes(x = index-0.13, fill= index),
+    fun = mean, color = "grey40",
+  ) +
+  stat_summary(
+    aes(x = index-0.13, fill= index),
+    fun.data = mean_sdl, fun.args = list(mult = 1),
+    geom = "errorbar", color = "grey40",
+    width = 0.2,
+  ) +
+  annotate("text", label = round(mean(df$AME_hat[df$index == 1]), 3), 
+           x = 1.2, y = .07, 
+           color = "grey40", size = 3) +
+  annotate("text", label = expression(italic("means:")), 
+           x= 1.2, y = .13, 
+           color = "grey40", size = 3) +
+  annotate("text", label = format(round(mean(df$AME_hat[df$index == 2]), 3), nsmall = 3),
+           x = 2.2, y = .07, 
+           color = "grey40", size = 3) +
+  annotate("text", label = format(round(mean(df$AME_hat[df$index == 3]), 3), nsmall = 3),
+           x = 3.2, y = .07, 
+           color = "grey40", size = 3) +
+  scale_fill_viridis(begin = 0.2) +
+  ylim(-0.2,0.2) +
+  scale_x_discrete(labels = c("1" = "Anti-imm",
+                              "2" = "Moderate",
+                              "3" = "Pro-imm")) +
+  theme_classic() +
+  theme(
+    legend.position = "none",
+    axis.title.x = element_blank()
+  )
+  
+dev.off()
+
+knitr::include_graphics(here::here("results", "Fig1adj.png"))
+
+```
+
 

@@ -1,14 +1,15 @@
 #delimit ;
-log using /volumes/ddisk/mi/researcher/reg_predict.log, replace;
+log using /users/ddisk/mi/researcher/reg_predict.log, replace;
 clear matrix;
 clear mata;
+
 
 
 
 *USES THE MODEL LEVEL DATA CREATED IN REG_MODEL.DO;
 
 
-use "/Volumes/Ddisk/MI/Researcher/model.dta", clear;
+use "/users/Ddisk/MI/Researcher/model.dta", clear;
 encode dv, gen(dvv);
 
 drop if ame==.;
@@ -33,13 +34,13 @@ collapse (mean) mame=ame pame meanscore=model_brw meanpeer=pscore,
 *THE VARIABLE SPEC GIVES THE NUMBER OF THE SPECIFICATION, THERE ARE 58;
 generate spec=_n;
 summ mame spec;
-save /volumes/ddisk/data/junkame.dta, replace;
+save /users/ddisk/data/junkame.dta, replace;
 
 
 
 
 *MERGE MAME WITH THE DATA SET;
-use "/Volumes/Ddisk/MI/Researcher/model.dta";
+use "/users/Ddisk/MI/Researcher/model.dta";
 
 encode dv, gen(dvv);
 
@@ -47,7 +48,7 @@ global set scale stock flow  level_cyear allavailable w1996 w2006 w2016;
 
 	
 sort $set;
-merge $set using /volumes/ddisk/data/junkame.dta;
+merge $set using /users/ddisk/data/junkame.dta;
 
 
 *NOTE THAT MODEL_BRW IS THE WRONG SCORE FOR THE 58 MIXED SPECIFICATION;
@@ -116,7 +117,7 @@ reg residual group1 group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpe
 	(kdensity mame if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(medium) bwidth(.03) ) 
 	(kdensity mame if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(.03)) ,
 	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams"))
-	saving(/volumes/ddisk/mi/researcher/hist_pred_ame.gph, replace);
+	saving(/users/ddisk/mi/researcher/hist_pred_ame.gph, replace);
 
 
 
@@ -125,7 +126,9 @@ reg residual group1 group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpe
 	(kdensity mame if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(medium) bwidth(.03) ) 
 	(kdensity mame if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(.03)) ,
 	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams"))
-	saving(/volumes/ddisk/mi/researcher/hist_pred_ame.gph, replace);
+	saving(/users/ddisk/mi/researcher/hist_pred_ame.gph, replace);
 
+
+collapse (mean) ame mame meanpeer meanscore, by(spec);
 
 log close;
