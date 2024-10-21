@@ -29,7 +29,8 @@ packages <- c("tidyverse",
               "ggridges",
               "haven",
               "broom",
-              "lm.beta")
+              "lm.beta",
+              "scales")
 
 pacman::p_load(packages, character.only = T)
 
@@ -40,30 +41,137 @@ pacman::p_load(packages, character.only = T)
 
 ```{r data}
 
-df <- read_rds(here("data", "df.rds")) %>%
-  # add in variables for distributional analyses
-  mutate(negsig = ifelse(AME < 0 & abs(z) > 1.645, 1, 0),
-         possig = ifelse(AME > 0 & abs(z) > 1.645, 1, 0),
-         pos10 = ifelse(AME > .052, 1, 0),
-         neg10 = ifelse(AME < -.071, 1, 0),
-         pos10s = ifelse(AME > .052 & abs(z) > 1.645, 1, 0),
-         neg10s = ifelse(AME < -.071 & abs(z) > 1.645, 1, 0),
-         highstats = ifelse(statistics_skill == "High", 1, 0),
-         hightopic = ifelse(topic_knowledge == "High", 1, 0),
-         highmodel = ifelse(MODEL_SCORE == "High", 1, 0),
-         proindex = pro_immigrant,
-         t2 = case_when(team_size==1 ~ 1,
-                        .default = 0),
-         t3 = case_when(team_size==3 ~ 1,
-                        .default = 0))
-
-df <- df %>%
-  group_by(u_teamid) %>%
-  mutate(nmodel = n()) %>%
-  ungroup()
+df <- read_rds(here("data", "df.rds"))
+Table_1_model_w <- read_rds(here("results", "Table_1_model_w.rds"))
 
 # From the original Stata
 df_stata <- read_dta(here("data", "model.dta"))
+
+```
+
+## Fig1A
+
+```{r fig1}
+
+
+# Proportion of dots with specific colors
+colors <- c("#453781FF", "#2D708EFF", "#3CBB75FF")
+
+# Create a data frame with the points and colors
+df_sphere <- data.frame(
+  x = c(1.22,1.32,1.42),
+  y = c(8.2,8.8,8.2),
+  color = colors
+)
+
+
+# positions for plotting
+x_positions <- c(4, 5, 6)
+y_pos1 <- c(1, 1, 1)
+y_pos2 <- c(2, 2, 2)
+y_pos3 <- c(3, 3, 3)
+y_pos4 <- c(4, 4, 4)
+
+agg_png(here("results", "Fig1A.png"), res = 144, height = 500, width = 800)
+
+f1a <- ggplot() +
+  # Set x-axis from 1 to 4 without labels
+  scale_x_continuous(limits = c(1, 6.5)) +
+  # Set y-axis from 1 to 8 without labels
+  scale_y_continuous(limits = c(1, 11)) +
+  # Add text labels
+  geom_point(data = df_sphere, aes(x = x, y = y, color = color), size = 2.5) + 
+  scale_color_identity() + #use specified colors
+  annotate("text", x = 2, y = 11, label = "71 teams independently used the same dataset to test a single\nhypothesis: that immigration reduces support for social policies", hjust = 0, size = 3.1, color = "grey30", vjust = 1, fontfact = "italic") +
+  annotate("text", x = 2, y = 9, label = "Prior to learning the hypothesis they were asked if immigration\nlaws in their country should be made stronger or more relaxed", hjust = 0,  vjust = 0.8, size = 3.1, color = "grey30", fontface = "italic") +
+  annotate("text", x = 1.15, y = 5.9, label = "Teams coded by\npolitical ideology\nin response to\nimmigration question", hjust = 0, size = 3.1, color = "grey30", fontface = "italic") +
+  annotate("text", x = 1.2, y = 10.62, hjust = 0, label = expression(H[1]), size = 7) +
+  geom_segment(aes(x = 1.2, y = 7.5, xend = 6.5, yend = 7.5), linetype = "dashed", color = "grey30", size = 0.5) +
+
+  annotate("text", x = 3, y = 2, label = "Pro-immigration", hjust = 1, color = "#3CBB75FF", size = 3.5) +
+  annotate("text", x = 3, y = 3, label = "Moderate", hjust = 1, color = "#2D708EFF", size = 3.5) +
+  annotate("text", x = 3, y = 4, label = "Anti-immigration", hjust = 1, color = "#453781FF", size = 3.5) +
+  annotate("text", x = 3, y = 1, label = "Total", hjust = 1, size = 3.5) +
+  
+  # Add the current annotations, shifted to x = 2, 3, 4 at y = 5
+  annotate("text", x = 4, y = 5, label = "# of\nteams", vjust = 0, size = 3.5) +
+  annotate("text", x = 5, y = 5, label = "Mean\nAME",  vjust = 0, size = 3.5) +
+  annotate("text", x = 6, y = 5, label = "% Extreme\nneg. & sig\neffects",  vjust = 0, size = 3.5) +
+  # Add results from Tbl1 weighted
+  mapply(function(txt, x, y) {
+    annotate("text", x = x, y = y, label = txt)
+  }, Table_1_model_w[1:3,2], x_positions, y_pos1) +
+  mapply(function(txt, x, y) {
+    annotate("text", x = x, y = y, label = txt, color = "#453781FF")}, 
+    Table_1_model_w[1:3,3], x_positions, y_pos4) +
+  mapply(function(txt, x, y) {
+    annotate("text", x = x, y = y, label = txt, color = "#2D708EFF")}, 
+    Table_1_model_w[1:3,4], x_positions, y_pos3) +
+  mapply(function(txt, x, y) {
+    annotate("text", x = x, y = y, label = txt, color = "#3CBB75FF")}, 
+    Table_1_model_w[1:3,5], x_positions, y_pos2) +
+  
+  # Remove axis lines, ticks, and grid
+  theme_void() +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    plot.margin = margin(t = 20, r = 80, b = 20, l = -10),
+    legend.position = "none" # Increased left margin
+  ) +
+  coord_cartesian(clip = "off")
+f1a
+
+dev.off()
+
+include_graphics(here("results", "Fig1A.png"))
+```
+
+## Fig1B
+
+```{r fig1b}
+agg_png(here("results", "Fig1B.png"), res = 144, width = 600, height = 500)
+# create scaling axis
+custom_y_trans <- trans_new(
+  name = "split_scale",
+  transform = function(x) ifelse(x <= 1, x / 2, (x - 1) / (35 - 1) * 0.5 + 0.5),  # Compress 0-1 to lower half, >1 to upper half
+  inverse = function(x) ifelse(x <= 0.5, x * 2, (x - 0.5) * (35 - 1) / 0.5 + 1)  # Inverse of the transform
+)
+
+
+f1b <- df %>%
+  subset(index != 2) %>%
+ggplot(aes(x = AME, group = index, color = factor(index) 
+           #,fill = factor(index)
+           )) +
+  geom_density( alpha = 0.5, adjust = 8, position = "identity") +  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  labs(x = "AME", 
+       y = "Density", 
+       title = "",
+       fill = "Index Group", color = "Index Group") +
+  scale_color_manual(values = c("#453781FF"
+                                #, "#2D708EFF"
+                                ,"#3CBB75FF"
+                                )) +
+  #scale_fill_manual(values = c("#453781FF", "#2D708EFF", "#3CBB75FF")) +
+  geom_vline(xintercept = mean(df$AME[df$index == 1]), linetype = "dashed", color = "#453781FF") +
+  geom_vline(xintercept = mean(df$AME[df$index == 3]), linetype = "dashed", color = "#3CBB75FF") +
+  annotate("text", x = -0.4, y = 0.9, label = "Anti-immigration\nteams", hjust = 0, color = "#453781FF", size = 2.7) +
+  geom_segment(aes(x = -0.31, y = 0.8, xend = -0.21, yend = 0.5),
+               arrow = arrow(type = "closed", length = unit(0.08, "inches"), angle = 15),
+               color = "#453781FF", size = 0.1) +
+  annotate("text", x = 0.42, y = 0.49, label = "Pro-immigration\nteams", hjust = 1, color = "#3CBB75FF", size = 2.7) +
+  geom_segment(aes(x = 0.37, y = 0.39, xend = 0.31, yend = 0.2),
+               arrow = arrow(type = "closed", length = unit(0.08, "inches"), angle = 15),
+               color = "#3CBB75FF", size = 0.1) +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_y_continuous(trans = custom_y_trans) +
+  coord_cartesian(xlim = c(-0.45, 0.45))
+f1b
+dev.off()
+
+knitr::include_graphics(here("results", "Fig1B.png"))
 
 ```
 
@@ -71,13 +179,11 @@ df_stata <- read_dta(here("data", "model.dta"))
 
 ```{r fig1adj}
 
-m_5 <- lm(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+m_4 <- lm(formula=AME ~ group1 + group3 +  stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
 
-m_4 <- lm(formula=AME ~ group1 + group3 + pbelief + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+m_5 <- lm(formula=neg10 ~ group1 + group3 +  stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
 
 m_4_beta <- lm.beta(m_4)
-
-df$AME_hat <- predict.lm(m_4, newdata = df)
 
 ```
 
@@ -85,24 +191,101 @@ df$AME_hat <- predict.lm(m_4, newdata = df)
 ## Coeffplot
 
 ```{r coeff}
-# Extract coefficients and 90% confidence intervals using broom
-coef_df <- tidy(m_4, conf.int = TRUE, conf.level = 0.90)  # Set conf.level to 0.90
-
 
 # Extract the standardized coefficients directly from the summary of lm.beta
 std_coefficients <- summary(m_4_beta)$coefficients[, "Standardized"]
+
 # Convert the standardized coefficients into a data frame for easy joining
 coef_standardized <- data.frame(
   term = names(std_coefficients),  # Names of the coefficients (e.g., group1, group3)
   std_estimate = std_coefficients  # The standardized coefficients
 )
 
+
+
+
+```
+
+```{r}
+# Extract coefficients and 90% confidence intervals using broom
+coef_df <- tidy(m_4, conf.int = TRUE, conf.level = 0.90)
+
+# Get the predicted value and standard error for group2
+# First, create a new dataframe with mean values for continuous variables and 0 for group1 and group3 (indicating group2)
+new_data <- df %>%
+  summarize(across(c(stats_brw, topic_brw, t2, t3), mean, na.rm = TRUE)) %>%
+  mutate(group1 = 0, group3 = 0, mdegree = factor(1))  # Assuming '1' is a baseline level for factor(mdegree)
+
+subset_group2 <- df %>%
+  filter(group1 == 0 & group3 == 0)
+
+# Predict the value for group2 (essentially the intercept) along with standard error for this subset
+pred_group2 <- predict(m_4, newdata = subset_group2, se.fit = TRUE)
+
+# Calculate the standard error for group2 by taking the mean of the standard errors from this subset
+se_group2 <- mean(pred_group2$se.fit)
+
+# Manually add the omitted group "Moderate" with estimate = 0 and its calculated standard error
+moderate_row <- data.frame(
+  term = "group2",
+  estimate = 0,
+  std.error = se_group2,  # Use the correct standard error for group2
+  conf.low = -1.645 * se_group2,  # 90% CI lower bound
+  conf.high = 1.645 * se_group2   # 90% CI upper bound
+)
+
+# Bind this row to the coefficients dataframe
+coef_df <- coef_df %>%
+  bind_rows(moderate_row)
+
+# Create a label for the omitted group
+coef_df <- coef_df %>%
+  mutate(term = recode(term, 
+                       "group1" = "Anti-\nimmigration", 
+                       "group3" = "Pro-\nimmigration", 
+                       "group2" = "Moderate",  # Label for the omitted group
+                       "stats_brw" = "Statistics and\nsoftware skills",  # New label
+                       "topic_brw" = "Prior knowledge\nof this topic"))
+
+coef_standardized <- coef_standardized %>%
+  mutate(term = recode(term, 
+                       "group1" = "Anti-\nimmigration", 
+                       "group3" = "Pro-\nimmigration", 
+                       "stats_brw" = "Statistics and\nsoftware skills",  # New label
+                       "topic_brw" = "Prior knowledge\nof this topic"))
+
 # Filter for the specific terms (group1, group3, pbelief, stats_brw, topic_brw)
 coef_filtered <- coef_df %>%
-  filter(term %in% c("topic_brw", "stats_brw", "pbelief", "group3", "group1")) %>%
-  left_join(coef_standardized, by = "term") %>%  # Join with standardized coefficients
-  mutate(term = factor(term, levels = c("group1", "group3", "pbelief", "stats_brw", "topic_brw")))
+  left_join(coef_standardized, by = "term") %>%
+  mutate(std_estimate = ifelse(term == "Moderate", 0, std_estimate))
 
+# Convert the term to a factor to control the order
+coef_df$term <- factor(coef_df$term, 
+                       levels = c("Prior knowledge\nof this topic",
+                                  "Statistics and\nsoftware skills",
+                                  "Pro-\nimmigration",
+                                  "Moderate",
+                                  "Anti-\nimmigration"
+                                   
+                                                  # New ordering
+                                                ))
+
+# Convert the term to a factor to control the order
+coef_filtered$term <- factor(coef_filtered$term, 
+                       levels = c("Prior knowledge\nof this topic",
+                                  "Statistics and\nsoftware skills",
+                                  "Pro-\nimmigration",
+                                  "Moderate",
+                                  "Anti-\nimmigration"
+                                   
+                                                  # New ordering
+                                                ))
+
+coef_df <- coef_df %>%
+  filter(!is.na(term))
+
+coef_filtered <- coef_filtered %>%
+  filter(!is.na(term))
 
 ```
 
@@ -110,24 +293,83 @@ coef_filtered <- coef_df %>%
 ```{r coeff2}
 agg_png(here("results", "Fig1cplot.png"), res = 144, height = 500, width = 650)
 
-ggplot(coef_filtered, aes(x = term, y = estimate)) +
+ggplot(coef_df, aes(x = term, y = estimate)) +
   geom_point() +
   geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
   labs(x = "Variables", y = "Regression Coefficients", title = "") +
-    geom_hline(yintercept = 0, linetype = "dotted", color = "grey") +  
-    scale_x_discrete(labels = c("group1" = "Pro-\nimmigration", 
-                              "group3" = "Anti-\nimmigration", 
-                              "pbelief" = "Believes\nhypothesis\nis true", 
-                              "topic_brw" = "Prior knowledge\nof this topic")) +
-    geom_text(aes(label = format(round(std_estimate, 2), nsmall = 2)), vjust = -0.5, color = "#20A387FF")  +
-  #annotate("text", y = .04, x = 4, label = "XY-Standardized\nCoefficients", size = 2, color = "#20A387FF") +
+  geom_hline(yintercept = 0, linetype = "dotted", color = "grey") +  
+  geom_text(data = coef_filtered, aes(label = format(round(std_estimate, 2), nsmall = 2)), 
+            vjust = -0.6, color = "#20A387FF", size = 2.7) +
   theme_classic() +
   coord_flip() +
-  theme(axis.text.y = element_text(hjust = 0)) 
+  theme(axis.text.y = element_text(hjust = 0))
 
 dev.off()
 
 knitr::include_graphics(here("results", "Fig1cplot.png"))
+```
+
+
+
+```{r plotdist1}
+
+# Number of points for smoothness of the normal distribution plot
+n_points <- 100
+
+# Generate data for normal distributions based on coefficients and standard errors
+coef_df <- coef_df %>%
+  rowwise() %>%
+  mutate(
+    x_dist = list(seq(estimate - 1.645 * std.error, estimate + 1.645 * std.error, length.out = n_points)),
+    y_dist = list(dnorm(x_dist, mean = estimate, sd = std.error))
+  )
+
+# Unnest the distributions for plotting
+coef_dist <- coef_df %>%
+  unnest(c(x_dist, y_dist))
+
+# Scale the y_dist (densities) so that they all have the same maximum height
+coef_dist <- coef_dist %>%
+  group_by(term) %>%
+  mutate(y_dist_scaled = y_dist / max(y_dist))  # Scale so all max heights are the same
+
+# Add a y-axis position for each coefficient (1 through 5)
+coef_dist <- coef_dist %>%
+  mutate(term_position = case_match(term,
+                                    "Prior knowledge\nof this topic" ~ 1,
+                                  "Statistics and\nsoftware skills" ~ 2,
+                                  "Pro-\nimmigration" ~ 3,
+                                  "Moderate" ~ 4,
+                                  "Anti-\nimmigration" ~ 5))
+
+# Define the viridis color palette for the histograms
+colors <- viridis_pal()(length(unique(coef_dist$term)))
+
+
+```
+
+
+```{r plotdist}
+# Create the plot
+ggplot(coef_dist, aes(x = x_dist, y = term_position, group = term)) +
+  # Plot the normal distributions as smooth curves using geom_ribbon
+  geom_ribbon(aes(ymin = term_position - 0.2, ymax = term_position + y_dist_scaled * 0.5 - 0.2, fill = term), alpha = 0.8) +
+  scale_fill_manual(values = colors) +
+  # Add a vertical line at x = 0 to mark the baseline
+  geom_vline(xintercept = 0, linetype = "dotted", color = "grey") +
+  # Plot standardized coefficient labels next to the distributions
+  geom_text(data = coef_filtered %>%
+              left_join(coef_dist %>% group_by(term) %>% summarize(term_position = first(term_position)), by = "term"),
+            aes(x = estimate, y = term_position + 0.5, label = format(round(std_estimate, 2), nsmall = 2)),
+            vjust = 1.5, hjust = -0.7, color = "grey15", size = 3) +
+  # Labels and formatting
+  labs(x = "Regression Coefficients", y = "", title = "") +
+  theme_classic() +
+  theme(axis.text.y = element_text(hjust = 1, size = 10),
+        axis.title.x = element_text(size = 12),
+        legend.position = "none") +
+  scale_y_continuous(breaks = 1:length(unique(coef_dist$term)), labels = c("Prior knowledge\nof this topic","Statistics and\nsoftware skills", "Pro-\nimmigration", "Moderate", "Anti-\nimmigration"))
+
 ```
 
 ## 58 Categories

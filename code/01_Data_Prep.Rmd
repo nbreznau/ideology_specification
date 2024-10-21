@@ -237,6 +237,32 @@ df2 <- df2 %>%
 
 ```
 
+### Create 10% cuts
+
+```{r c10}
+df2 <- df2 %>%
+  # add in variables for distributional analyses
+  mutate(negsig = ifelse(AME < 0 & abs(z) > 1.645, 1, 0),
+         possig = ifelse(AME > 0 & abs(z) > 1.645, 1, 0),
+         pos10 = ifelse(AME > .052, 1, 0),
+         neg10 = ifelse(AME < -.071, 1, 0),
+         pos10s = ifelse(AME > .052 & abs(z) > 1.645, 1, 0),
+         neg10s = ifelse(AME < -.071 & abs(z) > 1.645, 1, 0),
+         highstats = ifelse(statistics_skill == "High", 1, 0),
+         hightopic = ifelse(topic_knowledge == "High", 1, 0),
+         highmodel = ifelse(MODEL_SCORE == "High", 1, 0),
+         proindex = pro_immigrant,
+         t2 = case_when(team_size==1 ~ 1,
+                        .default = 0),
+         t3 = case_when(team_size==3 ~ 1,
+                        .default = 0))
+
+df2 <- df2 %>%
+  group_by(u_teamid) %>%
+  mutate(nmodel = n()) %>%
+  ungroup()
+```
+
 ## Save DF
 
 In both RDS and csv formats, to be user friendly
