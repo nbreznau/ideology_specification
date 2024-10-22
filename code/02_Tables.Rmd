@@ -120,6 +120,29 @@ Table_1_model <- bind_rows(mean1, mean2, mean3, mean4) %>%
 
 Table_1_model[,2:5] <- round(Table_1_model[,2:5], 3)
 
+x <- as.data.frame(t(c("Num of teams",
+                            length(tbl1_team$AME),
+                            sum(tbl1_team$group1 == 1),
+                            sum(tbl1_team$group2 == 1),
+                            sum(tbl1_team$group3 == 1)
+                            )))
+
+colnames(x) <- colnames(Table_1_model)
+
+Table_1_model <- rbind(x, Table_1_model)
+
+Table_1_model$`All teams` <- as.numeric(Table_1_model$`All teams`)
+Table_1_model$`Anti-imm` <- as.numeric(Table_1_model$`Anti-imm`)
+Table_1_model$Moderate <- as.numeric(Table_1_model$Moderate)
+Table_1_model$`Pro-imm` <- as.numeric(Table_1_model$`Pro-imm`)
+  
+Table_1_model[2:4,2] <- formatC(Table_1_model[2:4,2], format = "f", digits = 3)
+Table_1_model[2:4,3] <- formatC(Table_1_model[2:4,3], format = "f", digits = 3)
+Table_1_model[2:4,4] <- formatC(Table_1_model[2:4,4], format = "f", digits = 3)
+Table_1_model[2:4,5] <- formatC(Table_1_model[2:4,5], format = "f", digits = 3)
+
+saveRDS(Table_1_model, here("results", "Table_1_model.rds"))
+
 ```
 
 ##### T1 Model Level - Weighted
@@ -194,6 +217,8 @@ Table_1_team <- bind_rows(mean1, mean2, mean3, mean4) %>%
   pivot_wider(names_from = sample, values_from = Mean)
 
 Table_1_team[,2:5] <- round(Table_1_team[,2:5], 3)
+
+
 
 ```
 

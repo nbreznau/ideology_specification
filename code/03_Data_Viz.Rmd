@@ -42,18 +42,22 @@ pacman::p_load(packages, character.only = T)
 ```{r data}
 
 df <- read_rds(here("data", "df.rds"))
-Table_1_model_w <- read_rds(here("results", "Table_1_model_w.rds"))
+Table_1_model_w <- read_rds(here("results", "Table_1_model.rds"))
+
+#setup individual plotting
+
+df <- df %>%
+  mutate(index1 = ifelse(index == 2, NA, index),
+         index2 = ifelse(index != 2, NA, index))
 
 # From the original Stata
-df_stata <- read_dta(here("data", "model.dta"))
+#df_stata <- read_dta(here("data", "model.dta"))
 
 ```
 
 ## Fig1A
 
 ```{r fig1}
-
-
 # Proportion of dots with specific colors
 colors <- c("#453781FF", "#2D708EFF", "#3CBB75FF")
 
@@ -64,29 +68,42 @@ df_sphere <- data.frame(
   color = colors
 )
 
+Table_1_model_w[3:4, 2:5] <- lapply(Table_1_model_w[3:4, 2:5], function(x) {
+  # Convert to numeric if it's not already
+  x <- as.numeric(as.character(x))
+  # Format as percentage with 1 decimal place, even if it's .0
+  paste0(format(x * 100, nsmall = 1), "%")
+})
+
+
 
 # positions for plotting
-x_positions <- c(4, 5, 6)
+x_positions <- c(4, 4.8, 5.75, 6.6)
 y_pos1 <- c(1, 1, 1)
 y_pos2 <- c(2, 2, 2)
 y_pos3 <- c(3, 3, 3)
 y_pos4 <- c(4, 4, 4)
+```
 
+
+```{r fig1p}
 agg_png(here("results", "Fig1A.png"), res = 144, height = 500, width = 800)
 
 f1a <- ggplot() +
   # Set x-axis from 1 to 4 without labels
-  scale_x_continuous(limits = c(1, 6.5)) +
+  scale_x_continuous(limits = c(1, 7.1)) +
   # Set y-axis from 1 to 8 without labels
-  scale_y_continuous(limits = c(1, 11)) +
+  scale_y_continuous(limits = c(1, 11.1)) +
   # Add text labels
   geom_point(data = df_sphere, aes(x = x, y = y, color = color), size = 2.5) + 
   scale_color_identity() + #use specified colors
-  annotate("text", x = 2, y = 11, label = "71 teams independently used the same dataset to test a single\nhypothesis: that immigration reduces support for social policies", hjust = 0, size = 3.1, color = "grey30", vjust = 1, fontfact = "italic") +
-  annotate("text", x = 2, y = 9, label = "Prior to learning the hypothesis they were asked if immigration\nlaws in their country should be made stronger or more relaxed", hjust = 0,  vjust = 0.8, size = 3.1, color = "grey30", fontface = "italic") +
-  annotate("text", x = 1.15, y = 5.9, label = "Teams coded by\npolitical ideology\nin response to\nimmigration question", hjust = 0, size = 3.1, color = "grey30", fontface = "italic") +
+  annotate("text", x = 2, y = 11.1, label = "71 teams independently used the same dataset to test a single\nhypothesis: that immigration reduces support for social policies", hjust = 0, size = 3.1, color = "grey30", vjust = 1, fontfact = "italic") +
+  annotate("text", x = 2, y = 8.9, label = "They were asked prior to their research tasks if immigration\nlaws in their country should be made stronger or more relaxed", hjust = 0,  vjust = 0.8, size = 3.1, color = "grey30", fontface = "italic") +
+  annotate("text", x = 3, y = 5, label = "Political ideology", hjust = 1, vjust = 0, size = 3.5) +
   annotate("text", x = 1.2, y = 10.62, hjust = 0, label = expression(H[1]), size = 7) +
-  geom_segment(aes(x = 1.2, y = 7.5, xend = 6.5, yend = 7.5), linetype = "dashed", color = "grey30", size = 0.5) +
+  # lines
+  geom_segment(aes(x = 1.2, y = 7.5, xend = 7, yend = 7.5), linetype = "dashed", color = "grey30", size = 0.3) +
+  geom_segment(aes(x = 1.5, y = 4.6, xend = 7, yend = 4.6), size = 0.3) +
 
   annotate("text", x = 3, y = 2, label = "Pro-immigration", hjust = 1, color = "#3CBB75FF", size = 3.5) +
   annotate("text", x = 3, y = 3, label = "Moderate", hjust = 1, color = "#2D708EFF", size = 3.5) +
@@ -95,21 +112,23 @@ f1a <- ggplot() +
   
   # Add the current annotations, shifted to x = 2, 3, 4 at y = 5
   annotate("text", x = 4, y = 5, label = "# of\nteams", vjust = 0, size = 3.5) +
-  annotate("text", x = 5, y = 5, label = "Mean\nAME",  vjust = 0, size = 3.5) +
-  annotate("text", x = 6, y = 5, label = "% Extreme\nneg. & sig\neffects",  vjust = 0, size = 3.5) +
+  annotate("text", x = 4.8, y = 5, label = "Mean\nAME",  vjust = 0, size = 3.5) +
+  annotate("text", x = 6.175, y = 5.65, label = "Extreme 10%\nsig effects",  vjust = 0, size = 3.5) +
+  annotate("text", x = 5.75, y = 5, label = "Negative",  vjust = 0, size = 3.5) +
+  annotate("text", x = 6.6, y = 5, label = "Positive",  vjust = 0, size = 3.5) +
   # Add results from Tbl1 weighted
   mapply(function(txt, x, y) {
     annotate("text", x = x, y = y, label = txt)
-  }, Table_1_model_w[1:3,2], x_positions, y_pos1) +
+  }, Table_1_model_w[1:4,2], x_positions, y_pos1) +
   mapply(function(txt, x, y) {
     annotate("text", x = x, y = y, label = txt, color = "#453781FF")}, 
-    Table_1_model_w[1:3,3], x_positions, y_pos4) +
+    Table_1_model_w[1:4,3], x_positions, y_pos4) +
   mapply(function(txt, x, y) {
     annotate("text", x = x, y = y, label = txt, color = "#2D708EFF")}, 
-    Table_1_model_w[1:3,4], x_positions, y_pos3) +
+    Table_1_model_w[1:4,4], x_positions, y_pos3) +
   mapply(function(txt, x, y) {
     annotate("text", x = x, y = y, label = txt, color = "#3CBB75FF")}, 
-    Table_1_model_w[1:3,5], x_positions, y_pos2) +
+    Table_1_model_w[1:4,5], x_positions, y_pos2) +
   
   # Remove axis lines, ticks, and grid
   theme_void() +
@@ -140,33 +159,47 @@ custom_y_trans <- trans_new(
 
 
 f1b <- df %>%
-  subset(index != 2) %>%
-ggplot(aes(x = AME, group = index, color = factor(index) 
-           #,fill = factor(index)
-           )) +
-  geom_density( alpha = 0.5, adjust = 8, position = "identity") +  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
-  labs(x = "AME", 
-       y = "Density", 
-       title = "",
-       fill = "Index Group", color = "Index Group") +
-  scale_color_manual(values = c("#453781FF"
-                                #, "#2D708EFF"
-                                ,"#3CBB75FF"
-                                )) +
-  #scale_fill_manual(values = c("#453781FF", "#2D708EFF", "#3CBB75FF")) +
-  geom_vline(xintercept = mean(df$AME[df$index == 1]), linetype = "dashed", color = "#453781FF") +
-  geom_vline(xintercept = mean(df$AME[df$index == 3]), linetype = "dashed", color = "#3CBB75FF") +
-  annotate("text", x = -0.4, y = 0.9, label = "Anti-immigration\nteams", hjust = 0, color = "#453781FF", size = 2.7) +
-  geom_segment(aes(x = -0.31, y = 0.8, xend = -0.21, yend = 0.5),
-               arrow = arrow(type = "closed", length = unit(0.08, "inches"), angle = 15),
-               color = "#453781FF", size = 0.1) +
+  #subset(index != 2) %>%
+  ggplot() +
+  
+  # First density for index2, excluding NA values
+  geom_density(data = df %>% filter(!is.na(index2)),
+               aes(x = AME, group = index2, fill = factor(index2)), color = NA,  
+               alpha = 0.3, adjust = 7, position = "identity") +
+  
+  # Second density for index1, excluding NA values
+  geom_density(data = df %>% filter(!is.na(index1)),
+               aes(x = AME, group = index1, color = factor(index1)), 
+               alpha = 1, adjust = 6, position = "identity") +  
+  # Labels
+  labs(x = "AME", y = "Density", title = "", fill = "Index Group", color = "Index Group") +
+  
+  # Manual color and fill scales
+  scale_color_manual(values = c("#453781FF", "#3CBB75FF")) +   # Color for index1 groups
+  scale_fill_manual(values = c("#2D708EFF")) +  
+  #geom_vline(xintercept = mean(df$AME[df$index == 2]), linetype = "dashed", color = "#2D708EFF") +
+  #geom_vline(xintercept = mean(df$AME[df$index == 1]), linetype = "dashed", color = "#453781FF") +
+  #geom_vline(xintercept = mean(df$AME[df$index == 3]), linetype = "dashed", color = "#3CBB75FF") +
+  annotate("text", x = -0.45, y = 0.49, label = "Anti-immigration\nteams", hjust = 0, color = "#453781FF", size = 2.7) +
+  geom_segment(x = -0.4, y = 0.2, xend = -0.4, yend = 0.12,
+               arrow = arrow(type = "closed", length = unit(0.07, "inches"), angle = 15),
+               color = "#453781FF", size = 0.09) +
+    geom_segment(x = -0.225, y = 0.26, xend = -0.195, yend = 0.26,
+               arrow = arrow(type = "closed", length = unit(0.07, "inches"), angle = 15),
+               color = "#453781FF", size = 0.09) +
   annotate("text", x = 0.42, y = 0.49, label = "Pro-immigration\nteams", hjust = 1, color = "#3CBB75FF", size = 2.7) +
-  geom_segment(aes(x = 0.37, y = 0.39, xend = 0.31, yend = 0.2),
-               arrow = arrow(type = "closed", length = unit(0.08, "inches"), angle = 15),
-               color = "#3CBB75FF", size = 0.1) +
+  geom_segment(x = 0.37, y = 0.2, xend = 0.31, yend = 0.1,
+               arrow = arrow(type = "closed", length = unit(0.07, "inches"), angle = 15),
+               color = "#3CBB75FF", size = 0.09) +
   theme_classic() +
-  theme(legend.position = "none") +
-  scale_y_continuous(trans = custom_y_trans) +
+    geom_segment(x = 0.23, y = 0.23, xend = 0.17, yend = 0.18,
+               arrow = arrow(type = "closed", length = unit(0.07, "inches"), angle = 15),
+               color = "#3CBB75FF", size = 0.09, linetype = "longdash") +
+    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nteams", color = "#2D708EFF", size = 2.7) +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
   coord_cartesian(xlim = c(-0.45, 0.45))
 f1b
 dev.off()

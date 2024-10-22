@@ -1,0 +1,31 @@
+Been mostly thinking about how to present the evidence, and this is how I sort of envision it as of right now. We are allowed 4300 words of text and 5-6 "modest display items". Plus Methods section. Plus references.
+
+Will work on the paper a bit now and send you what I’ve done by the end of the day.
+
+
+
+Figure 1. Very similar to what you already did. Because this is a totally descriptive figure, I think it'd be nicer if it reflected what is in the raw data. No manipulations or weighting of any kind. Use the 1253 models as the observations. Panel A. Mean AMEs, and % extreme pos & sig and neg & sig. 
+Panel B. The actual distribution of AMEs for each of the three types of teams if possible. This give any reader a good idea of what the raw data look like, and that's usually a good thing to start with. 
+
+Not sure about this but a suggestion for another panel in between the two panels above: the actual distribution of all AMEs in the data, perhaps overlapped with the actual distribution of significant AMEs in the data.
+
+
+
+
+Figure 2. Main regression results. Panel A, key coefficients from main specification from column 2 of Table 2. I would present the predicted AME for each of the types of teams, and the graph would illustrate the CI. By predicted AME I mean exactly that, what is the predicted AME for group 1, group 2, group 3, if we evaluate all other variables at the mean. This has a nice interpretation in terms of numbers that presumably mean something. And it would be nice if somehow in the same panel, we could show the same resuls for the regressions weighted by the peer score. Maybe put two rectangles for each team, one below the other, one is weighted only by inverse of # of models; the other is also weighted by peer score. The good thing about everything in one panel is that we can then reserve Panel B of Figure 2 for an analogous graph that illustrates the individual-level results.
+
+One potential problem with Figure 2 and everything that follows. The figure will show say the CI for group 1 and the CI for group 3. We know that if we test the coefficients group 3 - group 1, that difference would be positive & statistically significant. But the graphs of the CI for teh two groups may overlap because this graphical presentation of coefficients ignores the covariance between the two coefficients. I have no idea how this is handled in this type of graphical presentation.
+
+
+
+Figure 3. Summary of regression coefficients for extreme pos or extreme neg & significant results. Both weighted and unweighted. I would again calculate the predicted probability for each event and the corresponding CI. Probabilities are very easy to understand, rather than differences relative to some baseline.
+
+
+
+
+Figure 4. Panel A. Referee scores distribution by ideology of team; Panel B. regression coefficients from column 2 of Table 4. Would be good to rescale the peer scores as standardized statistics so that differences between the groups have a clear meaning.
+
+
+
+
+Figure 5. Panel A: showing that teams choose different specifications, maybe some means from Table 5; Panel B. distribution of predicted AME by ideology of team; Panel C. Regression coefficients, column 2, Table 6, again both weighted and unweighted if possible.
