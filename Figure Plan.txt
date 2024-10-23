@@ -18,7 +18,7 @@ One potential problem with Figure 2 and everything that follows. The figure will
 
 
 
-Figure 3. Summary of regression coefficients for extreme pos or extreme neg & significant results. Both weighted and unweighted. I would again calculate the predicted probability for each event and the corresponding CI. Probabilities are very easy to understand, rather than differences relative to some baseline.
+Figure 3. Left neg panel, right pos panel. Summary of regression coefficients for extreme pos or extreme neg & significant results. Both weighted and unweighted. I would again calculate the predicted probability for each event and the corresponding CI. Probabilities are very easy to understand, rather than differences relative to some baseline. TRY BOTH LPMs and Logits here.
 
 
 

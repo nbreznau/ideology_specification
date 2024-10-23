@@ -43,9 +43,11 @@ pacman::p_load(packages, character.only = T)
 ```{r save}
 
 df <- read_rds(here("data", "df.rds"))
+df_dyad <- read_csv(here("data", "df_dyad.csv"))
 
 # original dataset taken from Stata
 df_stata <- read_dta(here("data", "model.dta"))
+
 
 ```
 
@@ -64,19 +66,19 @@ overall_summary <- team_ame_counts %>%
 overall_summary
 ```
 
-## Table 1 & 5. Summary Stats
+## Summary Stats
 
 ```{r tbl1}
 tbl1_team <- df %>%
-  dplyr::select(u_teamid, index, AME, neg10s, pos10s, proindex, dindex, p12, p34, p56, group1, group2, group3, pbelief,  nmodel, team_size,
-	stats_brw, topic_brw, model_brw, peer_mean, quality, quality2, Hrej, highstats:highmodel) %>%
+  dplyr::select(u_teamid, index, AME, neg10s, pos10s, proindex, dindex, p12, p34, p56, group1, group2, group3, pbelief,  nmodel, 
+	stats_brw, topic_brw, model_brw, team_size, peer_mean, quality, quality2, Hrej, pscore_Z) %>%
   group_by(u_teamid) %>%
   summarise_all(., mean, na.rm = T) %>%
   dplyr::select(-u_teamid) %>%
   ungroup()
 
 tbl1_model <- df %>%
-  dplyr::select(index, AME, neg10s, pos10s, group1, group2, group3, pbelief,  nmodel, team_size, stats_brw, topic_brw, model_brw, peer_mean, quality, quality2, Hrej, highstats:highmodel)
+  dplyr::select(index, AME, neg10s, pos10s, group1, group2, group3, pbelief,  nmodel,  stats_brw, topic_brw, model_brw, team_size, pscore_Z, quality, quality2, Hrej, pscore)
 
 tbl1_model_w <- df %>%
   dplyr::select(index, team_size, AME, neg10s, pos10s, nmodel)
@@ -141,7 +143,13 @@ Table_1_model[2:4,3] <- formatC(Table_1_model[2:4,3], format = "f", digits = 3)
 Table_1_model[2:4,4] <- formatC(Table_1_model[2:4,4], format = "f", digits = 3)
 Table_1_model[2:4,5] <- formatC(Table_1_model[2:4,5], format = "f", digits = 3)
 
+# for visualizations (includes num of teams on top)
 saveRDS(Table_1_model, here("results", "Table_1_model.rds"))
+
+# for tables, removes num of teams on top
+Table_1_model <- Table_1_model[2:20,]
+
+
 
 ```
 
@@ -228,7 +236,7 @@ Table_1_team[,2:5] <- round(Table_1_team[,2:5], 3)
 
 Table_1 <- as.data.frame(matrix(nrow = 15, ncol = 5))
 
-Table_1[,1] <- c("Variable", "Mean AME", "% AME negative and significant", "% AME positive and significant", "Mean immigration sentiment", "% Anti-immigration teams", "% Moderate teams", "% Pro-immigration teams", "% Believe hypothesis", "% High statistical skills", "% High topic experience", "% High referee score", "Team size", "N models", "N teams")
+Table_1[,1] <- c("Variable", "Mean AME", "% AME negative and significant", "% AME positive and significant", "Mean immigration sentiment", "% Anti-immigration teams", "% Moderate teams", "% Pro-immigration teams", "% Believe hypothesis", "Statistical skills (Z)", "Topic experience (Z)", "Peer score (Z)", "Team size", "N models", "N teams")
 
 Table_1[1,2:5] <- c("All teams", "Anti-imm", "Moderate", "Pro-imm")
 
@@ -236,15 +244,17 @@ Table_1[1,2:5] <- c("All teams", "Anti-imm", "Moderate", "Pro-imm")
 Table_1[2:4,2:5] <- Table_1_model[1:3,2:5]
 
 # Team-level summaries
-Table_1_team <- subset(Table_1_team, Variable %in% c("proindex", "group1", "group2", "group3", "pbelief", "highstats", "hightopic", "team_size"))
+Table_1_team <- subset(Table_1_team, Variable %in% c("proindex", "group1", "group2", "group3", "pbelief", "stats_brw", "topic_brw", "team_size"))
 
 Table_1[c(5:11,13),2:5] <- Table_1_team[,2:5]
 
-Table_1[12,2:5] <- Table_1_model[20,2:5]
+Table_1[12,2:5] <- Table_1_model[14,2:5]
 Table_1[14,2:5] <- c(n1, n2, n3, n4)
 Table_1[15,2:5] <- c(nm1, nm2, nm3, nm4)
 
 kable(Table_1, col.names = c("","","","",""))
+
+write_csv(Table_1, here("results", "TableS1.csv"))
 
 ```
 #### Table 5
@@ -286,40 +296,29 @@ kable(Table_5, col.names = c("Design decision", "All teams", "Anti- immigration"
 
 ```{r t2rs}
 
-m_1 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+m_1 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
-# without clustered se for lokLik and AIC calculation
+m_2 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
-source(here::here("code", "t2_fit.R"))
+m_3 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
-# check that I have produced an identical dataset
-#m1s <- lm.cluster(formula=ame ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df_stata$nmodel, cluster = "u_teamid", data = df_stata)
+m_4 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
-m_2 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
-m_3 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+p_1 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
 
-m_4 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+p_2 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
 
-m_5 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+p_3 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
 
-m_6 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+p_4 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
 
-p_1 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
-
-p_2 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
-
-p_3 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
-
-p_4 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
-
-p_5 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
-
-p_6 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
-
-null_m <- m_1 <- lm.cluster(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+null_m <- lm.cluster(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
 null_p <- lm.cluster(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+
+# re-run as lm's to get fit stats
+source(here("code", "t2_fit.R"))
 
 ```
 
@@ -327,11 +326,11 @@ null_p <- lm.cluster(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdeg
 
 ```{r t2r}
 
-Table_2 <- as.data.frame(matrix(nrow = 32, ncol = 8))
+Table_2 <- as.data.frame(matrix(nrow = 32, ncol = 6))
 
-Table_2[,1] <- c("Variable", "A. Main regressions\nMean pro-imm. index", "", "Anti-immigration team", "", "Pro-immigration team", "", "Belief in hypothesis", "", "Statistical skills", "", "Topic experience", "", "Log-Lik", "AIC",  "R-squared", "", "B. Weighted by referee score\nMean pro-imm. index", "", "Anti-immigration team", "", "Pro-immigration team", "", "Belief in hypothesis", "", "Statistical skills", "", "Topic experience", "", "Log-Lik", "AIC", "R-squared")
+Table_2[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
 
-Table_2[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
+Table_2[1,2:6] <- c("Null", "(1)", "(2)", "(3)", "(4)")
 
 # function to get r-squared
 
@@ -345,73 +344,101 @@ r2ext <- function(model) {
 }
 
 #m_ models
-Table_2[c(10,12),2] <- round(as.numeric(null_m$lm_res$coefficients[2:3]),3)
-Table_2[c(11,13),2] <- sprintf("(%s)", round(as.numeric(summary(null_m)[2:3,2]),3))
+Table_2[c(6,8),2] <- round(as.numeric(null_m$lm_res$coefficients[2:3]),3)
+Table_2[c(7,9),2] <- sprintf("(%s)", round(as.numeric(summary(null_m)[2:3,2]),3))
 
-Table_2[c(2,10,12),3] <- round(as.numeric(m_1$lm_res$coefficients[2:4]),3)
-Table_2[c(3,11,13),3] <- sprintf("(%s)", round(as.numeric(summary(m_1)[2:4,2]),3))
+Table_2[c(2,4,6,8),3] <- round(as.numeric(m_1$lm_res$coefficients[2:5]),3)
+Table_2[c(3,5,7,9),3] <- sprintf("(%s)", round(as.numeric(summary(m_1)[2:5,2]),3))
 
-Table_2[c(2,8,10,12),4] <- round(as.numeric(m_2$lm_res$coefficients[2:5]),3)
-Table_2[c(3,9,11,13),4] <- sprintf("(%s)", round(as.numeric(summary(m_2)[2:5,2]),3))
+Table_2[c(2,4,6,8,10),4] <- round(as.numeric(m_2$lm_res$coefficients[c(2,3,5,6,4)]),3)
+Table_2[c(3,5,7,9,11),4] <- sprintf("(%s)", round(as.numeric(summary(m_2)[c(2,3,5,6,4),2]),3))
 
-Table_2[c(6,10,12),5] <- round(as.numeric(m_3$lm_res$coefficients[2:4]),3)
-Table_2[c(7,11,13),5] <- sprintf("(%s)", round(as.numeric(summary(m_3)[2:4,2]),3))
+Table_2[c(6,8,12),5] <- round(as.numeric(m_3$lm_res$coefficients[c(3,4,2)]),3)
+Table_2[c(7,9,13),5] <- sprintf("(%s)", round(as.numeric(summary(m_3)[c(3,4,2),2]),3))
 
-Table_2[c(6,8,10,12),6] <- round(as.numeric(m_4$lm_res$coefficients[2:5]),3)
-Table_2[c(7,9,11,13),6] <- sprintf("(%s)", round(as.numeric(summary(m_4)[2:5,2]),3))
+Table_2[c(6,8,10,12),6] <- round(as.numeric(m_4$lm_res$coefficients[c(4,5,3,2)]),3)
+Table_2[c(7,9,11,13),6] <- sprintf("(%s)", round(as.numeric(summary(m_4)[c(4,5,3,2),2]),3))
 
-Table_2[c(4,6,10,12),7] <- round(as.numeric(m_5$lm_res$coefficients[2:5]),3)
-Table_2[c(5,7,11,13),7] <- sprintf("(%s)", round(as.numeric(summary(m_5)[2:5,2]),3))
 
-Table_2[c(4,6,8,10,12),8] <- round(as.numeric(m_6$lm_res$coefficients[2:6]),3)
-Table_2[c(5,7,9,11,13),8] <- sprintf("(%s)", round(as.numeric(summary(m_6)[2:6,2]),3))
+Table_2[16,2:6] <- c(r2ext(null_m), r2ext(m_1), r2ext(m_2), r2ext(m_3), r2ext(m_4))
 
-Table_2[16,2:8] <- c(r2ext(null_m), r2ext(m_1), r2ext(m_2), r2ext(m_3), r2ext(m_4), r2ext(m_5), r2ext(m_6))
+Table_2[14,2:6] <- round(c(logLik((null_ml)), logLik(m_1l), logLik(m_2l), logLik(m_3l), logLik(m_4l)),2)
 
-Table_2[14,2:8] <- round(c(logLik((null_ml)), logLik(m_1l), logLik(m_2l), logLik(m_3l), logLik(m_4l), logLik(m_5l), logLik(m_6l)),2)
-
-Table_2[15,2:8] <- round(c(AIC((null_ml)), AIC(m_1l), AIC(m_2l), AIC(m_3l), AIC(m_4l), AIC(m_5l), AIC(m_6l)),2)
+Table_2[15,2:6] <- round(c(AIC((null_ml)), AIC(m_1l), AIC(m_2l), AIC(m_3l), AIC(m_4l)),2)
 
 #p_ models
-Table_2[c(26,28),2] <- round(as.numeric(null_p$lm_res$coefficients[2:3]),3)
-Table_2[c(27,29),2] <- sprintf("(%s)", round(as.numeric(summary(null_p)[2:3,2]),3))
+Table_2[c(22,24),2] <- round(as.numeric(null_p$lm_res$coefficients[2:3]),3)
+Table_2[c(23,25),2] <- sprintf("(%s)", round(as.numeric(summary(null_p)[2:3,2]),3))
 
-Table_2[c(18,26,28),3] <- round(as.numeric(p_1$lm_res$coefficients[2:4]),3)
-Table_2[c(19,27,29),3] <- sprintf("(%s)", round(as.numeric(summary(p_1)[2:4,2]),3))
+Table_2[c(18,20,22,24),3] <- round(as.numeric(p_1$lm_res$coefficients[2:5]),3)
+Table_2[c(19,21,23,25),3] <- sprintf("(%s)", round(as.numeric(summary(p_1)[2:5,2]),3))
 
-Table_2[c(18,24,26,28),4] <- round(as.numeric(p_2$lm_res$coefficients[2:5]),3)
-Table_2[c(19,25,27,29),4] <- sprintf("(%s)", round(as.numeric(summary(p_2)[2:5,2]),3))
+Table_2[c(18,20,22,24,26),4] <- round(as.numeric(p_2$lm_res$coefficients[c(2,3,5,6,4)]),3)
+Table_2[c(19,21,23,25,27),4] <- sprintf("(%s)", round(as.numeric(summary(p_2)[c(2,3,5,6,4),2]),3))
 
-Table_2[c(20,24,26,28),5] <- round(as.numeric(p_3$lm_res$coefficients[2:5]),3)
-Table_2[c(21,25,27,29),5] <- sprintf("(%s)", round(as.numeric(summary(p_3)[2:5,2]),3))
+Table_2[c(22,24,28),5] <- round(as.numeric(p_3$lm_res$coefficients[c(3,4,2)]),3)
+Table_2[c(23,25,29),5] <- sprintf("(%s)", round(as.numeric(summary(p_3)[c(3,4,2),2]),3))
 
-Table_2[c(22,24,26,28),6] <- round(as.numeric(p_4$lm_res$coefficients[2:5]),3)
-Table_2[c(23,25,27,29),6] <- sprintf("(%s)", round(as.numeric(summary(p_4)[2:5,2]),3))
+Table_2[c(22,24,26,28),6] <- round(as.numeric(p_4$lm_res$coefficients[c(4,5,3,2)]),3)
+Table_2[c(23,25,27,29),6] <- sprintf("(%s)", round(as.numeric(summary(p_4)[c(4,5,3,2),2]),3))
 
-Table_2[c(20,22,26,28),7] <- round(as.numeric(p_5$lm_res$coefficients[2:5]),3)
-Table_2[c(21,23,27,29),7] <- sprintf("(%s)", round(as.numeric(summary(p_5)[2:5,2]),3))
+Table_2[32,2:6] <- c(r2ext(null_p), r2ext(p_1), r2ext(p_2), r2ext(p_3), r2ext(p_4))
 
-Table_2[c(20,22,24,26,28),8] <- round(as.numeric(p_6$lm_res$coefficients[2:6]),3)
-Table_2[c(21,23,25,27,29),8] <- sprintf("(%s)", round(as.numeric(summary(p_6)[2:6,2]),3))
+Table_2[30,2:6] <- round(c(logLik((null_pl)), logLik(p_1l), logLik(p_2l), logLik(p_3l), logLik(p_4l)),2)
 
-Table_2[32,2:8] <- c(r2ext(null_p), r2ext(p_1), r2ext(p_2), r2ext(p_3), r2ext(p_4), r2ext(p_5), r2ext(p_6))
-
-Table_2[30,2:8] <- round(c(logLik((null_pl)), logLik(p_1l), logLik(p_2l), logLik(p_3l), logLik(p_4l), logLik(p_5l), logLik(p_6l)),2)
-
-Table_2[31,2:8] <- round(c(AIC((null_pl)), AIC(p_1l), AIC(p_2l), AIC(p_3l), AIC(p_4l), AIC(p_5l), AIC(p_6l)),2)
+Table_2[31,2:6] <- round(c(AIC((null_pl)), AIC(p_1l), AIC(p_2l), AIC(p_3l), AIC(p_4l)),2)
 
 Table_2[is.na(Table_2)] <- ""
 
-write_csv(Table_2, here::here("results", "Tbl2.csv"))
+write.csv(Table_2, here::here("results", "TableS2.csv"), row.names = F)
 
-kable(Table_2, col.names = c("","","","","","","",""))
+kable(Table_2, col.names = c("","","","","",""))
 
 
 ```
 
 ### Table 3
 
+Individual level models
+
 #### Build Models
+
+
+```{r T3}
+
+# different weighting now
+df_dyad <- df_dyad %>%
+  group_by(u_id) %>%
+  mutate(nmodel = n()) %>%
+  ungroup() %>%
+  subset(!is.na(indiv))
+
+df_dyad$pweight <- 1/(df_dyad$nmodel*df_dyad$team_size)
+
+m_1d <- lm.cluster(formula=AME ~ factor(indiv) + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
+
+m_2d <- lm.cluster(formula=AME ~ factor(indiv) + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
+
+m_3d <- lm.cluster(formula=AME ~ attitude_immigration_1 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
+
+m_4d <- lm.cluster(formula=AME ~ attitude_immigration_1 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
+
+
+p_1d <- lm.cluster(formula=AME ~ factor(indiv) + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+
+p_2d <- lm.cluster(formula=AME ~ factor(indiv) + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+
+p_3d <- lm.cluster(formula=AME ~ attitude_immigration_1 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+
+p_4d <- lm.cluster(formula=AME ~ attitude_immigration_1 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+
+null_md <- lm.cluster(formula=AME ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
+
+null_pd <- lm.cluster(formula=AME ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+
+# re-run as lm's to get fit stats
+source(here("code", "t3_fit.R"))
+```
 
 It does not seem to be possible to both weight and cluster using glm binomial. So the cluster has to be done after.
 

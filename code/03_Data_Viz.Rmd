@@ -59,7 +59,7 @@ df <- df %>%
 
 ```{r fig1}
 # Proportion of dots with specific colors
-colors <- c("#453781FF", "#2D708EFF", "#3CBB75FF")
+colors <- c("#453781FF", "#3CBB75FF", "#FD9567FF")
 
 # Create a data frame with the points and colors
 df_sphere <- data.frame(
@@ -105,9 +105,9 @@ f1a <- ggplot() +
   geom_segment(aes(x = 1.2, y = 7.5, xend = 7, yend = 7.5), linetype = "dashed", color = "grey30", size = 0.3) +
   geom_segment(aes(x = 1.5, y = 4.6, xend = 7, yend = 4.6), size = 0.3) +
 
-  annotate("text", x = 3, y = 2, label = "Pro-immigration", hjust = 1, color = "#3CBB75FF", size = 3.5) +
-  annotate("text", x = 3, y = 3, label = "Moderate", hjust = 1, color = "#2D708EFF", size = 3.5) +
-  annotate("text", x = 3, y = 4, label = "Anti-immigration", hjust = 1, color = "#453781FF", size = 3.5) +
+  annotate("text", x = 3, y = 2, label = "Pro-immigration", hjust = 1, color = colors[3], size = 3.5) +
+  annotate("text", x = 3, y = 3, label = "Moderate", hjust = 1, color = colors[2], size = 3.5) +
+  annotate("text", x = 3, y = 4, label = "Anti-immigration", hjust = 1, color = colors[1], size = 3.5) +
   annotate("text", x = 3, y = 1, label = "Total", hjust = 1, size = 3.5) +
   
   # Add the current annotations, shifted to x = 2, 3, 4 at y = 5
@@ -121,13 +121,13 @@ f1a <- ggplot() +
     annotate("text", x = x, y = y, label = txt)
   }, Table_1_model_w[1:4,2], x_positions, y_pos1) +
   mapply(function(txt, x, y) {
-    annotate("text", x = x, y = y, label = txt, color = "#453781FF")}, 
+    annotate("text", x = x, y = y, label = txt, color = colors[1])}, 
     Table_1_model_w[1:4,3], x_positions, y_pos4) +
   mapply(function(txt, x, y) {
-    annotate("text", x = x, y = y, label = txt, color = "#2D708EFF")}, 
+    annotate("text", x = x, y = y, label = txt, color = colors[2])}, 
     Table_1_model_w[1:4,4], x_positions, y_pos3) +
   mapply(function(txt, x, y) {
-    annotate("text", x = x, y = y, label = txt, color = "#3CBB75FF")}, 
+    annotate("text", x = x, y = y, label = txt, color = colors[3])}, 
     Table_1_model_w[1:4,5], x_positions, y_pos2) +
   
   # Remove axis lines, ticks, and grid
@@ -175,30 +175,33 @@ f1b <- df %>%
   labs(x = "AME", y = "Density", title = "", fill = "Index Group", color = "Index Group") +
   
   # Manual color and fill scales
-  scale_color_manual(values = c("#453781FF", "#3CBB75FF")) +   # Color for index1 groups
-  scale_fill_manual(values = c("#2D708EFF")) +  
+  scale_color_manual(values = colors[c(1,3)]) +   # Color for index1 groups
+  scale_fill_manual(values = colors[2]) +  
   #geom_vline(xintercept = mean(df$AME[df$index == 2]), linetype = "dashed", color = "#2D708EFF") +
   #geom_vline(xintercept = mean(df$AME[df$index == 1]), linetype = "dashed", color = "#453781FF") +
   #geom_vline(xintercept = mean(df$AME[df$index == 3]), linetype = "dashed", color = "#3CBB75FF") +
-  annotate("text", x = -0.45, y = 0.49, label = "Anti-immigration\nteams", hjust = 0, color = "#453781FF", size = 2.7) +
-  geom_segment(x = -0.4, y = 0.2, xend = -0.4, yend = 0.12,
-               arrow = arrow(type = "closed", length = unit(0.07, "inches"), angle = 15),
-               color = "#453781FF", size = 0.09) +
-    geom_segment(x = -0.225, y = 0.26, xend = -0.195, yend = 0.26,
-               arrow = arrow(type = "closed", length = unit(0.07, "inches"), angle = 15),
-               color = "#453781FF", size = 0.09) +
-  annotate("text", x = 0.42, y = 0.49, label = "Pro-immigration\nteams", hjust = 1, color = "#3CBB75FF", size = 2.7) +
-  geom_segment(x = 0.37, y = 0.2, xend = 0.31, yend = 0.1,
-               arrow = arrow(type = "closed", length = unit(0.07, "inches"), angle = 15),
-               color = "#3CBB75FF", size = 0.09) +
+  annotate("text", x = -0.45, y = 0.8, label = "Anti-immigration\nteams", hjust = 0, color = colors[1], size = 3) +
+  geom_segment(x = -0.4, y = 0.35, xend = -0.4, yend = 0.12,
+               arrow = arrow(type = "closed", length = unit(0.05, "inches"), angle = 15),
+               color = colors[1], size = 0.06) +
+    geom_segment(x = -0.37, y = 0.35, xend = -0.195, yend = 0.26,
+               arrow = arrow(type = "closed", length = unit(0.05, "inches"), angle = 15),
+               color = colors[1], size = 0.06) +
+  annotate("text", x = 0.42, y = 0.8, label = "Pro-immigration\nteams", hjust = 1, color = colors[3], size = 3) +
+  geom_segment(x = 0.37, y = 0.35, xend = 0.31, yend = 0.1,
+               arrow = arrow(type = "closed", length = unit(0.05, "inches"), angle = 15),
+               color = colors[3], size = 0.06) +
   theme_classic() +
-    geom_segment(x = 0.23, y = 0.23, xend = 0.17, yend = 0.18,
-               arrow = arrow(type = "closed", length = unit(0.07, "inches"), angle = 15),
-               color = "#3CBB75FF", size = 0.09, linetype = "longdash") +
-    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nteams", color = "#2D708EFF", size = 2.7) +
+    geom_segment(x = 0.35, y = 0.35, xend = 0.17, yend = 0.18,
+               arrow = arrow(type = "closed", length = unit(0.05, "inches"), angle = 15),
+               color = colors[3], size = 0.06, linetype = "longdash") +
+    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nteams", color = colors[2], size = 3) +
+  geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
   theme_classic() +
   theme(legend.position = "none",
-        axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title = element_text(size = 8)) +
   scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
   coord_cartesian(xlim = c(-0.45, 0.45))
 f1b
@@ -206,6 +209,24 @@ dev.off()
 
 knitr::include_graphics(here("results", "Fig1B.png"))
 
+```
+### Density under curve
+
+```{r denscalc}
+# Create a density object for the AME data
+density_obj <- density(df$AME)
+
+# Range in plot
+in_range <- density_obj$x >= -0.45 & density_obj$x <= 0.45
+
+# Calculate the area within this range using trapezoidal rule approximation
+dx <- diff(density_obj$x) # Differences between consecutive x values
+area_in_range <- sum(density_obj$y[in_range][-1] * dx[in_range[-1]])
+
+# Since the total area under the density curve is 1, calculate the percentage shown
+percentage_shown <- area_in_range * 100
+
+percentage_shown
 ```
 
 ## Regressions

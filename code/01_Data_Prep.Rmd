@@ -39,6 +39,12 @@ cri <- read_csv(here("data", "cri.csv"))
 cri_team <- read_csv(here("data", "cri_team.csv"))
 peer_model_dyad <- read_csv(here("data", "peer_model_dyad.csv"))
 cri_new_peer_scores <- read_csv(here("data", "cri_new_peer_scores.csv"))
+df_dyad <- read_csv(here("data", "cri_long_participant_ame_dyad.csv"))
+df_sem_p <- read_csv(here("data", "sem_p.csv")) %>%
+  mutate(stats_i = stats,
+         belief_i = belief,
+         topic_i = topic) %>%
+  dplyr::select(u_id, stats_i, topic_i, belief_i)
 
 ```
 
@@ -63,6 +69,10 @@ df <- cri %>%
 
 
 ```{r recode}
+
+
+
+
 df <- df %>%
   mutate(p1_male = case_when(v_1101 == 2 ~ 0,
                              .default = v_1101),
@@ -170,7 +180,7 @@ df <- df %>%
                                 "Low" ~ 1,
                                 "Mid" ~ 2,
                                 "High" ~ 3),
-         topic_brw = topic_ipred,
+         topic_brw = (topic_ipred - mean(topic_ipred)) / sd(topic_ipred), # standardize
          statistics_skill = ifelse(u_teamid == 27, "Mid", STATISTICS_SKILL),
          stats_ipred = ifelse(u_teamid == 27, 0.102538885683808, stats_ipred),
          stats_cat = case_match(statistics_skill,
@@ -178,6 +188,7 @@ df <- df %>%
                                 "Mid" ~ 2,
                                 "High" ~ 3),
          stats_brw = ifelse(u_teamid == 8, 0.649019158901927, stats_ipred),
+         stats_brw = (stats_brw - mean(stats_brw)) / sd(stats_brw), # standardize
          model_cat = case_match(MODEL_SCORE,
                                "Low" ~ 1,
                                "Mid" ~ 2,
@@ -261,6 +272,191 @@ df2 <- df2 %>%
   group_by(u_teamid) %>%
   mutate(nmodel = n()) %>%
   ungroup()
+
+df2 <- df2 %>%
+  mutate(pscore_Z = (pscore - mean(pscore)) / sd(pscore)) # standardize
+```
+
+## Individual-level Dyads
+
+We reproduce the data cleaning process on the individual level data here. Except degree, here we can just use their degree without collapsing to the team level.
+
+These data also rely on sem_p.csv generated in the CRI workflow 002_CRI_Data_Prep.Rmd. It has the individual-level scores (in their original form, meaning that belief in the hypothesis is reversed). But it does not have them for all individuals, because of missing data (only N = 147)
+
+```{r indivdyad}
+
+
+# peer scores
+df3 <- df_dyad %>%
+  left_join(cri_new_peer_scores, by = "id")
+
+
+
+df3 <- df3 %>%
+  mutate(p1_male = case_when(v_1101 == 2 ~ 0,
+                             .default = v_1101),
+         p2_male = case_when(v_1102 == 2 ~ 0,
+                             .default = v_1102),
+         p3_male = case_when(v_1103 == 2 ~ 0,
+                             .default = v_1103)) %>%
+  rowwise() %>%
+  mutate(nmale = sum(p1_male, p2_male, p3_male, na.rm = T)/team_size) %>%
+  ungroup() %>%
+  mutate(nmale = ifelse(u_teamid == 27, 0.6666667, nmale),
+         std = AME/abs(z),
+         pro_index = pro_immigrant,
+         att1 = 7 - attitude_immigration_11,
+         att2 = 7 - attitude_immigration_12,
+         att3 = 7 - attitude_immigration_13,
+         team = rowSums(!is.na(across(c(att1, att2, att3)))),
+         npro = (ifelse(!is.na(att1) & att1 > 4, 1, 0)) +
+            (ifelse(!is.na(att2) & att2 > 4, 1, 0)) +
+            (ifelse(!is.na(att3) & att3 > 4, 1, 0)),
+         npro = ifelse(is.na(npro), 0, npro),
+         pindex = npro/team,
+         dindex = ifelse(pindex >= .5, 1, 0),
+         att1 = ifelse(is.na(att1), 0, att1),
+         att2 = ifelse(is.na(att2), 0, att2),
+         att3 = ifelse(is.na(att3), 0, att3),
+         npro1 = (ifelse(att1==1, 1, 0)) +
+                 (ifelse(att2==1, 1, 0)) +
+                 (ifelse(att3==1, 1, 0)),
+         npro2 = (ifelse(att1==2, 1, 0)) +
+                 (ifelse(att2==2, 1, 0)) +
+                 (ifelse(att3==2, 1, 0)),
+         npro3 = (ifelse(att1==3, 1, 0)) +
+                 (ifelse(att2==3, 1, 0)) +
+                 (ifelse(att3==3, 1, 0)),
+         npro4 = (ifelse(att1==4, 1, 0)) +
+                 (ifelse(att2==4, 1, 0)) +
+                 (ifelse(att3==4, 1, 0)),
+         npro5 = (ifelse(att1==5, 1, 0)) +
+                 (ifelse(att2==5, 1, 0)) +
+                 (ifelse(att3==5, 1, 0)),
+         npro6 = (ifelse(att1==6, 1, 0)) +
+                 (ifelse(att2==6, 1, 0)) +
+                 (ifelse(att3==6, 1, 0)),
+         npro1 = ifelse(is.na(npro1), 0, npro1),
+         npro2 = ifelse(is.na(npro2), 0, npro2),
+         npro3 = ifelse(is.na(npro3), 0, npro3),
+         npro4 = ifelse(is.na(npro4), 0, npro4),
+         npro5 = ifelse(is.na(npro5), 0, npro5),
+         npro6 = ifelse(is.na(npro6), 0, npro6),
+         p1 = npro1/team,
+         p2 = npro2/team,
+         p3 = npro3/team,
+         p4 = npro4/team,
+         p5 = npro5/team,
+         p6 = npro6/team,
+         p12 = p1+p2,
+         p34 = p3+p4,
+         p56 = p5+p6,
+         group1 = ifelse(p12>0, 1, 0),
+         group3 = ifelse(pindex>=.5, 1, 0),
+         group3 = ifelse(group1==1 & group3==1, 1, group3),
+         group1 = ifelse(group1==1 & group3==1, 0, group1),
+         group2 = ifelse(group1==0 & group3==0, 1, 0),
+         group1 = ifelse(is.na(group1), 0, group1),
+         group2 = ifelse(is.na(group2), 0, group2),
+         group3 = ifelse(is.na(group3), 0, group3),
+         index = 1*group1 + 2*group2 + 3*group3,
+         indiv = case_when(attitude_immigration_1 == 1 | attitude_immigration_1 == 2 ~ 2,
+                           attitude_immigration_1 == 3 | attitude_immigration_1 == 4 ~ 1,
+                           attitude_immigration_1 == 5 | attitude_immigration_1 == 6 ~ 3,
+                           TRUE ~ NA_real_),
+         topic_knowledge = ifelse(u_teamid==27, "Low", TOPIC_KNOWLEDGE),
+         topic_ipred = ifelse(u_teamid == 27, -0.253722245526001, topic_ipred),
+         topic_cat = case_match(topic_knowledge,
+                                "Low" ~ 1,
+                                "Mid" ~ 2,
+                                "High" ~ 3),
+         topic_brw = (topic_ipred - mean(topic_ipred)) / sd(topic_ipred), # standardize
+         statistics_skill = ifelse(u_teamid == 27, "Mid", STATISTICS_SKILL),
+         stats_ipred = ifelse(u_teamid == 27, 0.102538885683808, stats_ipred),
+         stats_cat = case_match(statistics_skill,
+                                "Low" ~ 1,
+                                "Mid" ~ 2,
+                                "High" ~ 3),
+         stats_brw = ifelse(u_teamid == 8, 0.649019158901927, stats_ipred),
+         stats_brw = (stats_brw - mean(stats_brw)) / sd(stats_brw), # standardize
+         model_cat = case_match(MODEL_SCORE,
+                               "Low" ~ 1,
+                               "Mid" ~ 2,
+                               "High" ~ 3),
+         model_brw = total_score,
+         quality = case_match(MODEL_SCORE,
+                              "High" ~ 1,
+                              .default = 0),
+         beliefx = as.numeric(belief_H1_1),
+         pbelief = ifelse(beliefx == 1 | beliefx == 2, 1, 0),
+         dep = as.factor(DV)
+  )
+
+# impute peer
+m_imp <- lm(peer_mean ~ model_brw + Jobs + Unemp + IncDiff + OldAge + House + Health + logit + ols + Stock + Flow + ChangeFlow + w1985 + w1990 + w1996 + w2006 + w2016 + orig13 + eeurope + allavailable + twowayfe + level_cyear + mlm_fe + mlm_re + anynonlin, data = df3)
+
+df3$phat <- predict(m_imp, newdata = df3)
+
+df3 <- df3 %>%
+  mutate(pscore = ifelse(is.na(peer_mean), phat, peer_mean))
+
+# join with data from factor analysis 
+df3 <- df3 %>%
+  mutate(pscore_Z = (pscore - mean(pscore)) / sd(pscore)) %>% # standardize
+  left_join(df_sem_p, by = "u_id")
+
+# impute missings from grouped means
+df3 <- df3 %>%
+  group_by(backgr_degree, STATISTICS_SKILL) %>%
+  mutate(statimp = mean(stats_i, na.rm = T))
+
+df3 <- df3 %>%
+  group_by(backgr_degree, TOPIC_KNOWLEDGE) %>%
+  mutate(topicimp = mean(topic_i, na.rm = T))
+
+df3 <- df3 %>%
+  group_by(backgr_degree, BELIEF_HYPOTHESIS) %>%
+  mutate(beliefimp = mean(belief_i, na.rm = T)) %>%
+  ungroup()
+
+df3 <- df3 %>%
+  mutate(stats_i = ifelse(is.na(stats_i), statimp, stats_i),
+         topic_i = ifelse(is.na(topic_i), topicimp, topic_i),
+         belief_i = ifelse(is.na(belief_i), beliefimp, belief_i))
+
+# make weighting variable 'model' the number of models per person now (rather than team)
+df3 <- df3 %>%
+  group_by(u_id) %>%
+  mutate(nmodel = n()) %>%
+  ungroup()
+
+
+df3 <- df3 %>%
+  # add in variables for distributional analyses
+  mutate(negsig = ifelse(AME < 0 & abs(z) > 1.645, 1, 0),
+         possig = ifelse(AME > 0 & abs(z) > 1.645, 1, 0),
+         pos10 = ifelse(AME > .052, 1, 0),
+         neg10 = ifelse(AME < -.071, 1, 0),
+         pos10s = ifelse(AME > .052 & abs(z) > 1.645, 1, 0),
+         neg10s = ifelse(AME < -.071 & abs(z) > 1.645, 1, 0),
+         highstats = ifelse(statistics_skill == "High", 1, 0),
+         hightopic = ifelse(topic_knowledge == "High", 1, 0),
+         highmodel = ifelse(MODEL_SCORE == "High", 1, 0),
+         proindex = pro_immigrant,
+         t2 = case_when(team_size==1 ~ 1,
+                        .default = 0),
+         t3 = case_when(team_size==3 ~ 1,
+                        .default = 0))
+
+df3 <- df3 %>%
+  group_by(u_teamid) %>%
+  mutate(nmodel = n()) %>%
+  ungroup()
+
+
+
+
+
 ```
 
 ## Save DF
@@ -271,6 +467,7 @@ In both RDS and csv formats, to be user friendly
 
 write_rds(df2, here("data", "df.rds"))
 write.csv(df2, here("data", "df.csv"), row.names = F)
+write.csv(df3, here("data", "df_dyad.csv"), row.names = F)
 
 ```
 
