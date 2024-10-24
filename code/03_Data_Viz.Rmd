@@ -34,6 +34,9 @@ packages <- c("tidyverse",
 
 pacman::p_load(packages, character.only = T)
 
+# palette
+colors <- c("#453781FF", "#3CBB75FF", "#FD9567FF")
+
 ```
 
 
@@ -41,25 +44,44 @@ pacman::p_load(packages, character.only = T)
 
 ```{r data}
 
-df <- read_rds(here("data", "df.rds"))
-Table_1_model_w <- read_rds(here("results", "Table_1_model.rds"))
+df <- read_rds(here("data", "df.rds")) %>%
+  mutate(index1 = group1,
+         index2 = ifelse(group1 == 0 & group3 == 0, 1, 0),
+         index3 = group3)
+#df_dyad <- read_csv(here("data", "df_dyad.csv")) 
 
-#setup individual plotting
+# regression results from 02_Tables.Rmd
+load(here("results", "reg_results.Rdata"))
 
+Table_1_model <- read_rds(here("results", "Table_1_model.rds"))
+
+```
+
+## Reg Models
+
+Certain routines require non lm.cluster objects. Predicted values are identical so it is easier to work with lm objects.
+
+```{r regs}
+
+# add single weight variable, it is easier
 df <- df %>%
-  mutate(index1 = ifelse(index == 2, NA, index),
-         index2 = ifelse(index != 2, NA, index))
+  mutate(mweight = 1/nmodel,
+         pweight = pscore/nmodel)
 
-# From the original Stata
-#df_stata <- read_dta(here("data", "model.dta"))
+m_1lm <- lm(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$mweight, data = df)
 
+m_3lm <- lm(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$mweight, data = df)
+
+p_1lm <- lm(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pweight, data = df)
+
+p_3lm <- lm(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pweight, data = df)
 ```
 
 ## Fig1A
 
 ```{r fig1}
 # Proportion of dots with specific colors
-colors <- c("#453781FF", "#3CBB75FF", "#FD9567FF")
+
 
 # Create a data frame with the points and colors
 df_sphere <- data.frame(
@@ -68,7 +90,7 @@ df_sphere <- data.frame(
   color = colors
 )
 
-Table_1_model_w[3:4, 2:5] <- lapply(Table_1_model_w[3:4, 2:5], function(x) {
+Table_1_model[3:4, 2:5] <- lapply(Table_1_model[3:4, 2:5], function(x) {
   # Convert to numeric if it's not already
   x <- as.numeric(as.character(x))
   # Format as percentage with 1 decimal place, even if it's .0
@@ -119,16 +141,16 @@ f1a <- ggplot() +
   # Add results from Tbl1 weighted
   mapply(function(txt, x, y) {
     annotate("text", x = x, y = y, label = txt)
-  }, Table_1_model_w[1:4,2], x_positions, y_pos1) +
+  }, Table_1_model[1:4,2], x_positions, y_pos1) +
   mapply(function(txt, x, y) {
     annotate("text", x = x, y = y, label = txt, color = colors[1])}, 
-    Table_1_model_w[1:4,3], x_positions, y_pos4) +
+    Table_1_model[1:4,3], x_positions, y_pos4) +
   mapply(function(txt, x, y) {
     annotate("text", x = x, y = y, label = txt, color = colors[2])}, 
-    Table_1_model_w[1:4,4], x_positions, y_pos3) +
+    Table_1_model[1:4,4], x_positions, y_pos3) +
   mapply(function(txt, x, y) {
     annotate("text", x = x, y = y, label = txt, color = colors[3])}, 
-    Table_1_model_w[1:4,5], x_positions, y_pos2) +
+    Table_1_model[1:4,5], x_positions, y_pos2) +
   
   # Remove axis lines, ticks, and grid
   theme_void() +
@@ -176,7 +198,7 @@ f1b <- df %>%
   
   # Manual color and fill scales
   scale_color_manual(values = colors[c(1,3)]) +   # Color for index1 groups
-  scale_fill_manual(values = colors[2]) +  
+  scale_fill_manual(values = c("white", colors[2])) +  
   #geom_vline(xintercept = mean(df$AME[df$index == 2]), linetype = "dashed", color = "#2D708EFF") +
   #geom_vline(xintercept = mean(df$AME[df$index == 1]), linetype = "dashed", color = "#453781FF") +
   #geom_vline(xintercept = mean(df$AME[df$index == 3]), linetype = "dashed", color = "#3CBB75FF") +
@@ -229,134 +251,108 @@ percentage_shown <- area_in_range * 100
 percentage_shown
 ```
 
-## Regressions
 
-```{r fig1adj}
+## Fig 2A
 
-m_4 <- lm(formula=AME ~ group1 + group3 +  stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+### Extract coefficients
 
-m_5 <- lm(formula=neg10 ~ group1 + group3 +  stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+predicted values are identical for lm and lm.cluster
 
-m_4_beta <- lm.beta(m_4)
+#### m_3
+
+
+```{r coefplot}
+df_group1 <- df %>%
+  mutate(group1 = 1,
+         group3 = 0)
+
+df_group2 <- df %>%
+  mutate(group1 = 0,
+         group3 = 0)
+
+df_group3 <- df %>%
+  mutate(group1 = 0,
+         group3 = 1)
+
+# average treatment effects
+df$ate_group1_m_3 <- predict(m_3lm, newdata = df_group1)
+df$ate_group2_m_3 <- predict(m_3lm, newdata = df_group2)
+df$ate_group3_m_3 <- predict(m_3lm, newdata = df_group3)
+
+df$ate_group1_p_3 <- predict(p_3lm, newdata = df_group1)
+df$ate_group2_p_3 <- predict(p_3lm, newdata = df_group2)
+df$ate_group3_p_3 <- predict(p_3lm, newdata = df_group3)
+
+# average marginal effects
+df$ame_group1_m_3 <- predict(m_3lm, newdata = df_group1) - predict(m_3lm, newdata = df_group2)
+df$ame_group3_m_3 <- predict(m_3lm, newdata = df_group3) - predict(m_3lm, newdata = df_group2)
+
+# Repeat the same for the second model (p_3lm)
+df$ame_group1_p_3 <- predict(p_3lm, newdata = df_group1) - predict(p_3lm, newdata = df_group2)
+df$ame_group3_p_3 <- predict(p_3lm, newdata = df_group3) - predict(p_3lm, newdata = df_group2)
+
+# Optional: calculate the average marginal effect across all observations
+mean_ame_group1_m_3 <- mean(df$ame_group1_m_3, na.rm = TRUE)
+mean_ame_group3_m_3 <- mean(df$ame_group3_m_3, na.rm = TRUE)
+mean_ame_group1_p_3 <- mean(df$ame_group1_p_3, na.rm = TRUE)
+mean_ame_group3_p_3 <- mean(df$ame_group3_p_3, na.rm = TRUE)
+
+
 
 ```
 
 
-## Coeffplot
+```{r coefplot2}
 
-```{r coeff}
+weighted_mean_group1 <- sum(df$ate_group1_m_3 * df$mweight) / sum(df$mweight)
+weighted_mean_group2 <- sum(df$ate_group2_m_3 * df$mweight) / sum(df$mweight)
+weighted_mean_group3 <- sum(df$ate_group3_m_3 * df$mweight) / sum(df$mweight)
 
-# Extract the standardized coefficients directly from the summary of lm.beta
-std_coefficients <- summary(m_4_beta)$coefficients[, "Standardized"]
+weighted_mean_group1p <- sum(df$ate_group1_p_3 * df$pweight) / sum(df$pweight)
+weighted_mean_group2p <- sum(df$ate_group2_p_3 * df$pweight) / sum(df$pweight)
+weighted_mean_group3p <- sum(df$ate_group3_p_3 * df$pweight) / sum(df$pweight)
 
-# Convert the standardized coefficients into a data frame for easy joining
-coef_standardized <- data.frame(
-  term = names(std_coefficients),  # Names of the coefficients (e.g., group1, group3)
-  std_estimate = std_coefficients  # The standardized coefficients
+
+# Calculate weighted variance
+weighted_var_group1 <- sum(df$mweight * (df$ate_group1_m_3 - weighted_mean_group1)^2) / sum(df$mweight)
+weighted_var_group2 <- sum(df$mweight * (df$ate_group2_m_3 - weighted_mean_group2)^2) / sum(df$mweight)
+weighted_var_group3 <- sum(df$mweight * (df$ate_group2_m_3 - weighted_mean_group3)^2) / sum(df$mweight)
+
+weighted_var_group1p <- sum(df$pweight * (df$ate_group1_p_3 - weighted_mean_group1p)^2) / sum(df$pweight)
+weighted_var_group2p <- sum(df$pweight * (df$ate_group2_p_3 - weighted_mean_group2p)^2) / sum(df$pweight)
+weighted_var_group3p <- sum(df$pweight * (df$ate_group2_p_3 - weighted_mean_group3p)^2) / sum(df$pweight)
+
+# Calculate weighted standard error (sqrt of weighted variance divided by sample size)
+weighted_se_group1 <- sqrt(weighted_var_group1 / sum(df$mweight))
+weighted_se_group2 <- sqrt(weighted_var_group2 / sum(df$mweight))
+weighted_se_group3 <- sqrt(weighted_var_group3 / sum(df$mweight))
+
+weighted_se_group1p <- sqrt(weighted_var_group1p / sum(df$pweight))
+weighted_se_group2p <- sqrt(weighted_var_group2p / sum(df$pweight))
+weighted_se_group3p <- sqrt(weighted_var_group3p / sum(df$pweight))
+
+plot_data <- data.frame(
+  group = c("group1_m", "group2_m", "group3_m", "group1_p", "group2_p", "group3_p"),
+  mean = c(weighted_mean_group1, weighted_mean_group2, weighted_mean_group3,
+           weighted_mean_group1p, weighted_mean_group2p, weighted_mean_group3p),
+  se = c(weighted_se_group1, weighted_se_group2, weighted_se_group3,
+         weighted_se_group1p, weighted_se_group2p, weighted_se_group3p)
 )
 
-
-
-
-```
-
-```{r}
-# Extract coefficients and 90% confidence intervals using broom
-coef_df <- tidy(m_4, conf.int = TRUE, conf.level = 0.90)
-
-# Get the predicted value and standard error for group2
-# First, create a new dataframe with mean values for continuous variables and 0 for group1 and group3 (indicating group2)
-new_data <- df %>%
-  summarize(across(c(stats_brw, topic_brw, t2, t3), mean, na.rm = TRUE)) %>%
-  mutate(group1 = 0, group3 = 0, mdegree = factor(1))  # Assuming '1' is a baseline level for factor(mdegree)
-
-subset_group2 <- df %>%
-  filter(group1 == 0 & group3 == 0)
-
-# Predict the value for group2 (essentially the intercept) along with standard error for this subset
-pred_group2 <- predict(m_4, newdata = subset_group2, se.fit = TRUE)
-
-# Calculate the standard error for group2 by taking the mean of the standard errors from this subset
-se_group2 <- mean(pred_group2$se.fit)
-
-# Manually add the omitted group "Moderate" with estimate = 0 and its calculated standard error
-moderate_row <- data.frame(
-  term = "group2",
-  estimate = 0,
-  std.error = se_group2,  # Use the correct standard error for group2
-  conf.low = -1.645 * se_group2,  # 90% CI lower bound
-  conf.high = 1.645 * se_group2   # 90% CI upper bound
-)
-
-# Bind this row to the coefficients dataframe
-coef_df <- coef_df %>%
-  bind_rows(moderate_row)
-
-# Create a label for the omitted group
-coef_df <- coef_df %>%
-  mutate(term = recode(term, 
-                       "group1" = "Anti-\nimmigration", 
-                       "group3" = "Pro-\nimmigration", 
-                       "group2" = "Moderate",  # Label for the omitted group
-                       "stats_brw" = "Statistics and\nsoftware skills",  # New label
-                       "topic_brw" = "Prior knowledge\nof this topic"))
-
-coef_standardized <- coef_standardized %>%
-  mutate(term = recode(term, 
-                       "group1" = "Anti-\nimmigration", 
-                       "group3" = "Pro-\nimmigration", 
-                       "stats_brw" = "Statistics and\nsoftware skills",  # New label
-                       "topic_brw" = "Prior knowledge\nof this topic"))
-
-# Filter for the specific terms (group1, group3, pbelief, stats_brw, topic_brw)
-coef_filtered <- coef_df %>%
-  left_join(coef_standardized, by = "term") %>%
-  mutate(std_estimate = ifelse(term == "Moderate", 0, std_estimate))
-
-# Convert the term to a factor to control the order
-coef_df$term <- factor(coef_df$term, 
-                       levels = c("Prior knowledge\nof this topic",
-                                  "Statistics and\nsoftware skills",
-                                  "Pro-\nimmigration",
-                                  "Moderate",
-                                  "Anti-\nimmigration"
-                                   
-                                                  # New ordering
-                                                ))
-
-# Convert the term to a factor to control the order
-coef_filtered$term <- factor(coef_filtered$term, 
-                       levels = c("Prior knowledge\nof this topic",
-                                  "Statistics and\nsoftware skills",
-                                  "Pro-\nimmigration",
-                                  "Moderate",
-                                  "Anti-\nimmigration"
-                                   
-                                                  # New ordering
-                                                ))
-
-coef_df <- coef_df %>%
-  filter(!is.na(term))
-
-coef_filtered <- coef_filtered %>%
-  filter(!is.na(term))
 
 ```
 
 
 ```{r coeff2}
-agg_png(here("results", "Fig1cplot.png"), res = 144, height = 500, width = 650)
+agg_png(here("results", "Fig2A.png"), res = 144, height = 500, width = 650)
 
-ggplot(coef_df, aes(x = term, y = estimate)) +
+ggplot(plot_data, aes(x = group, y = mean)) +
   geom_point() +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
-  labs(x = "Variables", y = "Regression Coefficients", title = "") +
-  geom_hline(yintercept = 0, linetype = "dotted", color = "grey") +  
-  geom_text(data = coef_filtered, aes(label = format(round(std_estimate, 2), nsmall = 2)), 
-            vjust = -0.6, color = "#20A387FF", size = 2.7) +
+  geom_errorbar(aes(ymin = mean - se, ymax = mean + se), width = 0.2) +
+  labs(x = "Variables", y = "Average Treatment Effects", title = "") +
+  #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") +  
   theme_classic() +
-  coord_flip() +
-  theme(axis.text.y = element_text(hjust = 0))
+  coord_flip()
 
 dev.off()
 

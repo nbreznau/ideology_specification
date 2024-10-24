@@ -16,6 +16,10 @@ Figure 2. Main regression results. Panel A, key coefficients from main specifica
 
 One potential problem with Figure 2 and everything that follows. The figure will show say the CI for group 1 and the CI for group 3. We know that if we test the coefficients group 3 - group 1, that difference would be positive & statistically significant. But the graphs of the CI for teh two groups may overlap because this graphical presentation of coefficients ignores the covariance between the two coefficients. I have no idea how this is handled in this type of graphical presentation.
 
+Make sure to re-scale weights for p!! Should equal 71 then check ATE graph
+
+Put in the histogram for ideology into the methods, deal this way with category "7".
+
 
 
 Figure 3. Left neg panel, right pos panel. Summary of regression coefficients for extreme pos or extreme neg & significant results. Both weighted and unweighted. I would again calculate the predicted probability for each event and the corresponding CI. Probabilities are very easy to understand, rather than differences relative to some baseline. TRY BOTH LPMs and Logits here.
@@ -29,3 +33,6 @@ Figure 4. Panel A. Referee scores distribution by ideology of team; Panel B. reg
 
 
 Figure 5. Panel A: showing that teams choose different specifications, maybe some means from Table 5; Panel B. distribution of predicted AME by ideology of team; Panel C. Regression coefficients, column 2, Table 6, again both weighted and unweighted if possible.
+
+
+So have a table with different definitions of groups. 
