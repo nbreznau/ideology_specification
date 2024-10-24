@@ -288,9 +288,8 @@ These data also rely on sem_p.csv generated in the CRI workflow 002_CRI_Data_Pre
 
 # peer scores
 df3 <- df_dyad %>%
-  left_join(cri_new_peer_scores, by = "id")
-
-
+  left_join(cri_new_peer_scores, by = "id")  %>% 
+  subset(!is.na(AME))
 
 df3 <- df3 %>%
   mutate(p1_male = case_when(v_1101 == 2 ~ 0,
@@ -304,62 +303,7 @@ df3 <- df3 %>%
   ungroup() %>%
   mutate(nmale = ifelse(u_teamid == 27, 0.6666667, nmale),
          std = AME/abs(z),
-         pro_index = pro_immigrant,
-         att1 = 7 - attitude_immigration_11,
-         att2 = 7 - attitude_immigration_12,
-         att3 = 7 - attitude_immigration_13,
-         team = rowSums(!is.na(across(c(att1, att2, att3)))),
-         npro = (ifelse(!is.na(att1) & att1 > 4, 1, 0)) +
-            (ifelse(!is.na(att2) & att2 > 4, 1, 0)) +
-            (ifelse(!is.na(att3) & att3 > 4, 1, 0)),
-         npro = ifelse(is.na(npro), 0, npro),
-         pindex = npro/team,
-         dindex = ifelse(pindex >= .5, 1, 0),
-         att1 = ifelse(is.na(att1), 0, att1),
-         att2 = ifelse(is.na(att2), 0, att2),
-         att3 = ifelse(is.na(att3), 0, att3),
-         npro1 = (ifelse(att1==1, 1, 0)) +
-                 (ifelse(att2==1, 1, 0)) +
-                 (ifelse(att3==1, 1, 0)),
-         npro2 = (ifelse(att1==2, 1, 0)) +
-                 (ifelse(att2==2, 1, 0)) +
-                 (ifelse(att3==2, 1, 0)),
-         npro3 = (ifelse(att1==3, 1, 0)) +
-                 (ifelse(att2==3, 1, 0)) +
-                 (ifelse(att3==3, 1, 0)),
-         npro4 = (ifelse(att1==4, 1, 0)) +
-                 (ifelse(att2==4, 1, 0)) +
-                 (ifelse(att3==4, 1, 0)),
-         npro5 = (ifelse(att1==5, 1, 0)) +
-                 (ifelse(att2==5, 1, 0)) +
-                 (ifelse(att3==5, 1, 0)),
-         npro6 = (ifelse(att1==6, 1, 0)) +
-                 (ifelse(att2==6, 1, 0)) +
-                 (ifelse(att3==6, 1, 0)),
-         npro1 = ifelse(is.na(npro1), 0, npro1),
-         npro2 = ifelse(is.na(npro2), 0, npro2),
-         npro3 = ifelse(is.na(npro3), 0, npro3),
-         npro4 = ifelse(is.na(npro4), 0, npro4),
-         npro5 = ifelse(is.na(npro5), 0, npro5),
-         npro6 = ifelse(is.na(npro6), 0, npro6),
-         p1 = npro1/team,
-         p2 = npro2/team,
-         p3 = npro3/team,
-         p4 = npro4/team,
-         p5 = npro5/team,
-         p6 = npro6/team,
-         p12 = p1+p2,
-         p34 = p3+p4,
-         p56 = p5+p6,
-         group1 = ifelse(p12>0, 1, 0),
-         group3 = ifelse(pindex>=.5, 1, 0),
-         group3 = ifelse(group1==1 & group3==1, 1, group3),
-         group1 = ifelse(group1==1 & group3==1, 0, group1),
-         group2 = ifelse(group1==0 & group3==0, 1, 0),
-         group1 = ifelse(is.na(group1), 0, group1),
-         group2 = ifelse(is.na(group2), 0, group2),
-         group3 = ifelse(is.na(group3), 0, group3),
-         index = 1*group1 + 2*group2 + 3*group3,
+         # make factor to automatically drop moderate
          indiv = case_when(attitude_immigration_1 == 1 | attitude_immigration_1 == 2 ~ 2,
                            attitude_immigration_1 == 3 | attitude_immigration_1 == 4 ~ 1,
                            attitude_immigration_1 == 5 | attitude_immigration_1 == 6 ~ 3,
@@ -452,14 +396,22 @@ df3 <- df3 %>%
 # different weighting now
 df3 <- df3 %>%
   mutate(indiv2 = ifelse(indiv == 1, 1, 0),
-         indiv1 = ifelse(indiv == 2, 1, 0),
-         indiv3 = ifelse(indiv == 3, 1, 0)) %>%
+         indiv1 = ifelse(indiv == 3, 1, 0),
+         indiv3 = ifelse(indiv == 2, 1, 0)) %>%
   group_by(u_id) %>%
   mutate(nmodel = n()) %>%
   ungroup() %>%
-  subset(!is.na(indiv) & !is.na(AME))
+  subset(!is.na(indiv))
 
-df3$pweight <- 1/(df_dyad$nmodel*df_dyad$team_size)
+df3$pweight <- 1/(df3$nmodel*df3$team_size)
+
+#INDIVIDUAL LEVEL INDICES WILL BE SET TO MISSING IF THEY ARE MISSING BASIC INFORMATION ON STATS & TOPIC;
+#THIS AFFECTS TEAM 33, WHICH ALTHOUGH HAS TEAM_SIZE = 3, THERE IS ONLY ONE U_ID FOR THE TEAM because none of the members participated in the survey;
+df3 <- df3 %>%
+  mutate(stats_i = ifelse(u_teamid == 33, NA, stats_i),
+         topic_i = ifelse(u_teamid == 33, NA, topic_i),
+         belief_i = ifelse(u_teamid == 33, NA, belief_i))
+
 
 ```
 
