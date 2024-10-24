@@ -47,6 +47,7 @@ df_dyad <- read_csv(here("data", "df_dyad.csv"))
 
 # original dataset taken from Stata
 df_stata <- read_dta(here("data", "model.dta"))
+df_stata_i <- read_dta(here("data", "individual.dta"))
 
 
 ```

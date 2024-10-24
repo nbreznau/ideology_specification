@@ -443,19 +443,23 @@ df3 <- df3 %>%
          hightopic = ifelse(topic_knowledge == "High", 1, 0),
          highmodel = ifelse(MODEL_SCORE == "High", 1, 0),
          proindex = pro_immigrant,
-         t2 = case_when(team_size==1 ~ 1,
+         t2 = case_when(team_size==2 ~ 1,
                         .default = 0),
          t3 = case_when(team_size==3 ~ 1,
-                        .default = 0))
+                        .default = 0),
+         att = 7-as.numeric(attitude_immigration_1))
 
+# different weighting now
 df3 <- df3 %>%
-  group_by(u_teamid) %>%
+  mutate(indiv2 = ifelse(indiv == 1, 1, 0),
+         indiv1 = ifelse(indiv == 2, 1, 0),
+         indiv3 = ifelse(indiv == 3, 1, 0)) %>%
+  group_by(u_id) %>%
   mutate(nmodel = n()) %>%
-  ungroup()
+  ungroup() %>%
+  subset(!is.na(indiv) & !is.na(AME))
 
-
-
-
+df3$pweight <- 1/(df_dyad$nmodel*df_dyad$team_size)
 
 ```
 

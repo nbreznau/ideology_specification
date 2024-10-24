@@ -1,0 +1,1052 @@
+--------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /volumes/ddisk/mi/researcher/reg_distribution.log
+  log type:  text
+ opened on:  22 Sep 2024, 08:16:16
+
+. clear matrix;
+
+. clear mata;
+
+. *THIS IS THE PROGRAM USED TO GET THE DESCRIPTIVE FREQUENCY DISTRIBUTIONS;
+. *THE PROGRAM USES BOTH THE TEAM LEVEL DATA AND THE MODEL LEVEL DATA;
+. *IT EXAMINES INCONSISTENCY IN THE SUMMARY MEASURE OF THE BELIEF VARIABLE IN THE BRW 
+> DATA FILE;
+. *********************************************************;
+. *PROGRAM ALSO CALCULATES DISTRIBUTION OF BELIEF VARIABLES ACROSS RESEARCHERS TO CHEC
+> K IF NUMERICAL DISTRIBUTION;
+. *MATCHES ORDER OF CODES WITH QUESTIONNAIRE;
+. *THESE DISTRIBUTIONS CONFIRM THAT "1" MEANS STRONG BELIEVE HYPOTHESIS IMMIGRATION RE
+> DUCES SUPPORT;
+. *AND "4" MEANS IMMIGRATION SOMEWHAT INCREASES SUPPORT FOR WELFARE STATE POLICIES;
+. *********************************************************;
+. use /volumes/ddisk/mi/researcher/cri_team.dta, clear;
+
+. rename BELIEF_HYPOTHESIS belief_hypothesis;
+
+. rename TOPIC_KNOWLEDGE topic_knowledge;
+
+. rename STATISTICS_SKILL statistics_skill;
+
+. rename MODEL_SCORE model_score;
+
+. rename AME ame;
+
+. rename Jobs jobs;
+
+. rename Unemp unemp;
+
+. rename IncDiff incdiff;
+
+. rename OldAge oldage;
+
+. rename House house;
+
+. rename Health health;
+
+. rename Scale scale;
+
+. rename Stock stock;
+
+. rename Flow flow;
+
+. rename ChangeFlow changeflow;
+
+. rename belief_H1_11 belief_h1_11;
+
+. rename belief_H1_12 belief_h1_12;
+
+. rename belief_H1_13 belief_h1_13;
+
+. rename belief_H1_21 belief_h1_21;
+
+. rename belief_H1_22 belief_h1_22;
+
+. rename belief_H1_23 belief_h1_23;
+
+. rename belief_H1_31 belief_h1_31;
+
+. rename belief_H1_32 belief_h1_32;
+
+. rename belief_H1_33 belief_h1_33;
+
+. rename Hresult hresult;
+
+. rename Hsupport hsupport;
+
+. rename Hreject hreject;
+
+. rename Hrej hrej;
+
+. rename Hsup hsup;
+
+. destring u_teamid, force replace;
+u_teamid already numeric; no replace
+
+. rename u_teamid teamid;
+
+. egen nobs=count(ame), by(teamid);
+
+. *DROPS THE EXTRA OBSERVATION FOR THE 15 TEAMS;
+. drop if nobs==2 & stock==0;
+(16 observations deleted)
+
+. summ ame;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+         ame |          0
+
+. *DROPS THE BRADY-FINNIGAN TEAM;
+. drop if teamid==0;
+(1 observation deleted)
+
+. *DROPS THE TEAM THAT DIDN'T PRODUCE AN AME;
+. destring ame, force replace;
+ame: contains nonnumeric characters; replaced as double
+(1 missing value generated)
+
+. drop if ame==.;
+(1 observation deleted)
+
+. unique teamid;
+Number of unique values of teamid is  71
+Number of records is  71
+
+. *NOTE THAT BELIEF_1_AVG AND BELIEF_H1_11 HAVE THE SAME VALUES FOR TEAM_SIZE=1;
+. *THEREFORE CODE 1 MEANS BELIEF STRONGLY REDUCES, AND CODE 4 MEANS BELIEF SOMEWHAT IN
+> CREASES;
+. *THIS MATCHES QUESTIONNAIRE CODING;
+. *NOTE THAT BELIEF_A_AVG AND BELIEF_H1_11 PERFECTLY MATCH FOR TEAM SIZE OF 1;
+. tabulate belief_1_avg belief_h1_11 if team_size==1;
+
+                 |           belief_H1_11
+    belief_1_avg |         1          2          3 |     Total
+-----------------+---------------------------------+----------
+               1 |         1          0          0 |         1 
+               2 |         0          6          0 |         6 
+               3 |         0          0          7 |         7 
+-----------------+---------------------------------+----------
+           Total |         1          6          7 |        14 
+
+. *AND THIS IS WHERE CONTRADICTION SHOWS UP;
+. *NOTE THAT VALUE OF 1 IN THE BELIEF_H1 VARIABLE IS ASSOCIATED WITH "LOW" IN THE BELI
+> EF_HYPOTHESIS VARIABLE;
+. *OR: HIGH VALUES OF BELIEF_1_AVG ARE ASSOCIATED WITH A "HIGH" IN BELIEF_HYPOTHESIS, 
+> AND LOW VALUES WITH A "LOW";
+. tabulate belief_1_avg belief_hypothesis;
+
+                 |              BELIEF_HYPOTHESIS
+    belief_1_avg |      High        Low        Mid         NA |     Total
+-----------------+--------------------------------------------+----------
+               1 |         0          1          0          0 |         1 
+1.66666666666667 |         0          1          0          0 |         1 
+               2 |         2         12          6          1 |        21 
+2.33333333333333 |         0          2         10          0 |        12 
+             2.5 |         2          0          5          0 |         7 
+2.66666666666667 |         4          0          4          0 |         8 
+               3 |        13          1          3          0 |        17 
+3.33333333333333 |         1          0          0          0 |         1 
+             3.5 |         3          0          0          0 |         3 
+-----------------+--------------------------------------------+----------
+           Total |        25         17         28          1 |        71 
+
+. tabulate belief_1_avg belief_hypothesis if team_size==1;
+
+                 |              BELIEF_HYPOTHESIS
+    belief_1_avg |      High        Low        Mid         NA |     Total
+-----------------+--------------------------------------------+----------
+               1 |         0          1          0          0 |         1 
+               2 |         0          3          2          1 |         6 
+               3 |         6          0          1          0 |         7 
+-----------------+--------------------------------------------+----------
+           Total |         6          4          3          1 |        14 
+
+. *CONFIRM WHAT THE CODES MEAN WITH PERSON-LEVEL DISTRIBUTION COMPARISON WITH PUBLISHE
+> D FREQUENCY;
+. tabulate team_size;
+
+  team_size |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |         14       19.72       19.72
+          2 |         27       38.03       57.75
+          3 |         30       42.25      100.00
+------------+-----------------------------------
+      Total |         71      100.00
+
+. rename belief_h1_11 b11;
+
+. rename belief_h1_12 b12;
+
+. rename belief_h1_13 b13;
+
+. rename belief_h1_21 b21;
+
+. rename belief_h1_22 b22;
+
+. rename belief_h1_23 b23;
+
+. rename belief_h1_31 b31;
+
+. rename belief_h1_32 b32;
+
+. rename belief_h1_33 b33;
+
+. keep teamid team_size b11 b12 b13 b21 b22 b23 b31 b32 b33 belief_1_avg belief_hypoth
+> esis;
+
+. destring b11-b33 belief_1_avg, force replace;
+b11: contains nonnumeric characters; replaced as byte
+(1 missing value generated)
+b21: contains nonnumeric characters; replaced as byte
+(2 missing values generated)
+b31: contains nonnumeric characters; replaced as byte
+(10 missing values generated)
+b12: contains nonnumeric characters; replaced as byte
+(41 missing values generated)
+b22: contains nonnumeric characters; replaced as byte
+(43 missing values generated)
+b32: contains nonnumeric characters; replaced as byte
+(42 missing values generated)
+b13: contains nonnumeric characters; replaced as byte
+(15 missing values generated)
+b23: contains nonnumeric characters; replaced as byte
+(15 missing values generated)
+b33: contains nonnumeric characters; replaced as byte
+(22 missing values generated)
+belief_1_avg: all characters numeric; replaced as double
+
+. summ b11-b33;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+         b11 |         70    2.414286     .648138          1          4
+         b21 |         69     2.42029      .60405          1          4
+         b31 |         61    2.622951    .5820634          2          4
+         b12 |         30    2.533333    .5074163          2          3
+         b22 |         28         2.5    .5773503          2          4
+-------------+---------------------------------------------------------
+         b32 |         29    2.758621    .5766388          2          4
+         b13 |         56         2.5    .6324555          2          4
+         b23 |         56    2.571429    .6283353          2          4
+         b33 |         49    2.795918    .6448382          1          4
+
+. reshape long b1 b2 b3, i(teamid);
+(j = 1 2 3)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations               71   ->   213         
+Number of variables                  13   ->   8           
+j variable (3 values)                     ->   _j
+xij variables:
+                            b11 b12 b13   ->   b1
+                            b21 b22 b23   ->   b2
+                            b31 b32 b33   ->   b3
+-----------------------------------------------------------------------------
+
+. drop if b1==.;
+(57 observations deleted)
+
+. tabulate b1, missing;
+
+         b1 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |          2        1.28        1.28
+          2 |         87       55.77       57.05
+          3 |         59       37.82       94.87
+          4 |          8        5.13      100.00
+------------+-----------------------------------
+      Total |        156      100.00
+
+. tabulate b2, missing;
+
+         b2 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |          1        0.64        0.64
+          2 |         84       53.85       54.49
+          3 |         60       38.46       92.95
+          4 |          8        5.13       98.08
+          . |          3        1.92      100.00
+------------+-----------------------------------
+      Total |        156      100.00
+
+. tabulate b3, missing;
+
+         b3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |          1        0.64        0.64
+          2 |         48       30.77       31.41
+          3 |         80       51.28       82.69
+          4 |         10        6.41       89.10
+          . |         17       10.90      100.00
+------------+-----------------------------------
+      Total |        156      100.00
+
+. *NOW COMPARE TO CODING OF BELIEF_HYPOTHESIS VARIABLES B1, B2, B3 TO THE PUBLISHED AP
+> PENDIX;
+. *IN APPENDIX 1 IS BELIEF THAT IMM STRONGLY REDUCES AND 4 IS IMMIGRATION SOMEWHAT INC
+> REASES SUPPORT;
+. *DISTRIBUTION OF B1 IS ROUGHLY SIMILAR, WITH MODE = 2, WITH FEWER OBSERVATIONS IN AC
+> TUAL DATA;
+. *PUBLISHED FREQUENCY INCLUDES RESEARCHERS WHO DID NOT COMPLETE PROJECT (SEE P. 81 OF
+>  APPENDIX);
+. *DISTRIBUTION OF B2 IS ROUGHLY SIMILAR, WITH MODE = 2;
+. *DISTRIBUTION OF B3 IS ROUGHLY SIMILAR, WITH MODE = 3;
+. ****CONCLUSION: CODING OF THE BELIEF_H1 VARIABLES IS SUCH THAT:
+> *1 = BELIEF STRONGLY REDUCES SUPPORT
+> *4 = BELIEF SOMEWHAT INCREASES SUPPORT;
+. *BUT NOW COMPARE TO CODING OF BELIEF_HYPOTHESIS VARIABLE;
+. gen meanb=(b1+b2+b3)/3;
+(18 missing values generated)
+
+. tabulate b1 belief_hypothesis;
+
+           |              BELIEF_HYPOTHESIS
+        b1 |      High        Low        Mid         NA |     Total
+-----------+--------------------------------------------+----------
+         1 |         0          2          0          0 |         2 
+         2 |        13         32         41          1 |        87 
+         3 |        31          2         26          0 |        59 
+         4 |         6          1          1          0 |         8 
+-----------+--------------------------------------------+----------
+     Total |        50         37         68          1 |       156 
+
+. tabulate meanb belief_hypothesis;
+
+           |        BELIEF_HYPOTHESIS
+     meanb |      High        Low        Mid |     Total
+-----------+---------------------------------+----------
+  1.666667 |         0          3          0 |         3 
+         2 |         3         12         16 |        31 
+  2.333333 |         6         13         13 |        32 
+  2.666667 |        12          3         16 |        31 
+         3 |        19          1         13 |        33 
+  3.333333 |         2          1          2 |         5 
+  3.666667 |         1          0          1 |         2 
+         4 |         1          0          0 |         1 
+-----------+---------------------------------+----------
+     Total |        44         33         61 |       138 
+
+. tabulate b1 belief_hypothesis if team_size==1;
+
+           |              BELIEF_HYPOTHESIS
+        b1 |      High        Low        Mid         NA |     Total
+-----------+--------------------------------------------+----------
+         1 |         0          1          0          0 |         1 
+         2 |         0          3          2          1 |         6 
+         3 |         6          0          1          0 |         7 
+-----------+--------------------------------------------+----------
+     Total |         6          4          3          1 |        14 
+
+. tabulate meanb belief_hypothesis if team_size==1;
+
+           |        BELIEF_HYPOTHESIS
+     meanb |      High        Low        Mid |     Total
+-----------+---------------------------------+----------
+         2 |         0          3          1 |         4 
+  2.333333 |         1          0          0 |         1 
+  2.666667 |         4          0          2 |         6 
+         3 |         1          0          0 |         1 
+-----------+---------------------------------+----------
+     Total |         6          3          3 |        12 
+
+. ****CODING OF THE BELIEF_HYPOTHESIS VARIABLE IS SUCH THAT:
+> *HIGH = BELIEF HAS NO SUPPORT OR SLIGHTLY INCREASES SUPPORT;
+. *LOW = BELIEF STRONGLY REDUCES SUPPORT;
+. *FREQUENCY DISTRIBUTION OF BELIEF IN HYPOTHESIS ACROSS RESEARCHERS;
+. tabulate b1;
+
+         b1 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |          2        1.28        1.28
+          2 |         87       55.77       57.05
+          3 |         59       37.82       94.87
+          4 |          8        5.13      100.00
+------------+-----------------------------------
+      Total |        156      100.00
+
+. hist b1, lcolor(blue) fcolor(blue%75) freq;
+(bin=12, start=1, width=.25)
+
+. *FREQUENCY DISTRIBUTION OF PRO-IMMIGRATION INDEX AND OF DEGREE ACROSS RESEARCHERS;
+. use /volumes/ddisk/mi/researcher/cri_team.dta, clear;
+
+. destring u_teamid, force replace;
+u_teamid already numeric; no replace
+
+. rename BELIEF_HYPOTHESIS belief_hypothesis;
+
+. rename TOPIC_KNOWLEDGE topic_knowledge;
+
+. rename STATISTICS_SKILL statistics_skill;
+
+. rename MODEL_SCORE model_score;
+
+. rename AME ame;
+
+. rename Jobs jobs;
+
+. rename Unemp unemp;
+
+. rename IncDiff incdiff;
+
+. rename OldAge oldage;
+
+. rename House house;
+
+. rename Health health;
+
+. rename Scale scale;
+
+. rename Stock stock;
+
+. rename Flow flow;
+
+. rename ChangeFlow changeflow;
+
+. rename belief_H1_11 belief_h1_11;
+
+. rename belief_H1_12 belief_h1_12;
+
+. rename belief_H1_13 belief_h1_13;
+
+. rename belief_H1_21 belief_h1_21;
+
+. rename belief_H1_22 belief_h1_22;
+
+. rename belief_H1_23 belief_h1_23;
+
+. rename belief_H1_31 belief_h1_31;
+
+. rename belief_H1_32 belief_h1_32;
+
+. rename belief_H1_33 belief_h1_33;
+
+. rename Hresult hresult;
+
+. rename Hsupport hsupport;
+
+. rename Hreject hreject;
+
+. rename Hrej hrej;
+
+. rename Hsup hsup;
+
+. rename u_teamid teamid;
+
+. egen nobs=count(ame), by(teamid);
+
+. drop if nobs==2 & stock==0;
+(16 observations deleted)
+
+. tabulate team_size;
+
+  team_size |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |         14       19.18       19.18
+          2 |         28       38.36       57.53
+          3 |         31       42.47      100.00
+------------+-----------------------------------
+      Total |         73      100.00
+
+. rename pro_immigrant proindex;
+
+. *NOTE THAT THE A1 A2 A3 VARIABLES ARE IN REVERSE ORDER TO THE PROINDEX MEAN;
+. *IN QUESTIONNAIRE A HIGHER NUMBER IS IMMIGRATION LAWS SHOULD BE TOUGHER;
+. *BUT THE PROINDEX VARIABLE A HIGHER NUMBER IS IMMIGRATION LAWS SHOULD BE RELAXED;
+. tabulate attitude_immigration_11 proindex if team_size==1;
+
+attitude_i |
+mmigration |                     pro_immigrant
+       _11 |         1          2          3          4          5 |     Total
+-----------+-------------------------------------------------------+----------
+         1 |         0          0          0          0          0 |         4 
+         2 |         0          0          0          0          3 |         3 
+         3 |         0          0          0          2          0 |         2 
+         4 |         0          0          2          0          0 |         2 
+         5 |         0          1          0          0          0 |         1 
+         6 |         2          0          0          0          0 |         2 
+-----------+-------------------------------------------------------+----------
+     Total |         2          1          2          2          3 |        14 
+
+
+attitude_i | pro_immigr
+mmigration |    ant
+       _11 |         6 |     Total
+-----------+-----------+----------
+         1 |         4 |         4 
+         2 |         0 |         3 
+         3 |         0 |         2 
+         4 |         0 |         2 
+         5 |         0 |         1 
+         6 |         0 |         2 
+-----------+-----------+----------
+     Total |         4 |        14 
+
+. *SO WILL RESCALE THE ATTITUDINAL VARIABLES TO MAKE IT ALL CONSISTENT;
+. destring attitude_immigration_11 attitude_immigration_12 attitude_immigration_13 pro
+> index, force replace;
+attitude_immigration_11: contains nonnumeric characters; replaced as byte
+(3 missing values generated)
+attitude_immigration_12: contains nonnumeric characters; replaced as byte
+(43 missing values generated)
+attitude_immigration_13: contains nonnumeric characters; replaced as byte
+(16 missing values generated)
+proindex: contains nonnumeric characters; replaced as double
+(1 missing value generated)
+
+. rename attitude_immigration_11 a1;
+
+. rename attitude_immigration_12 a2;
+
+. rename attitude_immigration_13 a3;
+
+. replace a1=7-a1;
+(70 real changes made)
+
+. replace a2=7-a2;
+(30 real changes made)
+
+. replace a3=7-a3;
+(57 real changes made)
+
+. tabulate a1 proindex if team_size==1;
+
+attitude_i |
+mmigration |                     pro_immigrant
+       _11 |         1          2          3          4          5 |     Total
+-----------+-------------------------------------------------------+----------
+         1 |         2          0          0          0          0 |         2 
+         2 |         0          1          0          0          0 |         1 
+         3 |         0          0          2          0          0 |         2 
+         4 |         0          0          0          2          0 |         2 
+         5 |         0          0          0          0          3 |         3 
+         6 |         0          0          0          0          0 |         4 
+-----------+-------------------------------------------------------+----------
+     Total |         2          1          2          2          3 |        14 
+
+
+attitude_i | pro_immigr
+mmigration |    ant
+       _11 |         6 |     Total
+-----------+-----------+----------
+         1 |         0 |         2 
+         2 |         0 |         1 
+         3 |         0 |         2 
+         4 |         0 |         2 
+         5 |         0 |         3 
+         6 |         4 |         4 
+-----------+-----------+----------
+     Total |         4 |        14 
+
+. *keep teamid team_size a1 a2 a3 proindex;
+. destring backgr_degree1, force gen(degree1);
+backgr_degree1: contains nonnumeric characters; degree1 generated as byte
+(2 missing values generated)
+
+. destring backgr_degree2, force gen(degree2);
+backgr_degree2: contains nonnumeric characters; degree2 generated as byte
+(42 missing values generated)
+
+. destring backgr_degree3, force gen(degree3);
+backgr_degree3: contains nonnumeric characters; degree3 generated as byte
+(16 missing values generated)
+
+. keep teamid team_size a1 a2 a3 degree1 degree2 degree3 proindex;
+
+. *ANOTHER PROBLEM SHOWS UP, TEAM_SIZE MAY NOT BE COMPLETELY RIGHT FOR THIS CALCULATIO
+> N;
+. *SOME RESEARCHER-LEVEL DATA MAY BE MISSING;
+. ;
+. list teamid a1 a2 a3 proindex if team_size==1;
+
+     +----------------------------------+
+     | teamid   a1   a2   a3   proindex |
+     |----------------------------------|
+  9. |     73    6    .    .          6 |
+ 19. |     27    6    .    .          6 |
+ 22. |     31    5    .    .          5 |
+ 26. |     36    1    .    .          1 |
+ 34. |     47    2    .    .          2 |
+     |----------------------------------|
+ 38. |     59    3    .    .          3 |
+ 39. |     60    1    .    .          1 |
+ 47. |     83    3    .    .          3 |
+ 51. |     96    6    .    .          6 |
+ 55. |     10    4    .    .          4 |
+     |----------------------------------|
+ 57. |     17    6    .    .          6 |
+ 59. |     21    5    .    .          5 |
+ 65. |     56    4    .    .          4 |
+ 70. |     87    5    .    .          5 |
+     +----------------------------------+
+
+. list teamid a1 a2 a3 proindex if team_size==2;
+
+     +-----------------------------------+
+     | teamid   a1   a2   a3    proindex |
+     |-----------------------------------|
+  3. |      3    5    .    5           5 |
+ 10. |     82    5    .    4         4.5 |
+ 11. |      0    .    .    .           . |
+ 16. |     20    5    .    5           5 |
+ 18. |     23    4    .    3         3.5 |
+     |-----------------------------------|
+ 21. |     30    4    .    3         3.5 |
+ 24. |     34    5    .    3           4 |
+ 25. |     35    3    .    6         4.5 |
+ 27. |     38    5    .    4         4.5 |
+ 29. |     40    4    .    6           5 |
+     |-----------------------------------|
+ 31. |     43    6    .    3         4.5 |
+ 32. |     45    5    .    5           5 |
+ 35. |     48    4    .    5         4.5 |
+ 46. |     77    5    .    5           5 |
+ 48. |     93    3    4    4   3.6666667 |
+     |-----------------------------------|
+ 49. |     94    2    .    .           2 |
+ 52. |     97    5    .    5           5 |
+ 53. |    106    4    .    5         4.5 |
+ 54. |      6    5    .    3           4 |
+ 56. |     16    5    .    3           4 |
+     |-----------------------------------|
+ 60. |     26    4    .    3         3.5 |
+ 61. |     29    4    .    5         4.5 |
+ 64. |     52    5    .    6         5.5 |
+ 67. |     70    4    .    3         3.5 |
+ 68. |     84    5    .    4         4.5 |
+     |-----------------------------------|
+ 71. |     98    5    .    6         5.5 |
+ 72. |    101    6    .    6           6 |
+ 73. |    104    3    .    4         3.5 |
+     +-----------------------------------+
+
+. list teamid a1 a2 a3 proindex if team_size==3;
+
+     +-----------------------------------+
+     | teamid   a1   a2   a3    proindex |
+     |-----------------------------------|
+  1. |      1    3    5    1           3 |
+  2. |      2    3    4    4   3.6666667 |
+  4. |      5    3    4    4   3.6666667 |
+  5. |     18    3    6    6           5 |
+  6. |     32    6    3    5   4.6666667 |
+     |-----------------------------------|
+  7. |     54    4    5    5   4.6666667 |
+  8. |     64    5    2    5           4 |
+ 12. |      7    4    5    3           4 |
+ 13. |      8    4    5    6           5 |
+ 14. |     12    3    3    3           3 |
+     |-----------------------------------|
+ 15. |     13    3    5    5   4.3333333 |
+ 17. |     22    6    6    5   5.6666667 |
+ 20. |     28    1    3    4   2.6666667 |
+ 23. |     33    .    .    6           6 |
+ 28. |     39    4    2    1   2.3333333 |
+     |-----------------------------------|
+ 30. |     41    5    5    6   5.3333333 |
+ 33. |     46    5    4    2   3.6666667 |
+ 36. |     49    5    5    5           5 |
+ 37. |     58    4    4    6   4.6666667 |
+ 40. |     61    5    2    6   4.3333333 |
+     |-----------------------------------|
+ 41. |     65    4    4    3   3.6666667 |
+ 42. |     68    4    5    4   4.3333333 |
+ 43. |     69    3    4    4   3.6666667 |
+ 44. |     72    6    5    6   5.6666667 |
+ 45. |     75    5    1    4   3.3333333 |
+     |-----------------------------------|
+ 50. |     95    3    .    5           4 |
+ 58. |     19    4    5    6           5 |
+ 62. |     37    5    6    3   4.6666667 |
+ 63. |     42    2    4    4   3.3333333 |
+ 66. |     62    5    5    6   5.3333333 |
+     |-----------------------------------|
+ 69. |     86    .    5    6         5.5 |
+     +-----------------------------------+
+
+. *CREATE NEW MEASURE OF TEAM_SIZE;
+. gen team=(a1~=.) + (a2~=.) + (a3~=.);
+
+. tabulate team team_size;
+
+           |            team_size
+      team |         1          2          3 |     Total
+-----------+---------------------------------+----------
+         0 |         0          1          0 |         1 
+         1 |        14          1          1 |        16 
+         2 |         0         25          2 |        27 
+         3 |         0          1         28 |        29 
+-----------+---------------------------------+----------
+     Total |        14         28         31 |        73 
+
+. *CAN RECREATE PROINDEX USING CORRECTED MEASURE OF TEAM SIZE;
+. reshape long a degree, i(teamid);
+(j = 1 2 3)
+
+Data                               Wide   ->   Long
+-----------------------------------------------------------------------------
+Number of observations               73   ->   219         
+Number of variables                  10   ->   7           
+j variable (3 values)                     ->   _j
+xij variables:
+                               a1 a2 a3   ->   a
+                degree1 degree2 degree3   ->   degree
+-----------------------------------------------------------------------------
+
+. drop if a==.;
+(62 observations deleted)
+
+. egen suma=sum(a), by(teamid);
+
+. generate meana=suma/1 if team==1;
+(141 missing values generated)
+
+. replace meana=suma/2 if team==2;
+(54 real changes made)
+
+. replace meana=suma/3 if team==3;
+(87 real changes made)
+
+. gen diff=meana-proindex;
+
+. summ diff;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+        diff |        157    3.04e-09    8.09e-08  -1.59e-07   1.59e-07
+
+. *FREQUENCY DISTRIBUTION OF PRO-IMMIGRATION INDEX ACROSS RESEARCHERS;
+. tabulate a;
+
+          a |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |          6        3.82        3.82
+          2 |          7        4.46        8.28
+          3 |         28       17.83       26.11
+          4 |         38       24.20       50.32
+          5 |         51       32.48       82.80
+          6 |         27       17.20      100.00
+------------+-----------------------------------
+      Total |        157      100.00
+
+. *FREQUENCY DISTRIBUTION OF DISCIPLINE ACROSS RESEARCHERS;
+. tabulate degree;
+
+     degree |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |          3        1.91        1.91
+          2 |          4        2.55        4.46
+          3 |         87       55.41       59.87
+          4 |         43       27.39       87.26
+          5 |         10        6.37       93.63
+          6 |          8        5.10       98.73
+          7 |          2        1.27      100.00
+------------+-----------------------------------
+      Total |        157      100.00
+
+. hist a, lcolor(red) fcolor(red%75) freq;
+(bin=12, start=1, width=.41666667)
+
+. ******************************************************************;
+. *DRAWING JOINT HISTOGRAMS OF AME;
+. *USING DATA CREATED IN REG_MODEL.DO;
+. use /volumes/ddisk/mi/researcher/model.dta, clear;
+
+. summ ame, detail;
+
+                             AME
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%        -.545      -1.353765
+ 5%      -.13961       -1.13019
+10%      -.07136        -.99314       Obs               1,253
+25%        -.016        -.87331       Sum of wgt.       1,253
+
+50%      -.00124                      Mean           .0007771
+                        Largest       Std. dev.      .1865197
+75%       .01041           1.47
+90%       .05232           2.09       Variance       .0347896
+95%       .12731           2.21       Skewness       4.688292
+99%       .58381           2.47       Kurtosis       68.50425
+
+. *TRUNCATING TAILS OF DISTRIBUTION AT -.35 AND +.35;
+. generate ame2=ame;
+
+. replace ame2=-.35 if ame<-.35 ;
+(26 real changes made)
+
+. replace ame2=.35 if ame>.35 ;
+(20 real changes made)
+
+. xtile pame = ame, n(100);
+
+. tabulate pame, sum(ame);
+
+        100 |
+  quantiles |           Summary of AME
+     of ame |        Mean   Std. dev.       Freq.
+------------+------------------------------------
+          1 |  -.77851731   .25017713          13
+          2 |  -.41932462   .06481818          13
+          3 |   -.3055275   .02991299          12
+          4 |  -.21644615   .02849002          13
+          5 |   -.1550975   .01109845          12
+          6 |     -.12968   .00476788          13
+          7 |  -.11538583   .00556106          12
+          8 |  -.09846923   .00436674          13
+          9 |  -.08733333   .00235969          12
+         10 |  -.07560462   .00349009          13
+         11 |  -.06607667   .00226478          12
+         12 |  -.05938231   .00219178          13
+         13 |  -.05250417   .00145555          12
+         14 |  -.04641231   .00216471          13
+         15 |  -.04077083   .00098864          12
+         16 |  -.03655692   .00121034          13
+         17 |  -.03251923    .0008833          13
+         18 |  -.02974833   .00082824          12
+         19 |  -.02759154    .0004529          13
+         20 |  -.02601333   .00060678          12
+         21 |  -.02442308   .00040976          13
+         22 |  -.02265308   .00046912          13
+         23 |  -.01999333   .00108679          12
+         24 |  -.01799583   .00044696          12
+         25 |  -.01658562   .00049493          16
+         26 |     -.01491   .00038981           9
+         27 |  -.01374462    .0004252          13
+         28 |  -.01250917   .00047993          12
+         29 |  -.01123462   .00027874          13
+         30 |  -.01039769    .0002178          13
+         31 |  -.00992667   .00014687          12
+         32 |  -.00921667   .00021856          12
+         33 |  -.00857308   .00015337          13
+         34 |  -.00808923   .00017543          13
+         35 |  -.00745692   .00017148          13
+         36 |    -.007065   .00011477          12
+         37 |  -.00665583   .00008107          12
+         38 |  -.00620385   .00024233          13
+         39 |     -.00546   .00017362          12
+         40 |  -.00503462   .00017643          13
+         41 |  -.00458083   .00011397          12
+         42 |  -.00408571   .00014092          14
+         43 |  -.00379364   .00009069          11
+         44 |  -.00341214   .00016734          14
+         45 |  -.00306846   .00006706          13
+         46 |  -.00290455   .00005317          11
+         47 |  -.00262667   .00010413          12
+         48 |  -.00217385   .00015746          13
+         49 |  -.00176923    .0000942          13
+         50 |  -.00141769   .00010264          13
+         51 |    -.001055   .00009239          12
+         52 |  -.00077333   .00005581          12
+         53 |  -.00057154   .00005113          13
+         54 |   -.0003925   .00005225          12
+         55 |  -.00009692   .00010719          13
+         56 |   .00013692   .00004837          13
+         57 |      .00033   .00005212          13
+         58 |    .0005125   .00003646          12
+         59 |   .00081417    .0001518          12
+         60 |   .00125917   .00015951          12
+         61 |   .00158923   .00009358          13
+         62 |   .00185083   .00010022          12
+         63 |   .00229786   .00018137          14
+         64 |   .00276273   .00013972          11
+         65 |   .00319231   .00016377          13
+         66 |   .00354667   .00008637          12
+         67 |   .00390143   .00010996          14
+         68 |   .00462833   .00030724          12
+         69 |    .0052975   .00012743          12
+         70 |      .00576   .00016539          14
+         71 |      .00653   .00024743          11
+         72 |   .00725769     .000244          13
+         73 |   .00802917   .00015716          12
+         74 |   .00895154   .00041505          13
+         75 |      .00999   .00024346          12
+         76 |   .01133077   .00046214          13
+         77 |   .01280917   .00038995          12
+         78 |   .01450846   .00092548          13
+         79 |   .01671917   .00049463          12
+         80 |   .02024308   .00126787          13
+         81 |      .02293    .0007747          12
+         82 |   .02577923   .00074806          13
+         83 |   .02792846   .00077341          13
+         84 |     .030405   .00117978          12
+         85 |   .03350231   .00084478          13
+         86 |   .03644083   .00090082          12
+         87 |   .03902923   .00077292          13
+         88 |   .04198917   .00142476          12
+         89 |   .04591462   .00126067          13
+         90 |    .0501325   .00092738          12
+         91 |      .05857   .00183947          13
+         92 |      .06722   .00280912          12
+         93 |   .07853538   .00537822          13
+         94 |   .09446583   .00416352          12
+         95 |   .10992231   .00731104          13
+         96 |      .14476    .0101372          12
+         97 |   .19072462   .02217457          13
+         98 |   .26774667   .02267223          12
+         99 |   .39504923   .09440989          13
+        100 |   1.3181732   .63110873          12
+------------+------------------------------------
+      Total |   .00077706   .18651969       1,253
+
+. drop pame;
+
+. xtile pame = ame2, n(100);
+
+. tabulate pame, sum(ame);
+
+        100 |
+  quantiles |           Summary of AME
+    of ame2 |        Mean   Std. dev.       Freq.
+------------+------------------------------------
+          1 |  -.59892096   .25613324          26
+          3 |   -.3055275   .02991299          12
+          4 |  -.21644615   .02849002          13
+          5 |   -.1550975   .01109845          12
+          6 |     -.12968   .00476788          13
+          7 |  -.11538583   .00556106          12
+          8 |  -.09846923   .00436674          13
+          9 |  -.08733333   .00235969          12
+         10 |  -.07560462   .00349009          13
+         11 |  -.06607667   .00226478          12
+         12 |  -.05938231   .00219178          13
+         13 |  -.05250417   .00145555          12
+         14 |  -.04641231   .00216471          13
+         15 |  -.04077083   .00098864          12
+         16 |  -.03655692   .00121034          13
+         17 |  -.03251923    .0008833          13
+         18 |  -.02974833   .00082824          12
+         19 |  -.02759154    .0004529          13
+         20 |  -.02601333   .00060678          12
+         21 |  -.02442308   .00040976          13
+         22 |  -.02265308   .00046912          13
+         23 |  -.01999333   .00108679          12
+         24 |  -.01799583   .00044696          12
+         25 |  -.01658562   .00049493          16
+         26 |     -.01491   .00038981           9
+         27 |  -.01374462    .0004252          13
+         28 |  -.01250917   .00047993          12
+         29 |  -.01123462   .00027874          13
+         30 |  -.01039769    .0002178          13
+         31 |  -.00992667   .00014687          12
+         32 |  -.00921667   .00021856          12
+         33 |  -.00857308   .00015337          13
+         34 |  -.00808923   .00017543          13
+         35 |  -.00745692   .00017148          13
+         36 |    -.007065   .00011477          12
+         37 |  -.00665583   .00008107          12
+         38 |  -.00620385   .00024233          13
+         39 |     -.00546   .00017362          12
+         40 |  -.00503462   .00017643          13
+         41 |  -.00458083   .00011397          12
+         42 |  -.00408571   .00014092          14
+         43 |  -.00379364   .00009069          11
+         44 |  -.00341214   .00016734          14
+         45 |  -.00306846   .00006706          13
+         46 |  -.00290455   .00005317          11
+         47 |  -.00262667   .00010413          12
+         48 |  -.00217385   .00015746          13
+         49 |  -.00176923    .0000942          13
+         50 |  -.00141769   .00010264          13
+         51 |    -.001055   .00009239          12
+         52 |  -.00077333   .00005581          12
+         53 |  -.00057154   .00005113          13
+         54 |   -.0003925   .00005225          12
+         55 |  -.00009692   .00010719          13
+         56 |   .00013692   .00004837          13
+         57 |      .00033   .00005212          13
+         58 |    .0005125   .00003646          12
+         59 |   .00081417    .0001518          12
+         60 |   .00125917   .00015951          12
+         61 |   .00158923   .00009358          13
+         62 |   .00185083   .00010022          12
+         63 |   .00229786   .00018137          14
+         64 |   .00276273   .00013972          11
+         65 |   .00319231   .00016377          13
+         66 |   .00354667   .00008637          12
+         67 |   .00390143   .00010996          14
+         68 |   .00462833   .00030724          12
+         69 |    .0052975   .00012743          12
+         70 |      .00576   .00016539          14
+         71 |      .00653   .00024743          11
+         72 |   .00725769     .000244          13
+         73 |   .00802917   .00015716          12
+         74 |   .00895154   .00041505          13
+         75 |      .00999   .00024346          12
+         76 |   .01133077   .00046214          13
+         77 |   .01280917   .00038995          12
+         78 |   .01450846   .00092548          13
+         79 |   .01671917   .00049463          12
+         80 |   .02024308   .00126787          13
+         81 |      .02293    .0007747          12
+         82 |   .02577923   .00074806          13
+         83 |   .02792846   .00077341          13
+         84 |     .030405   .00117978          12
+         85 |   .03350231   .00084478          13
+         86 |   .03644083   .00090082          12
+         87 |   .03902923   .00077292          13
+         88 |   .04198917   .00142476          12
+         89 |   .04591462   .00126067          13
+         90 |    .0501325   .00092738          12
+         91 |      .05857   .00183947          13
+         92 |      .06722   .00280912          12
+         93 |   .07853538   .00537822          13
+         94 |   .09446583   .00416352          12
+         95 |   .10992231   .00731104          13
+         96 |      .14476    .0101372          12
+         97 |   .19072462   .02217457          13
+         98 |   .26774667   .02267223          12
+         99 |   .83814876   .63919562          25
+------------+------------------------------------
+      Total |   .00077706   .18651969       1,253
+
+. *GRAPHS USING 3-WAY INDEX, 3 KINDS OF TEAMS, GROUP1 GROUP2 GROUP3;
+. *twoway (kdensity ame2 if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwid
+> th(medium) bwidth(.03) )
+>                 (kdensity ame2 if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(gr
+> een%20) lwidth(medium) bwidth(.03) ) 
+>                 (kdensity ame2 if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(bl
+> ue%2) lwidth(medium) bwidth(.03)) ,
+>                 legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Mode
+> rate teams" 3 "Pro-immigrant teams"));
+. *THIS SAVES THE GRAPH
+> *twoway (kdensity ame2 if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwid
+> th(medium) bwidth(.03)) 
+>         (kdensity ame2 if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) 
+> lwidth(medium) bwidth(.03) ) 
+>         (kdensity ame2 if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lw
+> idth(medium) bwidth(.03)) ,
+>         legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate tea
+> ms" 3 "Pro-immigrant teams"))
+>         saving(/volumes/ddisk/mi/researcher/hist_ame_index.gph, replace);
+. *HISTOGRAM FOR SCORE FOR VARIOUS VALUES OF INDEX, USING MODEL LEVEL DATA;
+. *GRAPH IS IDENTICAL TO WHAT ONE WOULD GET IN THE COLLAPSED DATA , AND WEIGHTED BY NM
+> ODEL;
+. *THIS SAVES THE GRAPH FOR ORIGINAL MEASURE OF REFEREE SCORE;
+. *twoway (kdensity model_brw if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2)
+>  lwidth(medium) bwidth(.05)) 
+>                 (kdensity model_brw if index==2 [fw=1],kernel(ep) lcolor(green) fcol
+> or(green%20) lwidth(medium) bwidth(.05) ) 
+>                 (kdensity model_brw if index==3 [fw=1], kernel(ep) lcolor(blue) fcol
+> or(blue%2) lwidth(medium) bwidth(.05)) ,
+>                 legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Mode
+> rate teams" 3 "Pro-immigrant teams"))       
+>                 saving(/volumes/ddisk/mi/researcher/hist_model.gph, replace);
+. *THIS SAVES THE GRAPH USING ALTERNATIVE MEASURE OF REFEREE SCORE;
+. *twoway (kdensity peer_mean if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2)
+>  lwidth(medium) bwidth(.20)) 
+>         (kdensity peer_mean if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green
+> %20) lwidth(medium) bwidth(.20) ) 
+>         (kdensity peer_mean if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%
+> 2) lwidth(medium) bwidth(.20)) ,
+>         legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate tea
+> ms" 3 "Pro-immigrant teams"))
+>         saving(/volumes/ddisk/mi/researcher/hist_model2.gph, replace);
+. log close;
+      name:  <unnamed>
+       log:  /volumes/ddisk/mi/researcher/reg_distribution.log
+  log type:  text
+ closed on:  22 Sep 2024, 08:16:18
+--------------------------------------------------------------------------------------
