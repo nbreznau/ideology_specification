@@ -72,7 +72,7 @@ df <- df %>%
 
 df_dyad <- df_dyad %>%
   mutate(mweight = pweight*1.019,
-         peerweight = pscore_1/(pweight*1.019))
+         peerweight = pscore_1*(pweight*1.019))
 
 m_1lm <- lm(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$mweight, data = df)
 
@@ -374,6 +374,7 @@ weighted_se_ate_group3p_dyad <- sqrt(weighted_var_ate_group3p_dyad / sum(df_dyad
 ```
 
 ### Predicted Margins
+Use regression coefficients for group1 and group3 and predicted values for group2.
 
 
 ```{r amecalc}
@@ -382,82 +383,81 @@ df$ame_group <- predict(m_3lm, newdata = df)
 
 df_dyad$ame_group <- predict(m_3dlm, newdata = df_dyad)
 
-df1 <- subset(df, group1 == 1) %>%
-  mutate(ame_group1_m_3 = ame_group,
-         ame_group1_p_3 = ame_group)
 
 df2 <- subset(df, group2 == 1) %>%
   mutate(ame_group2_m_3 = ame_group,
          ame_group2_p_3 = ame_group)
-
-df3 <- subset(df, group3 == 1) %>%
-  mutate(ame_group3_m_3 = ame_group,
-         ame_group3_p_3 = ame_group)
-
-df1_dyad <- subset(df_dyad, indiv1 == 1) %>%
-  mutate(ame_group1_m_3 = ame_group,
-         ame_group1_p_3 = ame_group) %>%
-  subset(!is.na(ame_group))
 
 df2_dyad <- subset(df_dyad, indiv2 == 1) %>%
   mutate(ame_group2_m_3 = ame_group,
          ame_group2_p_3 = ame_group) %>%
   subset(!is.na(ame_group))
 
-df3_dyad <- subset(df_dyad, indiv3 == 1) %>%
-  mutate(ame_group3_m_3 = ame_group,
-         ame_group3_p_3 = ame_group) %>%
-  subset(!is.na(ame_group))
-
 # Weighted mean AME
-weighted_mean_ame_group1m <- sum(df1$ame_group1_m_3 * df1$mweight) / sum(df1$mweight)
 weighted_mean_ame_group2m <- sum(df2$ame_group2_m_3 * df2$mweight) / sum(df2$mweight)
-weighted_mean_ame_group3m <- sum(df3$ame_group3_m_3 * df3$mweight) / sum(df3$mweight)
 
-weighted_mean_ame_group1m_dyad <- sum(df1_dyad$ame_group1_m_3 * df1_dyad$mweight) / sum(df1_dyad$mweight)
 weighted_mean_ame_group2m_dyad <- sum(df2_dyad$ame_group2_m_3 * df2_dyad$mweight) / sum(df2_dyad$mweight)
-weighted_mean_ame_group3m_dyad <- sum(df3_dyad$ame_group3_m_3 * df3_dyad$mweight) / sum(df3_dyad$mweight)
 
-weighted_mean_ame_group1p <- sum(df1$ame_group1_m_3 * df1$peerweight) / sum(df1$peerweight)
+
+
 weighted_mean_ame_group2p <- sum(df2$ame_group2_m_3 * df2$peerweight) / sum(df2$peerweight)
-weighted_mean_ame_group3p <- sum(df3$ame_group3_m_3 * df3$peerweight) / sum(df3$peerweight)
 
-weighted_mean_ame_group1p_dyad <- sum(df1_dyad$ame_group1_m_3 * df1_dyad$peerweight) / sum(df1_dyad$peerweight)
+
+
 weighted_mean_ame_group2p_dyad <- sum(df2_dyad$ame_group2_m_3 * df2_dyad$peerweight) / sum(df2_dyad$peerweight)
-weighted_mean_ame_group3p_dyad <- sum(df3_dyad$ame_group3_m_3 * df3_dyad$peerweight) / sum(df3_dyad$peerweight)
 
-weighted_var_ame_group1m <- sum(df1$mweight * (df1$ame_group1_m_3 - weighted_mean_ame_group1m)^2) / sum(df1$mweight)
+
+
 weighted_var_ame_group2m <- sum(df2$mweight * (df2$ame_group2_m_3 - weighted_mean_ame_group2m)^2) / sum(df2$mweight)
-weighted_var_ame_group3m <- sum(df3$mweight * (df3$ame_group3_m_3 - weighted_mean_ame_group3m)^2) / sum(df3$mweight)
 
-weighted_var_ame_group1m_dyad <- sum(df1_dyad$mweight * (df1_dyad$ame_group1_m_3 - weighted_mean_ame_group1m_dyad)^2) / sum(df1_dyad$mweight)
 weighted_var_ame_group2m_dyad <- sum(df2_dyad$mweight * (df2_dyad$ame_group2_m_3 - weighted_mean_ame_group2m_dyad)^2) / sum(df2_dyad$mweight)
-weighted_var_ame_group3m_dyad <- sum(df3_dyad$mweight * (df3_dyad$ame_group3_m_3 - weighted_mean_ame_group3m_dyad)^2) / sum(df3_dyad$mweight)
 
-weighted_var_ame_group1p <- sum(df1$peerweight * (df1$ame_group1_m_3 - weighted_mean_ame_group1p)^2) / sum(df1$peerweight)
 weighted_var_ame_group2p <- sum(df2$peerweight * (df2$ame_group2_m_3 - weighted_mean_ame_group2p)^2) / sum(df2$peerweight)
-weighted_var_ame_group3p <- sum(df3$peerweight * (df3$ame_group3_m_3 - weighted_mean_ame_group3p)^2) / sum(df3$peerweight)
 
-weighted_var_ame_group1p_dyad <- sum(df1_dyad$peerweight * (df1_dyad$ame_group1_m_3 - weighted_mean_ame_group1p_dyad)^2) / sum(df1_dyad$peerweight)
+
 weighted_var_ame_group2p_dyad <- sum(df2_dyad$peerweight * (df2_dyad$ame_group2_m_3 - weighted_mean_ame_group2p_dyad)^2) / sum(df2_dyad$peerweight)
-weighted_var_ame_group3p_dyad <- sum(df3_dyad$peerweight * (df3_dyad$ame_group3_m_3 - weighted_mean_ame_group3p_dyad)^2) / sum(df3_dyad$peerweight)
 
-weighted_se_ame_group1m <- sqrt(weighted_var_ame_group1m / sum(df1$mweight))
+
 weighted_se_ame_group2m <- sqrt(weighted_var_ame_group2m / sum(df2$mweight))
-weighted_se_ame_group3m <- sqrt(weighted_var_ame_group3m / sum(df3$mweight))
 
-weighted_se_ame_group1m_dyad <- sqrt(weighted_var_ame_group1m_dyad / sum(df1_dyad$mweight))
 weighted_se_ame_group2m_dyad <- sqrt(weighted_var_ame_group2m_dyad / sum(df2_dyad$mweight))
-weighted_se_ame_group3m_dyad <- sqrt(weighted_var_ame_group3m_dyad / sum(df3_dyad$mweight))
 
-weighted_se_ame_group1p <- sqrt(weighted_var_ame_group1p / sum(df1$peerweight))
 weighted_se_ame_group2p <- sqrt(weighted_var_ame_group2p / sum(df2$peerweight))
-weighted_se_ame_group3p <- sqrt(weighted_var_ame_group3p / sum(df3$peerweight))
 
-weighted_se_ame_group1p_dyad <- sqrt(weighted_var_ame_group1p_dyad / sum(df1_dyad$peerweight))
 weighted_se_ame_group2p_dyad <- sqrt(weighted_var_ame_group2p_dyad / sum(df2_dyad$peerweight))
-weighted_se_ame_group3p_dyad <- sqrt(weighted_var_ame_group3p_dyad / sum(df3_dyad$peerweight))
 
+# get coeffs
+model_summary <- summary(m_3lm)
+model_summaryp <- summary(p_3lm)
+
+# Extract coefficients and standard errors for group1 and group3
+coeff_group1 <- model_summary$coefficients["group1", "Estimate"]
+se_group1 <- model_summary$coefficients["group1", "Std. Error"]
+
+coeff_group3 <- model_summary$coefficients["group3", "Estimate"]
+se_group3 <- model_summary$coefficients["group3", "Std. Error"]
+
+coeff_group1p <- model_summaryp$coefficients["group1", "Estimate"]
+se_group1p <- model_summaryp$coefficients["group1", "Std. Error"]
+
+coeff_group3p <- model_summaryp$coefficients["group3", "Estimate"]
+se_group3p <- model_summaryp$coefficients["group3", "Std. Error"]
+
+model_summaryd <- summary(m_3dlm)
+model_summarydp <- summary(p_3dlm)
+
+# Extract coefficients and standard errors for group1 and group3
+coeff_group1d <- model_summaryd$coefficients[grep("^indiv1$", rownames(model_summaryd$coefficients)), "Estimate"]
+se_group1d <- model_summaryd$coefficients[grep("^indiv1$", rownames(model_summaryd$coefficients)), "Std. Error"]
+
+coeff_group3d <- model_summaryd$coefficients[grep("^indiv3$", rownames(model_summaryd$coefficients)), "Estimate"]
+se_group3d <- model_summaryd$coefficients[grep("^indiv3$", rownames(model_summaryd$coefficients)), "Std. Error"]
+
+coeff_group1dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Estimate"]
+se_group1dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Std. Error"]
+
+coeff_group3dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Estimate"]
+se_group3dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Std. Error"]
 ```
 
 ### Plotting DFs
@@ -482,21 +482,29 @@ plot_data_ate_dyad <- data.frame(
 )
 
 plot_data_ame <- data.frame(
-  group = c("group1_m", "group2_m", "group3_m", "group1_p", "group2_p", "group3_p"),
+  group = c("group1_m", 
+            "group2_m", 
+            "group3_m", 
+            "group1_p", 
+            "group2_p", 
+            "group3_p"),
   weight = c("m", "m", "m", "p", "p", "p"),
-  mean = c(weighted_mean_ame_group1m, weighted_mean_ame_group2m, weighted_mean_ame_group3m,
-           weighted_mean_ame_group1p, weighted_mean_ame_group2p, weighted_mean_ame_group3p),
-  se = c(weighted_se_ame_group1m, weighted_se_ame_group2m, weighted_se_ame_group3m,
-         weighted_se_ame_group1p, weighted_se_ame_group2p, weighted_se_ame_group3p)
-)
+  mean = c(coeff_group1 + weighted_mean_ame_group2m,
+           weighted_mean_ame_group2m,
+           coeff_group3 + weighted_mean_ame_group2m,
+           coeff_group1p + weighted_mean_ame_group2p,
+           weighted_mean_ame_group2p,
+           coeff_group3p + weighted_mean_ame_group2p),
+  se = c(se_group1, weighted_se_ame_group2m, se_group3,
+         se_group1p, weighted_se_ame_group2p, se_group3p))
 
 plot_data_ame_dyad <- data.frame(
   group = c("group1_m", "group2_m", "group3_m", "group1_p", "group2_p", "group3_p"),
   weight = c("m", "m", "m", "p", "p", "p"),
-  mean = c(weighted_mean_ame_group1m_dyad, weighted_mean_ame_group2m_dyad, weighted_mean_ame_group3m_dyad,
-           weighted_mean_ame_group1p_dyad, weighted_mean_ame_group2p_dyad, weighted_mean_ame_group3p_dyad),
-  se = c(weighted_se_ame_group1m_dyad, weighted_se_ame_group2m_dyad, weighted_se_ame_group3m_dyad,
-         weighted_se_ame_group1p_dyad, weighted_se_ame_group2p_dyad, weighted_se_ame_group3p_dyad)
+  mean = c(coeff_group1d+weighted_mean_ame_group2m_dyad, weighted_mean_ame_group2m_dyad, coeff_group3d+weighted_mean_ame_group2m_dyad,
+           coeff_group1dp+weighted_mean_ame_group2p_dyad, weighted_mean_ame_group2p_dyad, coeff_group3dp+weighted_mean_ame_group2p_dyad),
+  se = c(se_group1d, weighted_se_ame_group2m_dyad, se_group3d,
+         se_group1dp, weighted_se_ame_group2p_dyad, se_group3dp)
 )
 
 
@@ -512,12 +520,12 @@ plot_data_ame %>%
   ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
   geom_point() +
   geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
-  labs(x = "Variables", y = "Predicted Margins", title = "") +
+  labs(x = "Variables", y = "Marginal Effects\n(ame, nmodel weights, model-level)", title = "") +
   #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
-  ylim(-0.085,0.025) +
-  annotate("text", y = c(weighted_mean_ame_group1m,
+  ylim(-0.115,0.04) +
+  annotate("text", y = c(coeff_group1 + weighted_mean_ame_group2m,
                          weighted_mean_ame_group2m,
-                         weighted_mean_ame_group3m), 
+                         coeff_group3 + weighted_mean_ame_group2m), 
            x = c(2.7,1.7,0.7),
            label = c("Anti-immigration", "Moderate", "Pro-immigration"),
            color = colors[1:3],
@@ -547,9 +555,9 @@ plot_data_ate %>%
   ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
   geom_point() +
   geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
-  labs(x = "Variables", y = "Average Treatment Effects", title = "") +
+  labs(x = "Variables", y = "Average Treatment Effects\n(ame, nmodel weights, model-level)", title = "") +
   #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
-  ylim(-0.085,0.025) +
+  ylim(-0.115,0.04) +
   annotate("text", y = c(weighted_mean_ate_group1,
                          weighted_mean_ate_group2,
                          weighted_mean_ate_group3), 
@@ -583,12 +591,12 @@ plot_data_ame_dyad %>%
   ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
   geom_point() +
   geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
-  labs(x = "Variables", y = "Predicted Margins", title = "") +
+  labs(x = "Variables", y = "Marginal Effects\n(ame, nmodel weights, indiv-model level)", title = "") +
   #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
-  ylim(-0.057,0.025) +
-  annotate("text", y = c(weighted_mean_ame_group1m_dyad,
+  ylim(-0.075,0.025) +
+  annotate("text", y = c(coeff_group1d + weighted_mean_ame_group2m_dyad,
                          weighted_mean_ame_group2m_dyad,
-                         weighted_mean_ame_group3m_dyad), 
+                         coeff_group3d + weighted_mean_ame_group2m_dyad), 
            x = c(2.7,1.7,0.7),
            label = c("Anti-immigration", "Moderate", "Pro-immigration"),
            color = colors[1:3],
@@ -618,9 +626,9 @@ plot_data_ate_dyad %>%
   ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
   geom_point() +
   geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
-  labs(x = "Variables", y = "Average Treatment Effects", title = "") +
+  labs(x = "Variables", y = "Average Treatment Effects\n(ame, nmodel weights, indiv-model level)", title = "") +
   #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
-  ylim(-0.057,0.025) +
+  ylim(-0.075,0.025) +
   annotate("text", y = c(weighted_mean_ate_group1_dyad,
                          weighted_mean_ate_group2_dyad,
                          weighted_mean_ate_group3_dyad), 
