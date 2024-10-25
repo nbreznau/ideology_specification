@@ -327,21 +327,21 @@ m_5 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + fac
 m_6 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
 
-p_1 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_1 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_2 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_2 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_3 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_3 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_4 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_4 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_5 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_5 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_6 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_6 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
 null_m <- lm.cluster(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
-null_p <- lm.cluster(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+null_p <- lm.cluster(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
 # re-run as lm's to get fit stats
 source(here("code", "Sub", "t2_fit.R"))
@@ -446,21 +446,21 @@ m_5d <- lm.cluster(formula=AME ~ att + stats_i + topic_i + t2 + t3 + factor(back
 m_6d <- lm.cluster(formula=AME ~ att + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
 
-p_1d <- lm.cluster(formula=AME ~ indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_1d <- lm.cluster(formula=AME ~ indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_2d <- lm.cluster(formula=AME ~ indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_2d <- lm.cluster(formula=AME ~ indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_3d <- lm.cluster(formula=AME ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_3d <- lm.cluster(formula=AME ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_4d <- lm.cluster(formula=AME ~ indiv1 + indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_4d <- lm.cluster(formula=AME ~ indiv1 + indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_5d <- lm.cluster(formula=AME ~ att + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_5d <- lm.cluster(formula=AME ~ att + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_6d <- lm.cluster(formula=AME ~ att + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_6d <- lm.cluster(formula=AME ~ att + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
 null_md <- lm.cluster(formula=AME ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
-null_pd <- lm.cluster(formula=AME ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+null_pd <- lm.cluster(formula=AME ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
 # re-run as lm's to get fit stats
 source(here("code", "Sub", "t3_fit.R"))
@@ -566,21 +566,21 @@ m_5n <- lm.cluster(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 +
 m_6n <- lm.cluster(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
 
-p_1n <- lm.cluster(formula=neg10s ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_1n <- lm.cluster(formula=neg10s ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_2n <- lm.cluster(formula=neg10s ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_2n <- lm.cluster(formula=neg10s ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_3n <- lm.cluster(formula=neg10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_3n <- lm.cluster(formula=neg10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_4n <- lm.cluster(formula=neg10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_4n <- lm.cluster(formula=neg10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_5n <- lm.cluster(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_5n <- lm.cluster(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_6n <- lm.cluster(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_6n <- lm.cluster(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
 null_mn <- lm.cluster(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
-null_pn <- lm.cluster(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+null_pn <- lm.cluster(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
 # re-run as lm's to get fit stats
 source(here("code", "Sub", "t4_fit.R"))
@@ -745,7 +745,7 @@ again adjust for the lowest weight at integer 1
 
 ```{r t3rr, warning = F}
 
-df$nmodel_lp <- round((df$pscore/df$nmodel)/(min(df$pscore/df$nmodel)), 0)
+df$nmodel_lp <- round((df$pscore_1/df$nmodel)/(min(df$pscore_1/df$nmodel)), 0)
 
 m_1ar <- glm(neg10 ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
              data = df,
@@ -1179,21 +1179,21 @@ m_5dn <- lm.cluster(formula=neg10s ~ att + stats_i + topic_i + t2 + t3 + factor(
 m_6dn <- lm.cluster(formula=neg10s ~ att + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
 
-p_1dn <- lm.cluster(formula=neg10s ~ indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_1dn <- lm.cluster(formula=neg10s ~ indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_2dn <- lm.cluster(formula=neg10s ~ indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_2dn <- lm.cluster(formula=neg10s ~ indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_3dn <- lm.cluster(formula=neg10s ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_3dn <- lm.cluster(formula=neg10s ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_4dn <- lm.cluster(formula=neg10s ~ indiv1 + indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_4dn <- lm.cluster(formula=neg10s ~ indiv1 + indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_5dn <- lm.cluster(formula=neg10s ~ att + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_5dn <- lm.cluster(formula=neg10s ~ att + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_6dn <- lm.cluster(formula=neg10s ~ att + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_6dn <- lm.cluster(formula=neg10s ~ att + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
 null_mdn <- lm.cluster(formula=neg10s ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
-null_pdn <- lm.cluster(formula=neg10s ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+null_pdn <- lm.cluster(formula=neg10s ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
 # re-run as lm's to get fit stats
 source(here("code", "Sub", "t5_fit.R"))
@@ -1297,21 +1297,21 @@ m_5p <- lm.cluster(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 +
 m_6p <- lm.cluster(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
 
-p_1p <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_1p <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_2p <- lm.cluster(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_2p <- lm.cluster(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_3p <- lm.cluster(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_3p <- lm.cluster(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_4p <- lm.cluster(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_4p <- lm.cluster(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_5p <- lm.cluster(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_5p <- lm.cluster(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
-p_6p <- lm.cluster(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+p_6p <- lm.cluster(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
 null_mp <- lm.cluster(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
-null_pp <- lm.cluster(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore/df$nmodel, cluster = "u_teamid", data = df)
+null_pp <- lm.cluster(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
 # re-run as lm's to get fit stats
 source(here("code", "Sub", "t6_fit.R"))
@@ -1414,21 +1414,21 @@ m_5dp <- lm.cluster(formula=pos10s ~ att + stats_i + topic_i + t2 + t3 + factor(
 m_6dp <- lm.cluster(formula=pos10s ~ att + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
 
-p_1dp <- lm.cluster(formula=pos10s ~ indiv1 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_1dp <- lm.cluster(formula=pos10s ~ indiv1 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_2dp <- lm.cluster(formula=pos10s ~ indiv1 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_2dp <- lm.cluster(formula=pos10s ~ indiv1 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_3dp <- lm.cluster(formula=pos10s ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_3dp <- lm.cluster(formula=pos10s ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_4dp <- lm.cluster(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_4dp <- lm.cluster(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_5dp <- lm.cluster(formula=pos10s ~ att + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_5dp <- lm.cluster(formula=pos10s ~ att + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
-p_6dp <- lm.cluster(formula=pos10s ~ att + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+p_6dp <- lm.cluster(formula=pos10s ~ att + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
 null_mdp <- lm.cluster(formula=pos10s ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
-null_pdp <- lm.cluster(formula=pos10s ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore, cluster = "u_teamid", data = df_dyad)
+null_pdp <- lm.cluster(formula=pos10s ~ stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$pscore_1, cluster = "u_teamid", data = df_dyad)
 
 # re-run as lm's to get fit stats
 source(here("code", "Sub", "t7_fit.R"))

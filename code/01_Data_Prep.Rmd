@@ -273,8 +273,11 @@ df2 <- df2 %>%
   mutate(nmodel = n()) %>%
   ungroup()
 
+pdiv <- (sum(df2$pscore)/1253)
+
 df2 <- df2 %>%
-  mutate(pscore_Z = (pscore - mean(pscore)) / sd(pscore)) # standardize
+  mutate(pscore_Z = (pscore - mean(pscore)) / sd(pscore),
+         pscore_1 = pscore/(sum(df2$pscore)/1253)) # standardize & make a weighted to sum = 1 version
 ```
 
 ## Individual-level Dyads
@@ -346,7 +349,8 @@ df3 <- df3 %>%
 
 # join with data from factor analysis 
 df3 <- df3 %>%
-  mutate(pscore_Z = (pscore - mean(pscore)) / sd(pscore)) %>% # standardize
+  mutate(pscore_Z = (pscore - mean(pscore)) / sd(pscore),
+         pscore_1 = pscore/((sum(df3$pscore)/1253)))  %>% # standardize & make a weighted to sum = 1 version
   left_join(df_sem_p, by = "u_id")
 
 # impute missings from grouped means
