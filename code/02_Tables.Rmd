@@ -36,7 +36,7 @@ packages <- c("tidyverse",
 
 pacman::p_load(packages, character.only = T)
 
-# function to get r-squared
+# function to get r-squared from lm.cluster
 
 r2ext <- function(model) {
   summary_output <- capture.output(summary(model))
@@ -45,6 +45,12 @@ r2ext <- function(model) {
   cleaned_output <- str_replace(combined_output, "R\\^2\\s*[:=]\\s*", "")
   first_number <- round(as.numeric(str_extract(cleaned_output, "\\d+\\.\\d+|\\d+")),3)
   return(first_number)
+}
+
+# r-squared from lm
+
+r2x <- function(x) {
+  format(round(summary(x)$r.squared, 3), nsmall = 3)
 }
 
 ```
@@ -1512,6 +1518,70 @@ kable(Table_7, col.names = c("","","","","","","",""))
 
 ```
 
+## Table 8. Referee Score
+
+### Build Models
+
+```{r t8mod}
+
+q_null <- lm(peer_mean ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
+
+q_1 <- lm(peer_mean ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
+
+q_2 <- lm(peer_mean ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
+
+qh_null <- lm(quality2 ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
+
+qh_1 <- lm(quality2 ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
+
+qh_2 <- lm(quality2 ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
+
+
+
+```
+
+
+### Build Table
+
+```{r tbl8}
+Table_8 <- as.data.frame(matrix(nrow = 12, ncol = 7))
+
+Table_8[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Log-Lik", "AIC",  "R-squared")
+
+Table_8[1,2:7] <- c("Null_1", "(1)", "(2)", "Null_2", "(3)", "(4)")
+
+Table_8[c(6,8),2] <- format(round(as.numeric(q_null$coefficients[2:3]),3), nsmall = 3)
+Table_8[c(7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(q_null)$coefficients[2:3, "Std. Error"]),3), nsmall = 3))
+
+Table_8[c(4,6,8),3] <- format(round(as.numeric(q_1$coefficients[2:4]),3), nsmall = 3)
+Table_8[c(5,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(q_1)$coefficients[2:4, "Std. Error"]),3), nsmall = 3))
+
+Table_8[c(2,4,6,8),4] <- format(round(as.numeric(q_2$coefficients[2:5]),3), nsmall = 3)
+Table_8[c(3,5,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(q_2)$coefficients[2:5, "Std. Error"]),3), nsmall = 3))
+
+Table_8[c(6,8),5] <- format(round(as.numeric(qh_null$coefficients[2:3]),3), nsmall = 3)
+Table_8[c(7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(qh_null)$coefficients[2:3, "Std. Error"]),3), nsmall = 3))
+
+Table_8[c(4,6,8),6] <- format(round(as.numeric(qh_1$coefficients[2:4]),3), nsmall = 3)
+Table_8[c(5,7,9),6] <- sprintf("(%s)", format(round(as.numeric(summary(qh_1)$coefficients[2:4, "Std. Error"]),3), nsmall = 3))
+
+Table_8[c(2,4,6,8),7] <- format(round(as.numeric(qh_2$coefficients[2:5]),3), nsmall = 3)
+Table_8[c(3,5,7,9),7] <- sprintf("(%s)", format(round(as.numeric(summary(qh_2)$coefficients[2:5, "Std. Error"]),3), nsmall = 3))
+
+
+Table_8[12,2:7] <- c(r2x(q_null), r2x(q_1), r2x(q_2), r2x(qh_null), r2x(qh_1), r2x(qh_2))
+
+Table_8[10,2:7] <- round(c(logLik((q_null)), logLik(q_1), logLik(q_2), logLik(qh_null), logLik(qh_1), logLik(qh_2)),2)
+
+Table_8[11,2:7] <- round(c(AIC((q_null)), AIC(q_1), AIC(q_2), AIC(qh_null), AIC(qh_1), AIC(qh_2)),2)
+
+Table_8[is.na(Table_8)] <- ""
+
+write.csv(Table_8, here::here("results", "TableS8.csv"), row.names = F)
+
+#nobs(q_1)
+
+```
 
 
 
