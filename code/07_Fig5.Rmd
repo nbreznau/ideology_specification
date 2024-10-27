@@ -1,0 +1,198 @@
+---
+title: "03 Data Viz"
+output: html_notebook
+---
+Replication workflow for:
+
+"Ideological Bias in Estimates of the Impact of Immigration"
+
+[George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
+[Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
+
+The original workflow was developed by Borjas using Stata (see `reg_model.do` in this repository), and this workflow is an identical set of analyses by Breznau done in R. 
+
+The file `df.rds` (also available as csv) was generated in the file `01_Data_Prep.Rmd`.
+
+## Setup
+
+```{r setup}
+
+packages <- c("tidyverse",
+              "ggpubr",
+              "knitr",
+              "pacman",
+              "here",
+              "ragg")
+
+pacman::p_load(packages, character.only = T)
+
+# palette
+colors <- c("#453781FF", "#3CBB75FF", "#FD9567FF")
+
+```
+
+
+## Data
+
+```{r data}
+
+df <- read_rds(here("data", "df.rds"))
+
+```
+
+## Reg Models
+
+Certain routines require non lm.cluster objects. Predicted values are identical so it is easier to work with lm objects.
+
+```{r regs}
+
+# add single weight variable, it is easier
+df <- df %>%
+  mutate(mweight = 1/nmodel,
+         peerweight = pscore_1/nmodel)
+
+```
+ 
+## Fig 4
+
+
+
+## 58 Categories
+
+### Create
+Create unique combinations of variables
+
+```{r the58}
+df <- df %>%
+  mutate(unique_combo = paste(Scale, Stock, Flow, level_cyear, allavailable, w1996, w2006, w2016, sep = "_")) %>%
+  mutate(indicator = as.numeric(factor(unique_combo)))
+
+df <- df %>%
+  # Group by the unique combination
+  group_by(unique_combo) %>%
+  # Calculate the mean of 'ame' for each unique combination and create a new variable 'ame_combo_mean'
+  mutate(ame_combo_mean = mean(AME, na.rm = T),
+         peer_combo_mean = mean(pscore_Z, na.rm = T)) %>%
+  ungroup()
+
+
+```
+
+
+
+
+
+
+
+### Plot
+
+```{r the58plot}
+
+# Cap the count at 50
+df_summary <- df %>%
+  group_by(unique_combo, index) %>%
+  summarise(count = n(), 
+            ame_combo_mean = mean(AME, na.rm = TRUE),
+            peer_combo_mean = mean(pscore_Z, na.rm = T)) %>%
+  ungroup() %>%
+  mutate(count = pmin(count, 25))  # Cap the count at 50
+
+# Order unique_combo by ame_combo_mean
+df_summary <- df_summary %>%
+  arrange(ame_combo_mean) %>%
+  mutate(unique_combo = factor(unique_combo, levels = unique(unique_combo)))
+
+# Create the heatmap
+# ggplot(df_summary, aes(x = unique_combo, y = index, fill = count)) +
+#   geom_tile() +
+#   scale_fill_gradient(low = "white", high = "steelblue") +
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+#   labs(x = "Model Combinations", y = "Index Group", fill = "Count (Capped at 25)", 
+#        title = "Heatmap of Model Combinations by Group (Capped at 25)")
+
+```
+
+
+```{r dens58}
+df <- df %>%
+  arrange(ame_combo_mean) %>%
+  mutate(unique_combo_numeric = as.integer(factor(unique_combo, levels = unique(unique_combo))))
+
+# Step 2: Calculate the density for each index group and adjust y-axis positions to avoid overlap
+# Define offsets for each index group (adjust these values as needed)
+offsets <- c(0.2, 0, -0.2)  # Offset for index == 1, index == 2, and index == 3
+```
+
+
+```{r dens58p}
+# make a defineable range on plot
+range02 <- c(min(df$unique_combo_numeric[df$ame_combo_mean > -0.02]), max(df$unique_combo_numeric[df$ame_combo_mean < 0.02]))
+
+
+# Step 3: Plot using geom_density with the offset
+
+f5a <- ggplot() +
+
+  geom_density(data = df, aes(x = unique_combo_numeric, group = index, color = factor(index), fill = factor(index), alpha = factor(index)), adjust = 0.5, position = "identity", size = 1) +
+  scale_alpha_manual(values = c(0.5, 0, 0.5)) +
+  labs(x = "Unique Model Specifications\nOrdered by Average AME",
+       y = "Density", 
+       title = "",
+       fill = "Index Group", color = "Index Group") +
+  scale_x_continuous(breaks = c(1:58)) +  
+  annotate("text", x = 1, y = 0.048, label = "Anti-immigration\nteams", size = 3.5, color = colors[1], hjust = 0) +
+  annotate("text", x = 21, y = 0.05, label = "Moderate", size = 3.5, color = colors[2], hjust = 0) +
+  annotate("text", x = 58, y = 0.048, label = "Pro-immigration\nteams", size = 3.5, color = colors[3], hjust = 1) +
+  geom_segment(aes(x = range02[1], xend = range02[1], y = 0, yend = 0.025), linetype = "dashed", color = "grey30") +  
+  geom_segment(aes(x = range02[2], xend = range02[2], y = 0, yend = 0.025), linetype = "dashed", color = "grey30") +
+  annotate("text", y = 0.004, x = range02[1]-0.5, label = expression(italic("-0.02 avg.\nand lower")), size = 2.3, hjust = 1, color = "grey20") +
+  annotate("text", y = 0.023, x = range02[2]+0.5, label = expression(italic("0.02 avg.\nand higher")), size = 2.3, hjust = 0, color = "grey20") +
+  scale_color_manual(values = c(colors[1:3])) +
+  scale_fill_manual(values = c(colors[1], "white", colors[3])) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        legend.position = "none")
+
+
+```
+
+```{r}
+df_long <- df %>%
+  mutate(A = ifelse(Scale == 1, 1, NA),
+         B = ifelse(Stock == 1, 2, NA),
+         C = ifelse(Flow == 1, 3, NA),
+         D = ifelse(level_cyear == 1, 4, NA),
+         E = ifelse(allavailable == 1, 5, NA),
+         F = ifelse(w1996 == 1, 6, NA),
+         G = ifelse(w2006 == 1, 7, NA),
+         H = ifelse(w2016 == 1, 8, NA)) %>%
+  pivot_longer(cols = A:H, names_to = "Variable", values_to = "y") %>%
+  drop_na(y)  # Remove rows with NA values
+
+# Plot with geom_tile to remove gaps
+f5b <- ggplot(df_long, aes(x = unique_combo_numeric, y = y)) +
+  geom_tile(width = 0.8, height = 0.8, fill = "grey50") +  # Adjust width and height to control bar appearance
+  scale_x_continuous(breaks = 1:58) +  
+  scale_y_continuous(breaks = 1:8, labels = c("A", "B", "C", "D", "E", "F", "G", "H")) +  # Label y-axis with variable names
+  labs(x = "Unique model specifications\nordered by average AME", y = "Components") +
+  theme_classic()  +
+  theme(axis.text.x = element_blank(),
+        #axis.title = element_text( color = "grey50")
+        )
+
+```
+
+```{r f4arrange}
+agg_png(here("results", "Fig5.png"), res = 144, height = 700, width = 900)
+
+ggarrange(f5a, f5b, ncol = 1, nrow = 2, align = "v", heights = c(3,2))
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig5.png"))
+```
+
+
+
+

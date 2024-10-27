@@ -1,0 +1,279 @@
+---
+title: "03 Data Viz"
+output: html_notebook
+---
+Replication workflow for:
+
+"Ideological Bias in Estimates of the Impact of Immigration"
+
+[George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
+[Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
+
+The original workflow was developed by Borjas using Stata (see `reg_model.do` in this repository), and this workflow is an identical set of analyses by Breznau done in R. 
+
+The file `df.rds` (also available as csv) was generated in the file `01_Data_Prep.Rmd`.
+
+## Setup
+
+```{r setup}
+
+packages <- c("tidyverse",
+              "knitr",
+              "pacman",
+              "here",
+              "ragg",
+              "margins",
+              "miceadds",
+              "ggplot2",
+              "viridis",
+              "ggridges",
+              "haven",
+              "broom",
+              "lm.beta",
+              "scales")
+
+pacman::p_load(packages, character.only = T)
+
+# palette
+colors <- c("#453781FF", "#3CBB75FF", "#F28C28")
+
+```
+
+
+## Data
+
+```{r data}
+
+df <- read_rds(here("data", "df.rds")) %>%
+  mutate(index1 = group1,
+         index2 = ifelse(group1 == 0 & group3 == 0, 1, 0),
+         index3 = group3) %>%
+  subset(!is.na(neg10s))
+df_dyad <- read_csv(here("data", "df_dyad.csv")) %>%
+  subset(!is.na(neg10s))
+
+
+```
+
+## Reg Models
+
+Certain routines require non lm.cluster objects. Predicted values are identical so it is easier to work with lm objects.
+
+```{r regs}
+
+# add single weight variable, it is easier
+df <- df %>%
+  mutate(mweight = 1/nmodel,
+         peerweight = pscore_1/nmodel)
+
+# we scale up pweight slightly to arrive at 71 teams, some cases from df get dropped to dyads due to missing info
+
+df_dyad <- df_dyad %>%
+  mutate(mweight = pweight*1.019,
+         peerweight = pscore_1*(pweight*1.019))
+
+m_3lm <- lm(formula=neg10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$mweight, data = df)
+
+p_3lm <- lm(formula=neg10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$peerweight, data = df)
+
+# Dyad level
+
+m_3dlm <- lm(formula=neg10s ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight,data = df_dyad)
+
+p_3dlm <- lm(formula=neg10s ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$peerweight, data = df_dyad)
+```
+ 
+## Fig 3
+
+### Predicted Margins
+Use regression coefficients for group1 and group3 and predicted values for group2.
+
+
+```{r amecalc}
+# 
+df$ame_group <- predict(m_3lm, newdata = df)
+
+df_dyad$ame_group <- predict(m_3dlm, newdata = df_dyad)
+
+
+df2 <- subset(df, group2 == 1) %>%
+  mutate(ame_group2_m_3 = ame_group,
+         ame_group2_p_3 = ame_group)
+
+df2_dyad <- subset(df_dyad, indiv2 == 1) %>%
+  mutate(ame_group2_m_3 = ame_group,
+         ame_group2_p_3 = ame_group) %>%
+  subset(!is.na(ame_group))
+
+# Weighted mean AME
+weighted_mean_ame_group2m <- sum(df2$ame_group2_m_3 * df2$mweight) / sum(df2$mweight)
+
+weighted_mean_ame_group2m_dyad <- sum(df2_dyad$ame_group2_m_3 * df2_dyad$mweight) / sum(df2_dyad$mweight)
+
+
+
+weighted_mean_ame_group2p <- sum(df2$ame_group2_m_3 * df2$peerweight) / sum(df2$peerweight)
+
+
+
+weighted_mean_ame_group2p_dyad <- sum(df2_dyad$ame_group2_m_3 * df2_dyad$peerweight) / sum(df2_dyad$peerweight)
+
+
+
+weighted_var_ame_group2m <- sum(df2$mweight * (df2$ame_group2_m_3 - weighted_mean_ame_group2m)^2) / sum(df2$mweight)
+
+weighted_var_ame_group2m_dyad <- sum(df2_dyad$mweight * (df2_dyad$ame_group2_m_3 - weighted_mean_ame_group2m_dyad)^2) / sum(df2_dyad$mweight)
+
+weighted_var_ame_group2p <- sum(df2$peerweight * (df2$ame_group2_m_3 - weighted_mean_ame_group2p)^2) / sum(df2$peerweight)
+
+
+weighted_var_ame_group2p_dyad <- sum(df2_dyad$peerweight * (df2_dyad$ame_group2_m_3 - weighted_mean_ame_group2p_dyad)^2) / sum(df2_dyad$peerweight)
+
+
+weighted_se_ame_group2m <- sqrt(weighted_var_ame_group2m / sum(df2$mweight))
+
+weighted_se_ame_group2m_dyad <- sqrt(weighted_var_ame_group2m_dyad / sum(df2_dyad$mweight))
+
+weighted_se_ame_group2p <- sqrt(weighted_var_ame_group2p / sum(df2$peerweight))
+
+weighted_se_ame_group2p_dyad <- sqrt(weighted_var_ame_group2p_dyad / sum(df2_dyad$peerweight))
+
+# get coeffs
+model_summary <- summary(m_3lm)
+model_summaryp <- summary(p_3lm)
+
+# Extract coefficients and standard errors for group1 and group3
+coeff_group1 <- model_summary$coefficients["group1", "Estimate"]
+se_group1 <- model_summary$coefficients["group1", "Std. Error"]
+
+coeff_group3 <- model_summary$coefficients["group3", "Estimate"]
+se_group3 <- model_summary$coefficients["group3", "Std. Error"]
+
+coeff_group1p <- model_summaryp$coefficients["group1", "Estimate"]
+se_group1p <- model_summaryp$coefficients["group1", "Std. Error"]
+
+coeff_group3p <- model_summaryp$coefficients["group3", "Estimate"]
+se_group3p <- model_summaryp$coefficients["group3", "Std. Error"]
+
+model_summaryd <- summary(m_3dlm)
+model_summarydp <- summary(p_3dlm)
+
+# Extract coefficients and standard errors for group1 and group3
+coeff_group1d <- model_summaryd$coefficients[grep("^indiv1$", rownames(model_summaryd$coefficients)), "Estimate"]
+se_group1d <- model_summaryd$coefficients[grep("^indiv1$", rownames(model_summaryd$coefficients)), "Std. Error"]
+
+coeff_group3d <- model_summaryd$coefficients[grep("^indiv3$", rownames(model_summaryd$coefficients)), "Estimate"]
+se_group3d <- model_summaryd$coefficients[grep("^indiv3$", rownames(model_summaryd$coefficients)), "Std. Error"]
+
+coeff_group1dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Estimate"]
+se_group1dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Std. Error"]
+
+coeff_group3dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Estimate"]
+se_group3dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Std. Error"]
+```
+
+### Plotting DFs
+
+```{r coefplot2}
+
+plot_data_ame <- data.frame(
+  group = c("group1_m", 
+            "group2_m", 
+            "group3_m", 
+            "group1_p", 
+            "group2_p", 
+            "group3_p"),
+  weight = c("m", "m", "m", "p", "p", "p"),
+  mean = c(coeff_group1 + weighted_mean_ame_group2m,
+           weighted_mean_ame_group2m,
+           coeff_group3 + weighted_mean_ame_group2m,
+           coeff_group1p + weighted_mean_ame_group2p,
+           weighted_mean_ame_group2p,
+           coeff_group3p + weighted_mean_ame_group2p),
+  se = c(se_group1, weighted_se_ame_group2m, se_group3,
+         se_group1p, weighted_se_ame_group2p, se_group3p))
+
+plot_data_ame_dyad <- data.frame(
+  group = c("group1_m", "group2_m", "group3_m", "group1_p", "group2_p", "group3_p"),
+  weight = c("m", "m", "m", "p", "p", "p"),
+  mean = c(coeff_group1d+weighted_mean_ame_group2m_dyad, weighted_mean_ame_group2m_dyad, coeff_group3d+weighted_mean_ame_group2m_dyad,
+           coeff_group1dp+weighted_mean_ame_group2p_dyad, weighted_mean_ame_group2p_dyad, coeff_group3dp+weighted_mean_ame_group2p_dyad),
+  se = c(se_group1d, weighted_se_ame_group2m_dyad, se_group3d,
+         se_group1dp, weighted_se_ame_group2p_dyad, se_group3dp)
+)
+
+
+```
+
+### Fig3A Model
+
+```{r fig2a}
+agg_png(here("results", "Fig3A.png"), res = 144, height = 300, width = 650)
+
+plot_data_ame %>%
+  subset(weight == "m") %>%
+  ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
+  ylim(-0.04,0.34) +
+  annotate("text", y = c(coeff_group1 + weighted_mean_ame_group2m,
+                         weighted_mean_ame_group2m,
+                         coeff_group3 + weighted_mean_ame_group2m), 
+           x = c(2.7,1.7,0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors[1:3],
+           size = 3) +
+  coord_flip() +
+  scale_color_manual(values = colors) +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        legend.position = "none")
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig3A.png"))
+```
+
+
+
+### Fig3C Dyad
+
+```{r fig2c}
+agg_png(here("results", "Fig3C.png"), res = 144, height = 300, width = 650)
+
+plot_data_ame_dyad %>%
+  subset(weight == "m") %>%
+  ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
+  ylim(-0.04,0.34) +
+  annotate("text", y = c(coeff_group1d + weighted_mean_ame_group2m_dyad,
+                         weighted_mean_ame_group2m_dyad,
+                         coeff_group3d + weighted_mean_ame_group2m_dyad), 
+           x = c(2.7,1.7,0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors[1:3],
+           size = 3) +
+  coord_flip() +
+  scale_color_manual(values = colors) +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        legend.position = "none")
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig3C.png"))
+```
+

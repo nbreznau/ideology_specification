@@ -200,38 +200,20 @@ f1b <- df %>%
   ggplot() +
   
   # First density for index2, excluding NA values
-  geom_density(data = df %>% filter(!is.na(index2)),
-               aes(x = AME, group = index2, fill = factor(index2)), color = NA,  
-               alpha = 0.3, adjust = 6.5, position = "identity") +
+  geom_density(data = df %>% filter(!is.na(index2) & index2 == 1),
+               aes(x = AME), color = NA, fill = colors[2],
+               alpha = 0.3, adjust = 7, position = "identity") +
   
   # Second density for index1, excluding NA values
-  geom_density(data = df %>% filter(!is.na(index1)),
-               aes(x = AME, group = index1, color = factor(index1)), 
+  geom_density(data = df %>% filter(!is.na(index1) & index2 == 0),
+               aes(x = AME, group = index, color = factor(index)), 
                alpha = 1, adjust = 6, position = "identity") +  
   # Labels
   labs(x = "AME", y = "Density", title = "", fill = "Index Group", color = "Index Group") +
-  
-  # Manual color and fill scales
-  scale_color_manual(values = colors[c(3,1)]) +   # Color for index1 groups
+  scale_color_manual(values = colors[c(1,3)]) +   
   scale_fill_manual(values = c("white", colors[2])) +  
-  #geom_vline(xintercept = mean(df$AME[df$index == 2]), linetype = "dashed", color = "#2D708EFF") +
-  #geom_vline(xintercept = mean(df$AME[df$index == 1]), linetype = "dashed", color = "#453781FF") +
-  #geom_vline(xintercept = mean(df$AME[df$index == 3]), linetype = "dashed", color = "#3CBB75FF") +
   annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nteams", hjust = 0, color = colors[1], size = 3) +
-  # geom_segment(x = -0.4, y = 0.35, xend = -0.4, yend = 0.12,
-  #              arrow = arrow(type = "closed", length = unit(0.05, "inches"), angle = 15),
-  #              color = colors[1], size = 0.06) +
-  #   geom_segment(x = -0.37, y = 0.35, xend = -0.195, yend = 0.26,
-  #              arrow = arrow(type = "closed", length = unit(0.05, "inches"), angle = 15),
-  #              color = colors[1], size = 0.06) +
   annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nteams", hjust = 1, color = colors[3], size = 3) +
-  # geom_segment(x = 0.37, y = 0.35, xend = 0.31, yend = 0.1,
-  #              arrow = arrow(type = "closed", length = unit(0.05, "inches"), angle = 15),
-  #              color = colors[3], size = 0.06) +
-  # theme_classic() +
-  #   geom_segment(x = 0.35, y = 0.35, xend = 0.17, yend = 0.18,
-  #              arrow = arrow(type = "closed", length = unit(0.05, "inches"), angle = 15),
-  #              color = colors[3], size = 0.06, linetype = "longdash") +
     annotate("text", x = -0.01, y = 0.25, label = "Moderate\nteams", color = colors[2], size = 3) +
   geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
   theme_classic() +
@@ -247,6 +229,54 @@ dev.off()
 knitr::include_graphics(here("results", "Fig1B.png"))
 
 ```
+## FigS1
+
+```{r figs1}
+
+agg_png(here("results", "Fig1S.png"), res = 144, width = 600, height = 500)
+
+# create scaling axis
+custom_y_trans <- trans_new(
+  name = "split_scale",
+  transform = function(x) ifelse(x <= 1, x / 2, (x - 1) / (35 - 1) * 0.5 + 0.5),  # Compress 0-1 to lower half, >1 to upper half
+  inverse = function(x) ifelse(x <= 0.5, x * 2, (x - 0.5) * (35 - 1) / 0.5 + 1)  # Inverse of the transform
+)
+
+
+f1b <- df_dyad %>%
+  #subset(indiv != 2) %>%
+  ggplot() +
+  
+  # First density for indiv2, excluding NA values
+  geom_density(data = df_dyad %>% filter(!is.na(indiv2) & indiv2 == 1),
+               aes(x = AME), color = NA, fill = colors[2], 
+               alpha = 0.3, adjust = 5.5, position = "identity") +
+  
+  # Second density for indiv1, excluding NA values
+  geom_density(data = df_dyad %>% filter(!is.na(indiv1) & indiv2 != 1),
+               aes(x = AME, group = indiv, color = factor(indiv)), 
+               alpha = 1, adjust = 5, position = "identity") +  
+  # Labels
+  labs(x = "AME", y = "Density", title = "", fill = "indiv Group", color = "indiv Group") +
+  scale_color_manual(values = colors[c(3,1)]) +   
+  scale_fill_manual(values = c("white", colors[2])) +  
+  annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nteams", hjust = 0, color = colors[1], size = 3) +
+  annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nteams", hjust = 1, color = colors[3], size = 3) +
+    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nteams", color = colors[2], size = 3) +
+  geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title = element_text(size = 8)) +
+  scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
+  coord_cartesian(xlim = c(-0.45, 0.45))
+f1b
+dev.off()
+
+knitr::include_graphics(here("results", "Fig1S.png"))
+```
+
 ### Density under curve
 
 ```{r denscalc}
@@ -484,11 +514,11 @@ densityA <- ggplot(df, aes(x = AME)) +
   geom_density(fill = "grey70", alpha = 0.7) +
   labs(x = NULL, y = "Density", title = "A. Model-level results, N = 1,253") +  
   geom_segment(x = coeff_group1 + weighted_mean_ame_group2m, xend = coeff_group1 + weighted_mean_ame_group2m,
-               y = 0, yend = 17, linetype = "dashed", size = 0.2) +
+               y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors[1]) +
   geom_segment(x = coeff_group3 + weighted_mean_ame_group2m, xend = coeff_group3 + weighted_mean_ame_group2m,
-               y = 0, yend = 17, linetype = "dashed", size = 0.2) +
-  annotate("text", y = 30, x = coeff_group1 + weighted_mean_ame_group2m, label = paste(rank_coeff_group1,"th","\npercentile", sep = ""), hjust = 1, size = 2.5) +
-  annotate("text", y = 30, x = coeff_group3 + weighted_mean_ame_group2m, label = paste(rank_coeff_group3,"st","\npercentile", sep = ""), hjust = 0, size = 2.5) +
+               y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors[3]) +
+  annotate("text", y = 30, x = coeff_group1 + weighted_mean_ame_group2m, label = paste(rank_coeff_group1,"th","\npercentile", sep = ""), hjust = 1, size = 2.5, color = colors[1]) +
+  annotate("text", y = 30, x = coeff_group3 + weighted_mean_ame_group2m, label = paste(rank_coeff_group3,"st","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors[3]) +
   xlim(-0.119,0.06) +
   theme_classic() +
   theme(
@@ -509,14 +539,14 @@ densityA
 ```{r densB}
 densityB <- ggplot(df_dyad, aes(x = AME)) +
   geom_density(fill = "grey70", alpha = 0.7) +
-  labs(x = NULL, y = "Density", title = "B. Individual-model dyads, N = 2,680") +  
-  xlim(-0.079,0.04) +
+  labs(x = NULL, y = "Density", title = "B. Researcher-model dyads, N = 2,680") +  
+  xlim(-0.079,0.039) +
   geom_segment(x = coeff_group1d + weighted_mean_ame_group2m_dyad, xend = coeff_group1d + weighted_mean_ame_group2m_dyad,
-               y = 0, yend = 21, linetype = "dashed", size = 0.2) +
+               y = 0, yend = 21, linetype = "dashed", size = 0.2, color = colors[1]) +
   geom_segment(x = coeff_group3d+weighted_mean_ame_group2m_dyad, xend = coeff_group3d+weighted_mean_ame_group2m_dyad,
-               y = 0, yend = 21, linetype = "dashed", size = 0.22) +
-  annotate("text", y = 36, x = coeff_group1d + weighted_mean_ame_group2m_dyad, label = paste(rank_coeff_group1d,"th","\npercentile", sep = ""), hjust = 1, size = 2.5) +
-  annotate("text", y = 36, x = coeff_group3d + weighted_mean_ame_group2m_dyad, label = paste(rank_coeff_group3d,"rd","\npercentile", sep = ""), hjust = 0, size = 2.5) +
+               y = 0, yend = 21, linetype = "dashed", size = 0.22, color = colors[3]) +
+  annotate("text", y = 36, x = coeff_group1d + weighted_mean_ame_group2m_dyad, label = paste(rank_coeff_group1d,"th","\npercentile", sep = ""), hjust = 1, size = 2.5, color = colors[1]) +
+  annotate("text", y = 36, x = coeff_group3d + weighted_mean_ame_group2m_dyad, label = paste(rank_coeff_group3d,"rd","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors[3]) +
   theme_classic() +
   theme(
     axis.title = element_blank(),
