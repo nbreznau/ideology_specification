@@ -1,0 +1,166 @@
+---
+title: "Figure 4"
+output: html_notebook
+---
+
+## Setup
+
+```{r setup}
+packages <- c("tidyverse",
+              "ggpubr",
+              "knitr",
+              "pacman",
+              "here",
+              "ragg")
+
+pacman::p_load(packages, character.only = T)
+
+# palette
+colors <- c("#453781FF", "#3CBB75FF", "#F28C28")
+```
+
+## Data
+
+```{r data}
+
+df_dyad <- read_csv(here("data", "df_dyad.csv")) %>%
+  dplyr::select(u_id)
+
+df_survey <- read_csv(here("data", "cri_survey_long_public_nolabs.csv")) %>%
+  subset(u_id %in% df_dyad$u_id)
+
+```
+## Clean
+
+```{r cl}
+
+df_survey <- df_survey %>%
+  mutate(att = 8 - as.numeric(attitude_immigration_1),
+         belief = 6 - as.numeric(belief_H1_1))
+
+# nobody responded with a 7 or a 5
+cross_tab <- table(factor(df_survey$belief, levels = 1:5), factor(df_survey$att, levels = 1:7))  # Force levels 1 to 7
+
+
+# Convert to data frame for plotting
+cross_tab_df <- as.data.frame(cross_tab)
+colnames(cross_tab_df) <- c("belief", "att", "count")
+
+
+df_cor <- dplyr::select(df_survey, belief, att) %>%
+  cor(., use = "pairwise.complete")
+
+# row percentages
+df_survey <- df_survey %>%
+  mutate(att_pct = ave(rep(1, n()), att, FUN = length) / n() * 100,
+         belief_pct = ave(rep(1, n()), belief, FUN = length) / n() * 100)
+
+```
+
+
+## Fig4
+
+Note:
+
+```{r f4}
+
+agg_png(here("results", "Fig6.png"), res = 144, height = 600, width = 800)
+
+cross_tab_plot <- ggplot(cross_tab_df, aes(x = att, y = belief)) +
+  geom_tile(aes(fill = count), color = "white") +
+  geom_text(aes(label = count), color = "black", size = 3) +
+  scale_fill_gradient(low = "lightblue", high = "blue", guide = "none") +
+  labs(x = "Anti   < - - - - Immigration - - - - >   Pro", y = "Hypothesis is true", fill = "Count") +
+  theme_minimal()
+
+# Histogram for att (top)
+att_histogram <- ggplot(df_survey, aes(x = att)) +
+  geom_histogram(binwidth = 1, fill = "grey70", color = "black") +
+  scale_x_continuous(breaks = 1:7, limits = c(0.5, 7.5), expand = c(0, 0)) +  # Align with cross-tab limits
+  scale_y_continuous(expand = expansion(mult = c(0, 0.3))) +  # Add 10% extra space at the top
+  geom_text(stat = "count", aes(label = paste0(round(..count../sum(..count..) * 100), "%")), 
+            vjust = -0.5, size = 3) +  # Display percentages on top
+  theme_classic() +
+  labs(x = NULL, y = "Count") +
+  theme(axis.title.x = element_blank(), 
+        axis.text.x = element_blank(), 
+        axis.ticks.x = element_blank(),
+        axis.line = element_blank())
+
+# Histogram for belief (right, rotated)
+belief_histogram <- ggplot(df_survey, aes(x = belief)) +
+  geom_bar(fill = "grey70", color = "black") +
+  scale_x_continuous(breaks = 1:5, limits = c(0.5, 5.5), expand = c(0, 0)) +  # Align with cross-tab limits
+  scale_y_continuous(expand = expansion(mult = c(0, 0.5))) +  # Add 10% extra space at the top
+  geom_text(stat = "count", aes(label = paste0(round(..count../sum(..count..) * 100), "%")), 
+            hjust = -0.3, size = 3) +  # Display percentages on top
+  coord_flip() +
+  theme_classic() +
+  labs(y = "Count", x = NULL) +
+  theme(axis.title.y = element_blank(), 
+        axis.text.y = element_blank(), 
+        axis.ticks.y = element_blank(),
+        axis.line = element_blank())
+
+# Step 3: Arrange the plots with ggarrange
+combined_plot <- ggarrange(
+  att_histogram, NULL, cross_tab_plot, belief_histogram,
+  ncol = 2, nrow = 2,
+  widths = c(4, 1), heights = c(1, 4)
+)
+
+combined_plot
+
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig6.png"))
+```
+## Coeffs
+
+```{r f4coeff}
+agg_png(here("results", "Fig4B.png"), res = 144, height = 400, width = 800)
+
+f4b <- df_coeff %>%
+  ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
+  #ylim(-0.04,0.34) +
+  annotate("text", y = c(coeff_group1 + weighted_mean_ame_group2m,
+                         weighted_mean_ame_group2m,
+                         coeff_group3 + weighted_mean_ame_group2m), 
+           x = c(2.7,1.7,0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors[1:3],
+           size = 3) +
+  coord_flip() +
+  scale_color_manual(values = colors) +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        legend.position = "none")
+f4b
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig4B.png"))
+
+```
+## Build
+
+```{r fig4arrange}
+agg_png(here("results", "Fig4.png"), res = 144, height = 800, width = 800)
+
+ggarrange(f4a, f4b, nrow = 2, ncol = 1, heights = c(2,1.5))
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig4.png"))
+
+```
+

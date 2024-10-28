@@ -277,6 +277,7 @@ pdiv <- (sum(df2$pscore)/1253)
 
 df2 <- df2 %>%
   mutate(pscore_Z = (pscore - mean(pscore)) / sd(pscore),
+         peer_mean_Z = peer_mean - mean(df2$peer_mean, na.rm = T),
          pscore_1 = pscore/(sum(df2$pscore)/1253)) # standardize & make a weighted to sum = 1 version
 ```
 
@@ -350,6 +351,7 @@ df3 <- df3 %>%
 # join with data from factor analysis 
 df3 <- df3 %>%
   mutate(pscore_Z = (pscore - mean(pscore)) / sd(pscore),
+         peer_mean_Z = peer_mean - mean(df2$peer_mean, na.rm = T),
          pscore_1 = pscore/((sum(df3$pscore)/1253)))  %>% # standardize & make a weighted to sum = 1 version
   left_join(df_sem_p, by = "u_id")
 

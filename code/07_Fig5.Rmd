@@ -27,7 +27,7 @@ packages <- c("tidyverse",
 pacman::p_load(packages, character.only = T)
 
 # palette
-colors <- c("#453781FF", "#3CBB75FF", "#FD9567FF")
+colors <- c("#453781FF", "#3CBB75FF", "#F28C28")
 
 ```
 

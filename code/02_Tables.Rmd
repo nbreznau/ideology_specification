@@ -1522,13 +1522,22 @@ kable(Table_7, col.names = c("","","","","","","",""))
 
 ### Build Models
 
+> length(df$quality2[df$quality2 != 0])
+[1] 314
+> 314/1215
+[1] 0.2584362
+> min(df$peer_mean_Z[df$quality2 == 1])
+[1] NA
+> min(df$peer_mean_Z[df$quality2 == 1], na.rm = T)
+[1] 1.075595
+
 ```{r t8mod}
 
-q_null <- lm(peer_mean ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
+q_null <- lm(peer_mean_Z ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
 
-q_1 <- lm(peer_mean ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
+q_1 <- lm(peer_mean_Z ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
 
-q_2 <- lm(peer_mean ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
+q_2 <- lm(peer_mean_Z ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
 
 qh_null <- lm(quality2 ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
 
