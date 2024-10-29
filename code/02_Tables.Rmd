@@ -678,10 +678,8 @@ It does not seem to be possible to both weight and cluster using glm binomial. S
 
 ```{r t5, warning = F}
 
-#glm, needs an integer as the bottom weight
-
-df$nmodel_l <- round((1/df$nmodel)*112,0)
-df$nmodel_lp <- round((df$pscore_1/df$nmodel)/(min(df$pscore_1/df$nmodel)), 0)
+df$nmodel_l <- 1/df$nmodel
+df$nmodel_lp <- df$nmodel_l*df$pscore_1
 
 log_1n <- glm(formula=neg10s ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
              data = df,
@@ -989,92 +987,98 @@ kable(Table_6, col.names = c("","","","","","","",""))
 
 ```{r t7, warning = F}
 
-# adjust weight to account for number of researchers and convergence problems with very tiny weights
+# adjust weight to account for number of researchers 154
 df_dyad <- df_dyad %>%
-  mutate(pweightp = pweight/min(pweight, na.rm = T),
-         pweighta = (pweight*pscore_1)*2.5,
-         pweighta = ifelse(pweighta < 1, 1, pweighta))
+  mutate(
+    # Transform pweightp and pweighta
+    pweightp = pweight / min(pweight, na.rm = T),
+    pweighta = pweight * pscore_1,
+    
+    # Rescale pweightp and pweighta to sum to 154
+    pweightp = pweightp * (2709 / sum(pweightp, na.rm = T)),
+    pweighta = pweighta * (2709 / sum(pweighta, na.rm = T))
+  )
 
 log_1n <- glm(formula=neg10s ~ indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 log_2n <- glm(formula=neg10s ~ indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 log_3n <- glm(formula=neg10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 log_4n <- glm(formula=neg10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 log_5n <- glm(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 log_6n <- glm(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 
 logp_1n <- glm(formula=neg10s ~ indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 logp_2n <- glm(formula=neg10s ~ indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 logp_3n <- glm(formula=neg10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 logp_4n <- glm(formula=neg10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 logp_5n <- glm(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 logp_6n <- glm(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 null_mn <- glm(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 null_mn_zero <- glm(formula=neg10s ~ 1,
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 null_pn <- glm(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 null_pn_zero <- glm(formula=neg10s ~ 1,
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 ```
 
@@ -1092,31 +1096,33 @@ Table_7[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
 #m_ models
 Table_7[c(6,8),2] <- format(round(summary(margins(null_mn, variables = c("stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(7,9),2] <-  format(round(summary(margins(null_mn, variables = c("stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(7,9),2] <- sprintf("(%s)", format(round(unname(coeftest(null_mn, vcov. = vcovCL(null_mn, cluster = ~ df_dyad$u_id))[2:3, 2] 
+  * (as.numeric(Table_5[c(6,8),2]) / null_mn$coefficients[2:3])),3), nsmall = 3))
 
 Table_7[c(4,6,8),3] <- format(round(summary(margins(log_1n, variables = c("indiv3", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(5,7,9),3] <-  format(round(summary(margins(log_1n, variables = c("indiv3", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(5,7,9),3] <-  sprintf("(%s)", format(round(unname(coeftest(log_1n, vcov. = vcovCL(log_1n, cluster = ~ df_dyad$u_id))[2:4, 2] 
+  * (as.numeric(Table_7[c(4,6,8),3]) / log_1n$coefficients[2:4])),3), nsmall = 3))
 
 Table_7[c(4,10,6,8),4] <- format(round(summary(margins(log_2n, variables = c("indiv3", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(5,11,7,9),4] <-  format(round(summary(margins(log_2n, variables = c("indiv3", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(5,11,7,9),4] <-  sprintf("(%s)", format(round(unname(coeftest(log_2n, vcov. = vcovCL(log_2n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_7[c(4,10,6,8),4]) / log_2n$coefficients[2:5])),3), nsmall = 3))
   
 Table_7[c(2,4,6,8),5] <- format(round(summary(margins(log_3n, variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(3,5,7,9),5] <-  format(round(summary(margins(log_3n, variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(3,5,7,9),5] <-  sprintf("(%s)", format(round(unname(coeftest(log_3n, vcov. = vcovCL(log_3n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_7[c(2,4,6,8),5]) / log_3n$coefficients[2:5])),3), nsmall = 3))
 
 Table_7[c(2,4,10,6,8),6] <- format(round(summary(margins(log_4n, variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(3,5,11,7,9),6] <-  format(round(summary(margins(log_4n, variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(3,5,11,7,9),6] <-  sprintf("(%s)", format(round(unname(coeftest(log_4n, vcov. = vcovCL(log_4n, cluster = ~ df_dyad$u_id))[2:6,2] * (as.numeric(Table_7[c(2,4,10,6,8),6]) / log_4n$coefficients[2:6])),3), nsmall = 3))
 
 Table_7[c(12,6,8),7] <- format(round(summary(margins(log_5n, variables = c("proindex", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(13,7,9),7] <-  format(round(summary(margins(log_5n, variables = c("proindex", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(13,7,9),7] <-  sprintf("(%s)", format(round(unname(coeftest(log_5n, vcov. = vcovCL(log_5n, cluster = ~ df_dyad$u_id))[2:4,2] * (as.numeric(Table_7[c(12,6,8),7]) / log_5n$coefficients[2:4])),3), nsmall = 3))
 
 Table_7[c(12,10,6,8),8] <- format(round(summary(margins(log_6n, variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(13,11,7,9),8] <-  format(round(summary(margins(log_6n, variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(13,11,7,9),8] <-  sprintf("(%s)", format(round(unname(coeftest(log_6n, vcov. = vcovCL(log_6n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_7[c(12,10,6,8),8]) / log_6n$coefficients[2:5])),3), nsmall = 3))
 
 
 
@@ -1128,33 +1134,35 @@ Table_7[15,2:8] <- round(c(AIC((null_mn)), AIC(log_1n), AIC(log_2n), AIC(log_3n)
 
 
 #p_ models
-Table_7[c(22,24),2] <- format(round(summary(margins(null_pn, variables = c("stats_brw", "topic_brw")))[,2],3), nsmall = 3)
+Table_5[c(22,24),2] <- format(round(summary(margins(null_pn, variables = c("stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(23,25),2] <-  format(round(summary(margins(null_pn, variables = c("stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(23,25),2] <-  sprintf("(%s)", format(round(unname(coeftest(null_pn, vcov. = vcovCL(null_pn, cluster = ~ df_dyad$u_id))[2:3, 2] 
+  * (as.numeric(Table_7[c(22,24),2]) / null_pn$coefficients[2:3])),3), nsmall = 3))
 
 Table_7[c(20,22,24),3] <- format(round(summary(margins(logp_1n, variables = c("indiv3", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(21,23,25),3] <-  format(round(summary(margins(logp_1n, variables = c("indiv3", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(21,23,25),3] <-  sprintf("(%s)", format(round(unname(coeftest(logp_1n, vcov. = vcovCL(logp_1n, cluster = ~ df_dyad$u_id))[2:4, 2] 
+  * (as.numeric(Table_7[c(20,22,24),3]) / logp_1n$coefficients[2:4])),3), nsmall = 3))
 
 Table_7[c(20,26,22,24),4] <- format(round(summary(margins(logp_2n, variables = c("indiv3", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(21,27,23,25),4] <-  format(round(summary(margins(logp_2n, variables = c("indiv3", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(21,27,23,25),4] <-  sprintf("(%s)", format(round(unname(coeftest(logp_2n, vcov. = vcovCL(logp_2n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_7[c(20,26,22,24),4]) / logp_2n$coefficients[2:5])),3), nsmall = 3))
   
 Table_7[c(18,20,22,24),5] <- format(round(summary(margins(logp_3n, variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(19,21,23,25),5] <-  format(round(summary(margins(logp_3n, variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(19,21,23,25),5] <-  sprintf("(%s)", format(round(unname(coeftest(logp_3n, vcov. = vcovCL(logp_3n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_7[c(18,20,22,24),5]) / logp_3n$coefficients[2:5])),3), nsmall = 3))
 
 Table_7[c(18,20,26,22,24),6] <- format(round(summary(margins(logp_4n, variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(19,21,27,23,25),6] <-  format(round(summary(margins(logp_4n, variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(19,21,27,23,25),6] <-  sprintf("(%s)", format(round(unname(coeftest(logp_4n, vcov. = vcovCL(logp_4n, cluster = ~ df_dyad$u_id))[2:6,2] * (as.numeric(Table_7[c(18,20,26,22,24),6]) / logp_4n$coefficients[2:6])),3), nsmall = 3))
 
 Table_7[c(28,22,24),7] <- format(round(summary(margins(logp_5n, variables = c("proindex", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(29,23,25),7] <-  format(round(summary(margins(logp_5n, variables = c("proindex", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(29,23,25),7] <-  sprintf("(%s)", format(round(unname(coeftest(logp_5n, vcov. = vcovCL(logp_5n, cluster = ~ df_dyad$u_id))[2:4,2] * (as.numeric(Table_7[c(28,22,24),7]) / logp_5n$coefficients[2:4])),3), nsmall = 3))
 
 Table_7[c(28,26,22,24),8] <- format(round(summary(margins(logp_6n, variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_7[c(29,27,23,25),8] <-  format(round(summary(margins(logp_6n, variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_7[c(29,27,23,25),8] <-  sprintf("(%s)", format(round(unname(coeftest(logp_6n, vcov. = vcovCL(log_6n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_7[c(28,26,22,24),8]) / logp_6n$coefficients[2:5])),3), nsmall = 3))
 
 
 
@@ -1296,10 +1304,8 @@ kable(Table_8, col.names = c("","","","","","","",""))
 
 ```{r t9, warning = F}
 
-#glm, needs an integer as the bottom weight
-
-df$nmodel_l <- round((1/df$nmodel)*112,0)
-df$nmodel_lp <- round((df$pscore_1/df$nmodel)/(min(df$pscore_1/df$nmodel)), 0)
+df$nmodel_l <- 1/df$nmodel
+df$nmodel_lp <- df$nmodel_l*df$pscore_1
 
 log_1n <- glm(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
              data = df,
@@ -1608,62 +1614,68 @@ kable(Table_10, col.names = c("","","","","","","",""))
 
 ```{r t11, warning = F}
 
-# adjust weight to account for number of researchers and convergence problems with very tiny weights
+# adjust weight to account for number of researchers 154
 df_dyad <- df_dyad %>%
-  mutate(pweightp = pweight/min(pweight, na.rm = T),
-         pweighta = (pweight*pscore_1)*2.5,
-         pweighta = ifelse(pweighta < 1, 1, pweighta))
+  mutate(
+    # Transform pweightp and pweighta
+    pweightp = pweight / min(pweight, na.rm = T),
+    pweighta = pweight * pscore_1,
+    
+    # Rescale pweightp and pweighta to sum to 154
+    pweightp = pweightp * (154 / sum(pweightp, na.rm = T)),
+    pweighta = pweighta * (154 / sum(pweighta, na.rm = T))
+  )
 
 log_1n <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 log_2n <- glm(formula=pos10s ~ indiv1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 log_3n <- glm(formula=pos10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 log_4n <- glm(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 log_5n <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 log_6n <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 
 logp_1n <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 logp_2n <- glm(formula=pos10s ~ indiv1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 logp_3n <- glm(formula=pos10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 logp_4n <- glm(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 logp_5n <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
@@ -1673,27 +1685,27 @@ logp_5n <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + fac
 logp_6n <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 null_mn <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 null_mn_zero <- glm(formula=pos10s ~ 1,
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweighta)
+             weights = pweightp)
 
 null_pn <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 null_pn_zero <- glm(formula=pos10s ~ 1,
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
 
 ```
 
@@ -1711,31 +1723,33 @@ Table_11[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
 #m_ models
 Table_11[c(6,8),2] <- format(round(summary(margins(null_mn, variables = c("stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(7,9),2] <-  format(round(summary(margins(null_mn, variables = c("stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(7,9),2] <- sprintf("(%s)", format(round(unname(coeftest(null_mn, vcov. = vcovCL(null_mn, cluster = ~ df_dyad$u_id))[2:3, 2] 
+  * (as.numeric(Table_5[c(6,8),2]) / null_mn$coefficients[2:3])),3), nsmall = 3))
 
 Table_11[c(2,6,8),3] <- format(round(summary(margins(log_1n, variables = c("indiv1", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(3,7,9),3] <-  format(round(summary(margins(log_1n, variables = c("indiv1", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(3,7,9),3] <-  sprintf("(%s)", format(round(unname(coeftest(log_1n, vcov. = vcovCL(log_1n, cluster = ~ df_dyad$u_id))[2:4, 2] 
+  * (as.numeric(Table_11[c(2,6,8),3]) / log_1n$coefficients[2:4])),3), nsmall = 3))
 
 Table_11[c(2,10,6,8),4] <- format(round(summary(margins(log_2n, variables = c("indiv1", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(3,11,7,9),4] <-  format(round(summary(margins(log_2n, variables = c("indiv1", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(3,11,7,9),4] <-  sprintf("(%s)", format(round(unname(coeftest(log_2n, vcov. = vcovCL(log_2n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_11[c(2,10,6,8),4]) / log_2n$coefficients[2:5])),3), nsmall = 3))
   
 Table_11[c(2,4,6,8),5] <- format(round(summary(margins(log_3n, variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(3,5,7,9),5] <-  format(round(summary(margins(log_3n, variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(3,5,7,9),5] <-  sprintf("(%s)", format(round(unname(coeftest(log_3n, vcov. = vcovCL(log_3n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_11[c(2,4,6,8),5]) / log_3n$coefficients[2:5])),3), nsmall = 3))
 
 Table_11[c(2,4,10,6,8),6] <- format(round(summary(margins(log_4n, variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(3,5,11,7,9),6] <-  format(round(summary(margins(log_4n, variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(3,5,11,7,9),6] <-  sprintf("(%s)", format(round(unname(coeftest(log_4n, vcov. = vcovCL(log_4n, cluster = ~ df_dyad$u_id))[2:6,2] * (as.numeric(Table_11[c(2,4,10,6,8),6]) / log_4n$coefficients[2:6])),3), nsmall = 3))
 
 Table_11[c(12,6,8),7] <- format(round(summary(margins(log_5n, variables = c("proindex", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(13,7,9),7] <-  format(round(summary(margins(log_5n, variables = c("proindex", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(13,7,9),7] <-  sprintf("(%s)", format(round(unname(coeftest(log_5n, vcov. = vcovCL(log_5n, cluster = ~ df_dyad$u_id))[2:4,2] * (as.numeric(Table_11[c(12,6,8),7]) / log_5n$coefficients[2:4])),3), nsmall = 3))
 
 Table_11[c(12,10,6,8),8] <- format(round(summary(margins(log_6n, variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(13,11,7,9),8] <-  format(round(summary(margins(log_6n, variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(13,11,7,9),8] <-  sprintf("(%s)", format(round(unname(coeftest(log_6n, vcov. = vcovCL(log_6n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_11[c(12,10,6,8),8]) / log_6n$coefficients[2:5])),3), nsmall = 3))
 
 
 
@@ -1747,33 +1761,35 @@ Table_11[15,2:8] <- round(c(AIC((null_mn)), AIC(log_1n), AIC(log_2n), AIC(log_3n
 
 
 #p_ models
-Table_11[c(22,24),2] <- format(round(summary(margins(null_pn, variables = c("stats_brw", "topic_brw")))[,2],3), nsmall = 3)
+Table_5[c(22,24),2] <- format(round(summary(margins(null_pn, variables = c("stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(23,25),2] <-  format(round(summary(margins(null_pn, variables = c("stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(23,25),2] <-  sprintf("(%s)", format(round(unname(coeftest(null_pn, vcov. = vcovCL(null_pn, cluster = ~ df_dyad$u_id))[2:3, 2] 
+  * (as.numeric(Table_11[c(22,24),2]) / null_pn$coefficients[2:3])),3), nsmall = 3))
 
 Table_11[c(18,22,24),3] <- format(round(summary(margins(logp_1n, variables = c("indiv1", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(19,23,25),3] <-  format(round(summary(margins(logp_1n, variables = c("indiv1", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(19,23,25),3] <-  sprintf("(%s)", format(round(unname(coeftest(logp_1n, vcov. = vcovCL(logp_1n, cluster = ~ df_dyad$u_id))[2:4, 2] 
+  * (as.numeric(Table_11[c(18,22,24),3]) / logp_1n$coefficients[2:4])),3), nsmall = 3))
 
 Table_11[c(18,26,22,24),4] <- format(round(summary(margins(logp_2n, variables = c("indiv1", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(19,27,23,25),4] <-  format(round(summary(margins(logp_2n, variables = c("indiv1", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(19,27,23,25),4] <-  sprintf("(%s)", format(round(unname(coeftest(logp_2n, vcov. = vcovCL(logp_2n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_11[c(18,26,22,24),4]) / logp_2n$coefficients[2:5])),3), nsmall = 3))
   
 Table_11[c(18,20,22,24),5] <- format(round(summary(margins(logp_3n, variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(19,21,23,25),5] <-  format(round(summary(margins(logp_3n, variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(19,21,23,25),5] <-  sprintf("(%s)", format(round(unname(coeftest(logp_3n, vcov. = vcovCL(logp_3n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_11[c(18,20,22,24),5]) / logp_3n$coefficients[2:5])),3), nsmall = 3))
 
 Table_11[c(18,20,26,22,24),6] <- format(round(summary(margins(logp_4n, variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(19,21,27,23,25),6] <-  format(round(summary(margins(logp_4n, variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(19,21,27,23,25),6] <-  sprintf("(%s)", format(round(unname(coeftest(logp_4n, vcov. = vcovCL(logp_4n, cluster = ~ df_dyad$u_id))[2:6,2] * (as.numeric(Table_11[c(18,20,26,22,24),6]) / logp_4n$coefficients[2:6])),3), nsmall = 3))
 
 Table_11[c(28,22,24),7] <- format(round(summary(margins(logp_5n, variables = c("proindex", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(29,23,25),7] <-  format(round(summary(margins(logp_5n, variables = c("proindex", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(29,23,25),7] <-  sprintf("(%s)", format(round(unname(coeftest(logp_5n, vcov. = vcovCL(logp_5n, cluster = ~ df_dyad$u_id))[2:4,2] * (as.numeric(Table_11[c(28,22,24),7]) / logp_5n$coefficients[2:4])),3), nsmall = 3))
 
 Table_11[c(28,26,22,24),8] <- format(round(summary(margins(logp_6n, variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))[,2],3), nsmall = 3)
 
-Table_11[c(29,27,23,25),8] <-  format(round(summary(margins(logp_6n, variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))[,3],3), nsmall = 3)
+Table_11[c(29,27,23,25),8] <-  sprintf("(%s)", format(round(unname(coeftest(logp_6n, vcov. = vcovCL(log_6n, cluster = ~ df_dyad$u_id))[2:5,2] * (as.numeric(Table_11[c(28,26,22,24),8]) / logp_6n$coefficients[2:5])),3), nsmall = 3))
 
 
 
@@ -1782,7 +1798,6 @@ Table_11[32,2:8] <- format(round( as.numeric(c((1-(logLik(null_pn)/logLik(null_p
 Table_11[30,2:8] <- round(c(logLik((null_pn)), logLik(logp_1n), logLik(logp_2n), logLik(logp_3n), logLik(logp_4n), logLik(logp_5n), logLik(logp_6n)),2)
 
 Table_11[31,2:8] <- round(c(AIC((null_pn)), AIC(logp_1n), AIC(logp_2n), AIC(logp_3n), AIC(logp_4n), AIC(logp_5n), AIC(logp_6n)),2)
-
 
 Table_11[is.na(Table_11)] <- ""
 

@@ -53,13 +53,9 @@ df <- df %>%
 
 ```
  
-## Fig 4
+## Fig 5, 58 Categories
 
-
-
-## 58 Categories
-
-### Create
+### Combinations
 Create unique combinations of variables
 
 ```{r the58}
@@ -77,11 +73,6 @@ df <- df %>%
 
 
 ```
-
-
-
-
-
 
 
 ### Plot
@@ -194,5 +185,40 @@ knitr::include_graphics(here("results", "Fig5.png"))
 ```
 
 
+## Fig 6. Plot AME distribution
+
+```{r plot}
+agg_png(here("results", "Fig6.png"), res = 144, height = 650, width = 850)
+
+ggplot() +
+  stat_density(data = df, aes(x = ame_combo_mean, group = index, color = factor(index)),
+               adjust = 5, position = "identity", size = 1, geom = "line", trim = TRUE) +
+  labs(x = "Average AME of unique model specifications",
+       y = "Density", 
+       title = "",
+       fill = "", color = "") +
+    scale_color_manual(values = colors[1:3],
+                     labels = c("Anti-immigration", "Moderate", "Pro-immigration")) +
+    annotate("label", x = -0.25,
+           y = 7,  # Adjust `y` to position text in the lower-left
+           label = "Anti-immigration teams\nchose model specifications\nthat overwhelmingly produced\nnegative results on average",
+           color = colors[1],  # Set text color to colors[1]
+           fill = "white",     # Background fill color of the box
+           label.size = 0.5,   # Border thickness
+           label.r = unit(0.25, "lines"),  # Rounded corners
+           label.color = "grey",
+           size = 3,                  
+           label.padding = unit(0.5, "lines"))  +
+  theme_classic() +
+  theme(
+    legend.position = "top"
+  )
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig6.png"))
+
+
+```
 
 

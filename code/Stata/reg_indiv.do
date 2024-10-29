@@ -241,7 +241,7 @@ lincom indiv3-indiv1;
 
 
 
-
+kkk;
 
 
 
