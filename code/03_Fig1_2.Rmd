@@ -187,6 +187,7 @@ include_graphics(here("results", "Fig1A.png"))
 
 ```{r fig1b}
 agg_png(here("results", "Fig1B.png"), res = 144, width = 600, height = 500)
+
 # create scaling axis
 custom_y_trans <- trans_new(
   name = "split_scale",
@@ -200,18 +201,22 @@ f1b <- df %>%
   ggplot() +
   
   # First density for index2, excluding NA values
-  geom_density(data = df %>% filter(!is.na(index2) & index2 == 1),
+  stat_density(data = df %>% filter(!is.na(index2) & index2 == 1),
                aes(x = AME), color = NA, fill = colors[2],
-               alpha = 0.3, adjust = 7, position = "identity") +
+               alpha = 0.3, adjust = 7, position = "identity", 
+               #trim = T
+               ) +
   
   # Second density for index1, excluding NA values
-  geom_density(data = df %>% filter(!is.na(index1) & index2 == 0),
+  stat_density(data = df %>% filter(!is.na(index1) & index2 == 0),
                aes(x = AME, group = index, color = factor(index)), 
-               alpha = 1, adjust = 6, position = "identity") +  
+               alpha = 1, adjust = 6, position = "identity", geom = "line", 
+               #trim = T
+               ) +  
   # Labels
   labs(x = "AME", y = "Density", title = "", fill = "Index Group", color = "Index Group") +
   scale_color_manual(values = colors[c(1,3)]) +   
-  scale_fill_manual(values = c("white", colors[2])) +  
+  scale_fill_manual(values = c(colors[2])) +  
   annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nteams", hjust = 0, color = colors[1], size = 3) +
   annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nteams", hjust = 1, color = colors[3], size = 3) +
     annotate("text", x = -0.01, y = 0.25, label = "Moderate\nteams", color = colors[2], size = 3) +
@@ -222,7 +227,7 @@ f1b <- df %>%
         axis.text.y = element_text(size = 6),
         axis.title = element_text(size = 8)) +
   scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
-  coord_cartesian(xlim = c(-0.46, 0.46))
+  coord_cartesian(xlim = c(-0.45, 0.45))
 f1b
 dev.off()
 
@@ -248,14 +253,16 @@ f1b <- df_dyad %>%
   ggplot() +
   
   # First density for indiv2, excluding NA values
-  geom_density(data = df_dyad %>% filter(!is.na(indiv2) & indiv2 == 1),
+  stat_density(data = df_dyad %>% filter(!is.na(indiv2) & indiv2 == 1),
                aes(x = AME), color = NA, fill = colors[2], 
-               alpha = 0.3, adjust = 5.5, position = "identity") +
+               alpha = 0.3, adjust = 5.5, position = "identity", trim = T) +
   
   # Second density for indiv1, excluding NA values
-  geom_density(data = df_dyad %>% filter(!is.na(indiv1) & indiv2 != 1),
+  stat_density(data = df_dyad %>% filter(!is.na(indiv1) & indiv2 != 1),
                aes(x = AME, group = indiv, color = factor(indiv)), 
-               alpha = 1, adjust = 5, position = "identity") +  
+               alpha = 1, adjust = 5, position = "identity", geom = "line", 
+               #trim = T
+               ) +  
   # Labels
   labs(x = "AME", y = "Density", title = "", fill = "indiv Group", color = "indiv Group") +
   scale_color_manual(values = colors[c(3,1)]) +   
@@ -511,7 +518,7 @@ knitr::include_graphics(here("results", "Fig2C.png"))
 
 ```{r densA}
 densityA <- ggplot(df, aes(x = AME)) +
-  geom_density(fill = "grey70", alpha = 0.7) +
+  stat_density(fill = "grey70", alpha = 0.7) +
   labs(x = NULL, y = "Density", title = "A. Model-level results, N = 1,253") +  
   geom_segment(x = coeff_group1 + weighted_mean_ame_group2m, xend = coeff_group1 + weighted_mean_ame_group2m,
                y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors[1]) +
@@ -538,7 +545,7 @@ densityA
 
 ```{r densB}
 densityB <- ggplot(df_dyad, aes(x = AME)) +
-  geom_density(fill = "grey70", alpha = 0.7) +
+  stat_density(fill = "grey70", alpha = 0.7) +
   labs(x = NULL, y = "Density", title = "B. Researcher-model dyads, N = 2,680") +  
   xlim(-0.079,0.039) +
   geom_segment(x = coeff_group1d + weighted_mean_ame_group2m_dyad, xend = coeff_group1d + weighted_mean_ame_group2m_dyad,

@@ -1880,8 +1880,124 @@ write.csv(Table_12, here::here("results", "TableS12.csv"), row.names = F)
 ```
 
 
+## Table 13. Unique Model Specifications
+
+### Build Models
+
+```{r t13}
+# from Table 2 main regressions
+
+m_1 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_2 <- lm.cluster(formula=AME ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_3 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_1 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_2 <- lm.cluster(formula=AME ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_3 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+# with 58 unique specifications
+
+df <- df %>%
+  mutate(unique_combo = paste(Scale, Stock, Flow, level_cyear, allavailable, w1996, w2006, w2016, sep = "_")) %>%
+  mutate(indicator = as.numeric(factor(unique_combo)))
+
+df <- df %>%
+  # Group by the unique combination
+  group_by(unique_combo) %>%
+  # Calculate the mean of 'ame' for each unique combination 
+  mutate(ame_combo_mean = mean(AME, na.rm = T),
+         peer_combo_mean = mean(pscore_Z, na.rm = T)) %>%
+  ungroup()
+
+m_1u <- lm.cluster(formula=AME ~ group3 + unique_combo + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_2u <- lm.cluster(formula=AME ~ group1 + unique_combo + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_3u <- lm.cluster(formula=AME ~ group1 + group3 + unique_combo + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_1u <- lm.cluster(formula=AME ~ group3 + unique_combo + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_2u <- lm.cluster(formula=AME ~ group1 + unique_combo + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_3u <- lm.cluster(formula=AME ~ group1 + group3 + unique_combo + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+```
 
 
+### Build Table
+
+```{r t13b}
+
+Table_13 <- as.data.frame(matrix(nrow = 13, ncol = 7))
+
+Table_13[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Difference", "% Explained by unique model specification", "Anti-immigration team", "", "Pro-immigration team", "", "Difference", "% Explained by unique model specification")
+
+Table_13[1,2:5] <- c("(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
+
+#m models
+
+Table_13[c(4),2] <- format(round(as.numeric(m_1$lm_res$coefficients[2]),3))
+Table_13[c(5),2] <- sprintf("(%s)", format(round(as.numeric(summary(m_1)[2,2]),3), nsmall = 3))
+
+Table_13[c(4),3] <- format(round(as.numeric(m_1u$lm_res$coefficients[2]),3))
+Table_13[c(5),3] <- sprintf("(%s)", format(round(as.numeric(summary(m_1u)[2,2]),3), nsmall = 3))
+
+Table_13[c(2),4] <- format(round(as.numeric(m_2$lm_res$coefficients[2]),3))
+Table_13[c(3),4] <- sprintf("(%s)", format(round(as.numeric(summary(m_2)[2,2]),3), nsmall = 3))
+
+Table_13[c(2),5] <- format(round(as.numeric(m_2u$lm_res$coefficients[2]),3))
+Table_13[c(3),5] <- sprintf("(%s)", format(round(as.numeric(summary(m_2u)[2,2]),3), nsmall = 3))
+
+Table_13[c(2,4),6] <- format(round(as.numeric(m_3$lm_res$coefficients[2:3]),3))
+Table_13[c(3,5),6] <- sprintf("(%s)", format(round(as.numeric(summary(m_3)[2:3,2]),3), nsmall = 3))
+
+Table_13[c(2,4),7] <- format(round(as.numeric(m_3u$lm_res$coefficients[2:3]),3))
+Table_13[c(3,5),7] <- sprintf("(%s)", format(round(as.numeric(summary(m_3u)[2:3,2]),3), nsmall = 3))
+
+# p models
+
+Table_13[c(10),2] <- format(round(as.numeric(p_1$lm_res$coefficients[2]),3))
+Table_13[c(11),2] <- sprintf("(%s)", format(round(as.numeric(summary(p_1)[2,2]),3), nsmall = 3))
+
+Table_13[c(10),3] <- format(round(as.numeric(p_1u$lm_res$coefficients[2]),3))
+Table_13[c(11),3] <- sprintf("(%s)", format(round(as.numeric(summary(p_1u)[2,2]),3), nsmall = 3))
+
+Table_13[c(8),4] <- format(round(as.numeric(p_2$lm_res$coefficients[2]),3))
+Table_13[c(9),4] <- sprintf("(%s)", format(round(as.numeric(summary(p_2)[2,2]),3), nsmall = 3))
+
+Table_13[c(8),5] <- format(round(as.numeric(p_2u$lm_res$coefficients[2]),3))
+Table_13[c(9),5] <- sprintf("(%s)", format(round(as.numeric(summary(p_2u)[2,2]),3), nsmall = 3))
+
+Table_13[c(8,10),6] <- format(round(as.numeric(p_3$lm_res$coefficients[2:3]),3))
+Table_13[c(9,11),6] <- sprintf("(%s)", format(round(as.numeric(summary(p_3)[2:3,2]),3), nsmall = 3))
+
+Table_13[c(8,10),7] <- format(round(as.numeric(p_3u$lm_res$coefficients[2:3]),3))
+Table_13[c(9,11),7] <- sprintf("(%s)", format(round(as.numeric(summary(p_3u)[2:3,2]),3), nsmall = 3))
+
+Table_13[is.na(Table_13)] <- ""
+
+# calculate differences
+
+Table_13[6,2:7] <- c(Table_13[4,2:3], abs(as.numeric(Table_13[2,4:5])), abs(as.numeric(Table_13[2,6:7]) - as.numeric(Table_13[4,6:7])))
+
+Table_13[7,c(3,5,7)] <- c( round(100*(1-as.numeric(Table_13[6,3])/as.numeric(Table_13[6,2])),1),
+                          round(100*(1-as.numeric(Table_13[6,5])/as.numeric(Table_13[6,4])),1),
+                          round(100*(1-as.numeric(Table_13[6,7])/as.numeric(Table_13[6,6])),1))
+
+Table_13[12,2:7] <- c(Table_13[10,2:3], abs(as.numeric(Table_13[8,4:5])), abs(as.numeric(Table_13[8,6:7]) - as.numeric(Table_13[10,6:7])))
+
+Table_13[13,c(3,5,7)] <- c( round(100*(1-as.numeric(Table_13[12,3])/as.numeric(Table_13[12,2])),1),
+                          round(100*(1-as.numeric(Table_13[12,5])/as.numeric(Table_13[12,4])),1),
+                          round(100*(1-as.numeric(Table_13[12,7])/as.numeric(Table_13[12,6])),1))
+
+write_csv(Table_13, here("results", "TableS13.csv"))
+
+
+```
 
 
 
