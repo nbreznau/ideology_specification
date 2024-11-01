@@ -33,7 +33,8 @@ packages <- c("tidyverse",
               "haven",
               "broom",
               "lm.beta",
-              "scales")
+              "scales",
+              "car")
 
 pacman::p_load(packages, character.only = T)
 
@@ -80,6 +81,26 @@ df_dyad <- df_dyad %>%
 m_1lm <- lm(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$mweight, data = df)
 
 m_3lm <- lm(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$mweight, data = df)
+
+# test significance
+car::linearHypothesis(m_3lm, "group1 - group3 = 0")
+
+# Extract coefficients and covariance matrix
+coef_m3lm <- coef(m_3lm)
+vcov_m3lm <- vcov(m_3lm)
+
+# Calculate the difference between group1 and group3 coefficients
+difference <- coef_m3lm["group1"] - coef_m3lm["group3"]
+
+# Calculate the standard error of the difference
+# SE(diff) = sqrt(Var(group1) + Var(group3) - 2 * Cov(group1, group3))
+se_difference <- sqrt(vcov_m3lm["group1", "group1"] + 
+                      vcov_m3lm["group3", "group3"] - 
+                      2 * vcov_m3lm["group1", "group3"])
+
+# Display the results
+difference
+se_difference
 
 p_1lm <- lm(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$peerweight, data = df)
 
@@ -234,11 +255,14 @@ dev.off()
 knitr::include_graphics(here("results", "Fig1B.png"))
 
 ```
+
+
+
 ## FigS1
 
 ```{r figs1}
 
-agg_png(here("results", "Fig1S.png"), res = 144, width = 600, height = 500)
+agg_png(here("results", "FigS1.png"), res = 144, width = 600, height = 500)
 
 # create scaling axis
 custom_y_trans <- trans_new(
@@ -281,7 +305,7 @@ f1b <- df_dyad %>%
 f1b
 dev.off()
 
-knitr::include_graphics(here("results", "Fig1S.png"))
+knitr::include_graphics(here("results", "FigS1.png"))
 ```
 
 ### Density under curve
