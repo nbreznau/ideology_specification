@@ -30,9 +30,9 @@ df <- read_rds(here("data", "df.rds"))
 ## Regression
 
 ```{r reg}
-df$peerweight <- df$pscore_1/df$nmodel
+df$peerweight <- 1/df$nmodel
 
-q_2 <- lm(peer_mean_Z ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, data = df)
+q_2 <- lm(peer_mean_Z ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$peerweight, data = df)
 
 df$peer_mean_Z_pred <- predict(q_2, newdata = df)
 
@@ -64,6 +64,9 @@ df_coeff <- data.frame(
            coeff_group3 + weighted_mean_ame_group2m),
   se = c(se_group1, weighted_se_ame_group2m, se_group3))
 
+
+weighted.mean(df$peer_mean_Z, w = df$peerweight, na.rm = TRUE)
+
 ```
 
 ## Fig4
@@ -76,7 +79,7 @@ agg_png(here("results", "Fig4A.png"), res = 144, height = 600, width = 800)
 
 f4a <- ggplot() +
   stat_density(data = df,
-               aes(x = peer_mean_Z, group = index, color = factor(index)), 
+               aes(x = peer_mean_Z, group = index, color = factor(index), weight = peerweight), 
                alpha = 1, adjust = 3, position = "identity", geom = "line", trim = T) +  
   labs(x = "Average peer review score per model", y = "Density", title = "") +
   scale_color_manual(values = colors[c(1,2,3)]) +   
@@ -85,9 +88,9 @@ f4a <- ggplot() +
   annotate("text", x = -1.1, y = 0.75, label = "Pro-immigration teams", color = colors[3], size = 3) +
     annotate("text", x = 1, y = 0.75, label = "Moderate teams", color = colors[2], size = 3) +
   theme_classic() +
-  geom_vline(xintercept = mean(df$peer_mean_Z[df$group1 == 1], na.rm = T), color = colors[1], linetype = "dashed") +
-  geom_vline(xintercept = mean(df$peer_mean_Z[df$group2 == 1], na.rm = T), color = colors[2], linetype = "dashed") +
-  geom_vline(xintercept = mean(df$peer_mean_Z[df$group3 == 1], na.rm = T), color = colors[3], linetype = "dashed") +
+geom_vline(xintercept = weighted.mean(df$peer_mean_Z[df$group1 == 1], w = df$peerweight[df$group1 == 1], na.rm = TRUE), color = colors[1], linetype = "dashed") +
+geom_vline(xintercept = weighted.mean(df$peer_mean_Z[df$group2 == 1], w = df$peerweight[df$group2 == 1], na.rm = TRUE), color = colors[2], linetype = "dashed") +
+geom_vline(xintercept = weighted.mean(df$peer_mean_Z[df$group3 == 1], w = df$peerweight[df$group3 == 1], na.rm = TRUE), color = colors[3], linetype = "dashed") +
   #xlim(-2.1,2) +
   theme(legend.position = "none",
         axis.text.x = element_text(size = 6),
