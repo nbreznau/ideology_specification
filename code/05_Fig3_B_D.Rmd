@@ -1,6 +1,6 @@
 ---
 title: "03 Data Viz"
-output: html_notebook
+output: false
 ---
 Replication workflow for:
 
@@ -36,6 +36,7 @@ pacman::p_load(packages, character.only = T)
 
 # palette
 colors <- c("#453781FF", "#3CBB75FF", "#F28C28")
+colors_classic <- c("red", "forestgreen", "blue")
 
 ```
 
@@ -213,6 +214,8 @@ plot_data_ame_dyad <- data.frame(
 
 ### Fig3B Model
 
+#### Color Blind
+
 ```{r fig2a}
 agg_png(here("results", "Fig3B.png"), res = 144, height = 300, width = 650)
 
@@ -248,9 +251,46 @@ dev.off()
 knitr::include_graphics(here("results", "Fig3B.png"))
 ```
 
+#### RGB
 
+```{r fig2a}
+agg_png(here("results", "Fig3B_RGB.png"), res = 144, height = 300, width = 650)
+
+plot_data_ame %>%
+  subset(weight == "m") %>%
+  ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
+  ylim(-0.03,0.13) +
+  annotate("text", y = c(coeff_group1 + weighted_mean_ame_group2m,
+                         weighted_mean_ame_group2m,
+                         coeff_group3 + weighted_mean_ame_group2m), 
+           x = c(2.7,1.7,0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors_classic[1:3],
+           size = 3) +
+  geom_text(aes(y = mean, label = sprintf("%.3f", mean)),  
+            vjust = -1, color = colors_classic[1:3], size = 3) +
+  coord_flip() +
+  scale_color_manual(values = colors_classic) +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        legend.position = "none")
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig3B_RGB.png"))
+```
 
 ### Fig3D Dyad
+
+#### Color Blind
 
 ```{r fig2c}
 agg_png(here("results", "Fig3D.png"), res = 144, height = 300, width = 650)
@@ -287,7 +327,42 @@ dev.off()
 knitr::include_graphics(here("results", "Fig3D.png"))
 ```
 
+#### RGB
 
+```{r fig2c}
+agg_png(here("results", "Fig3D_RGB.png"), res = 144, height = 300, width = 650)
+
+plot_data_ame_dyad %>%
+  subset(weight == "m") %>%
+  ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
+  ylim(-0.03,0.13) +
+  annotate("text", y = c(coeff_group1d + weighted_mean_ame_group2m_dyad,
+                         weighted_mean_ame_group2m_dyad,
+                         coeff_group3d + weighted_mean_ame_group2m_dyad), 
+           x = c(2.7,1.7,0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors_classic[1:3],
+           size = 3) +
+  geom_text(aes(y = mean, label = sprintf("%.3f", mean)),  
+            vjust = -1, color = colors_classic[1:3], size = 3) +
+  coord_flip() +
+  scale_color_manual(values = colors_classic) +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        legend.position = "none")
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig3D_RGB.png"))
+```
 
 
 

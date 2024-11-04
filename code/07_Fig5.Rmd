@@ -1,6 +1,6 @@
 ---
 title: "03 Data Viz"
-output: html_notebook
+output: false
 ---
 Replication workflow for:
 
@@ -28,6 +28,7 @@ pacman::p_load(packages, character.only = T)
 
 # palette
 colors <- c("#453781FF", "#3CBB75FF", "#F28C28")
+colors_classic <- c("red", "forestgreen", "blue")
 
 ```
 
@@ -111,7 +112,7 @@ df <- df %>%
 # Define offsets for each index group (adjust these values as needed)
 offsets <- c(0.2, 0, -0.2)  # Offset for index == 1, index == 2, and index == 3
 ```
-
+### Color Blind
 
 ```{r f5a}
 # make a defineable range on plot
@@ -149,7 +150,8 @@ f5a1 <- ggplot() +
 
 ```
 
-```{r}
+#### Specs
+```{r f5a2}
 df_long <- df %>%
   mutate(A = ifelse(Scale == 1, 1, NA),
          B = ifelse(Stock == 1, 2, NA),
@@ -177,7 +179,7 @@ f5a2 <- ggplot(df_long, aes(x = unique_combo_numeric, y = y)) +
 
 ```
 
-### Fig5A
+#### Combine
 ```{r f4arrange}
 agg_png(here("results", "Fig5A.png"), res = 144, height = 800, width = 800)
 
@@ -188,9 +190,88 @@ dev.off()
 
 knitr::include_graphics(here("results", "Fig5A.png"))
 ```
+### RGB
 
+```{r f5argb}
+# make a defineable range on plot
+range02 <- c(min(df$unique_combo_numeric[df$ame_combo_mean > -0.02]), max(df$unique_combo_numeric[df$ame_combo_mean < 0.02]), unique(df$unique_combo_numeric[df$ame_combo_mean < .0003 & df$ame_combo_mean > .0002]))
+
+
+# Step 3: Plot using geom_density with the offset
+
+f5a1r <- ggplot() +
+
+  stat_density(data = df, aes(x = unique_combo_numeric, group = index, color = factor(index), fill = factor(index), alpha = factor(index)), adjust = 0.5, position = "identity", size = 1, trim = TRUE) +
+  scale_alpha_manual(values = c(0.5, 0, 0.3)) +
+  labs(x = "Unique Model Specifications\nOrdered by Average AME",
+       y = "Density", 
+       title = "",
+       fill = "Index Group", color = "Index Group") +
+  scale_x_continuous(breaks = c(1:58)) +  
+  annotate("text", x = 1, y = 0.048, label = "Anti-immigration\nteams", size = 3.5, color = colors_classic[1], hjust = 0) +
+  annotate("text", x = 21, y = 0.05, label = "Moderate", size = 3.5, color = colors_classic[2], hjust = 0) +
+  annotate("text", x = 58, y = 0.048, label = "Pro-immigration\nteams", size = 3.5, color = colors_classic[3], hjust = 1) +
+  geom_segment(aes(x = range02[1], xend = range02[1], y = 0, yend = 0.025), linetype = "dashed", color = "grey30") +  
+  geom_segment(aes(x = range02[2], xend = range02[2], y = 0, yend = 0.025), linetype = "dashed", color = "grey30") +
+  geom_segment(aes(x = range02[3]-0.5, xend = range02[3]-0.5, y = 0, yend = 0.036), linetype = "dashed", color = "grey30") +
+  annotate("text", y = 0.004, x = range02[1]-0.5, label = expression(italic("-0.02 avg.\nand lower")), size = 2.3, hjust = 1, color = "grey20") +
+  annotate("text", y = 0.023, x = range02[2]+0.5, label = expression(italic("0.02 avg.\nand higher")), size = 2.3, hjust = 0, color = "grey20") +
+  annotate("text", y = 0.039, x = range02[3]-0.5, label = expression(italic("zero")), size = 2.3,  color = "grey20") +
+  scale_color_manual(values = c(colors_classic[1:3])) +
+  scale_fill_manual(values = c(colors_classic[1], "white", colors_classic[3])) +
+  theme_classic() +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        #axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        legend.position = "none")
+
+```
+
+#### Specs
+```{r f5a2}
+df_long <- df %>%
+  mutate(A = ifelse(Scale == 1, 1, NA),
+         B = ifelse(Stock == 1, 2, NA),
+         C = ifelse(Flow == 1, 3, NA),
+         D = ifelse(level_cyear == 1, 4, NA),
+         E = ifelse(allavailable == 1, 5, NA),
+         F = ifelse(w1996 == 1, 6, NA),
+         G = ifelse(w2006 == 1, 7, NA),
+         H = ifelse(w2016 == 1, 8, NA)) %>%
+  pivot_longer(cols = A:H, names_to = "Variable", values_to = "y") %>%
+  drop_na(y)  # Remove rows with NA values
+
+# Plot with geom_tile to remove gaps
+f5a2r <- ggplot(df_long, aes(x = unique_combo_numeric, y = y)) +
+  geom_tile(width = 0.8, height = 0.8, fill = "grey50") +  # Adjust width and height to control bar appearance
+  scale_x_continuous(breaks = 1:58) +  
+  scale_y_continuous(breaks = 1:8, labels = c("A", "B", "C", "D", "E", "F", "G", "H")) +  # Label y-axis with variable names
+  labs(x = "Unique model specifications\nordered by average AME", y = "Components") +
+  theme_classic()  +
+  theme(axis.text.x = element_blank(),
+        #axis.text.y = element_blank(),
+        #axis.title.y = element_blank(),
+        #axis.title = element_text( color = "grey50")
+        )
+
+```
+
+#### Combine
+```{r f4arrangergb}
+agg_png(here("results", "Fig5A_RGB.png"), res = 144, height = 800, width = 800)
+
+f5ar <- ggarrange(f5a1r, f5a2r, ncol = 1, nrow = 2, align = "v", heights = c(3,2))
+f5ar
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig5A_RGB.png"))
+```
 
 ### Fig5B. Plot AME distribution
+
+#### Color Blind
 
 ```{r 5b}
 agg_png(here("results", "Fig5b.png"), res = 144, height = 500, width = 600)
@@ -229,118 +310,145 @@ knitr::include_graphics(here("results", "Fig5b.png"))
 
 ```
 
-### Fig5C. Decomposing effect
+#### RGB
 
-#### Prep data
+```{r 5brgb}
+agg_png(here("results", "Fig5B_RGB.png"), res = 144, height = 500, width = 600)
 
-```{r f5c}
-df_points <- data.frame(
-  x = c(0.9, 1, 1.1, 0.9, 1, 1.1),
-  y = c(0.95, 1.15, 0.95, 2.85, 2.65, 2.85) - 0.7,
-  fill = c(rep(colors[1], 3), rep(colors[3], 3)) # Color groups
-)
+ggplot() +
+  stat_density(data = df, aes(x = ame_combo_mean, group = index, color = factor(index)),
+               adjust = 5, alpha = 0.8, position = "identity", size = 0.8, geom = "line", trim = TRUE) +
+  labs(x = "Average AME of unique model specifications",
+       y = "Density", 
+       title = "",
+       fill = "", color = "") +
+    scale_color_manual(values = colors_classic[1:3],
+                     labels = c("Anti-immigration", "Moderate", "Pro-immigration")) +
+    annotate("label", x = -0.22,
+           y = 11,  # Adjust `y` to position text in the lower-left
+           label = "Anti-immigration teams\nchose model specifications\nwith negative expected\nresults on average",
+           color = colors_classic[1],  # Set text color to colors_classic[1]
+           fill = "white",     # Background fill color of the box
+           label.size = 0.5,   # Border thickness
+           label.r = unit(0.25, "lines"),  # Rounded corners
+           label.color = "grey",
+           size = 2.4,                  
+           label.padding = unit(0.5, "lines"))  +
+  #coord_cartesian(xlim = c(-0.32,0.35), clip = "off") +
+  theme_classic() +
+  theme(
+    legend.position = "top",
+    axis.title.y = element_blank(),
+    axis.text.y = element_blank()
+  )
 
-df_points2 <- data.frame(
-  x = c(0.9, 1, 1.1, 0.9, 1, 1.1),
-  y = c(-0.95, -1.15, -0.95, -2.85, -2.65, -2.85) + 0.7,
-  fill = c(rep(colors[3], 3), rep(colors[1], 3)) # Color groups
-)
+dev.off()
 
-# Create data for arrows
-df_arrows <- data.frame(
-  x = c(1.4, 1.4),           # Start x-coordinates for arrows
-  xend = c(4, 4),            # End x-coordinates for arrows
-  y = c(2.8, 1) - 0.7,           # y-coordinates for each arrow
-  color = c(colors[3], colors[1])  # Colors matching the top and bottom dots
-)
+knitr::include_graphics(here("results", "Fig5B_RGB.png"))
 
-df_arrows2 <- data.frame(
-  x = c(1.4, 1.4),           # Start x-coordinates for arrows
-  xend = c(2.5, 2.5),            # End x-coordinates for arrows
-  y = c(-2.8, -1) + 0.7,           # y-coordinates for each arrow
-  color = c(colors[1], colors[3])  # Colors matching the top and bottom dots
-)
 
-df_arrows3 <- data.frame(
-  x = c(2.5, 2.5), 
-  xend = c(4, 4),           
-  y = c(-2.20, -1.60) + 0.7,           
-  color = c(colors[1], colors[3])  
-)
 ```
 
-#### Plot
+### Fig5C. Decomposing effect
+
+#### Models
+
+```{r f5c}
+
+df <- df %>%
+  mutate(unique_combo = paste(Scale, Stock, Flow, level_cyear, allavailable, w1996, w2006, w2016, sep = "_")) %>%
+  mutate(indicator = as.numeric(factor(unique_combo)))
+
+df <- df %>%
+  # Group by the unique combination
+  group_by(unique_combo) %>%
+  # Calculate the mean of 'ame' for each unique combination 
+  mutate(ame_combo_mean = mean(AME, na.rm = T),
+         peer_combo_mean = mean(pscore_Z, na.rm = T)) %>%
+  ungroup()
+
+df$resid <- df$AME - df$ame_combo_mean
+
+m_3 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_mame <- lm.cluster(formula=resid ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+coef_group1 <- m_3$lm_res$coefficients["group1"]
+coef_group3 <- m_3$lm_res$coefficients["group3"]
+
+se_group1 <- as.numeric(summary(m_3)[2,2])
+se_group3 <- as.numeric(summary(m_3)[3,2])
+
+coef_diff <- coef_group1 - coef_group3
+se_diff <- sqrt(se_group1^2 + se_group3^2)
+
+z_score <- coef_diff / se_diff
+p_value <- 2 * (1 - pnorm(abs(z_score)))  
+
+coef_group1m <- m_mame$lm_res$coefficients["group1"]
+coef_group3m <- m_mame$lm_res$coefficients["group3"]
+
+se_group1m <- as.numeric(summary(m_mame)[2,2])
+se_group3m <- as.numeric(summary(m_mame)[3,2])
+
+coef_diffm <- coef_group1m - coef_group3m
+se_diffm <- sqrt(se_group1m^2 + se_group3m^2)
+
+z_scorem <- coef_diffm / se_diffm
+p_valuem <- 2 * (1 - pnorm(abs(z_scorem)))  
+
+
+df_mame <- as.data.frame(matrix(nrow = 4, ncol = 5))
+
+colnames(df_mame) <- c("pos", "group", "coef", "se", "model")
+
+df_mame[1,] <- c(3, "group1", coef_group1, se_group1, "Main model")
+df_mame[2,] <- c(2.75, "group3", coef_group3, se_group3, "Main model")
+df_mame[3,] <- c(1.25, "group1", coef_group1m, se_group1m, "Residual")
+df_mame[4,] <- c(1, "group3", coef_group3m, se_group3m, "Residual")
+
+df_mame <- df_mame %>%
+  mutate(coef = as.numeric(coef),
+         se = as.numeric(se),
+         pos = as.numeric(pos))
+
+
+```
+
+#### Plot Color Blind
 
 ```{r f5cp}
 
 agg_png(here("results", "Fig5C.png"), res = 144, height = 800, width = 850)
 
+df_mame %>%
+  ggplot(aes(x = pos, y = coef, color = group, group = model)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = coef - 1.645 * se, ymax = coef + 1.645 * se), width = 0.1) +
+  geom_errorbar(aes(ymin = coef_group1, ymax = coef_group3, x = 2.75), width = 0.2, color = "grey30", linetype = "dashed", size = 0.5) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
 
-
-ggplot() +
-  #upper plot
-  geom_segment(data = df_arrows, aes(x = x, y = y, xend = xend, yend = y, color = color), 
-               arrow = arrow(length = unit(0.2, "inches"), type = "closed"),
-               size = 1.5) +
-  geom_rect(aes(xmin = 4.15, xmax = 4.65, ymin = 0.1, ymax = 2.3), fill = "grey90", color = "black", linetype = "solid", size = 0.5, radius = unit(0.2, "npc")) + # Rounded border
-  annotate("text", x = 4.4, y = 1.2, label = "Results (AMEs)", angle = 90, color = "black", size = 6, hjust = 0.5, vjust = 0.5) +
-  geom_rect(aes(xmin = 0.75, xmax = 1.25, ymin = 0.1, ymax = 2.3), fill = "grey90", color = "black", linetype = "solid", size = 0.5, radius = unit(0.2, "npc")) + # Rounded border
-  annotate("text", x = 1, y = 1.2, label = "Researcher\nideology", angle = 90, color = "black", size = 4.5, hjust = 0.5, vjust = 0.5) +
-  annotate("text", x = 3.5, y = 2.2, label = "=  +0.024*", size = 3.8, color = colors[3]) +
-  annotate("text", x = 3.5, y = 0.2, label = "=  -0.054*", size = 3.8, color = colors[1]) +
-  annotate("text", x = 1.4, y = 2.2, label = "Pro-immigration", size = 3.8, color = colors[3], hjust = 0) +
-  annotate("text", x = 1.4, y = 0.2, label = "Anti-immigration", size = 3.8, color = colors[1], hjust = 0) +
-    geom_point(data = df_points, aes(x = x, y = y, fill = fill, color = fill), size = 5, shape = 21) +
-      annotate("label", x = 2.8,
-           y = 1.2,  
-           label = "Ideology explains a difference of\n0.078 standard deviations in\nreserach outcomes across teams\nafter adjusting for skill,\nexperience, and background",
-           color = "black",  # Set text color to colors[1]
-           fill = "white",     # Background fill color of the box
-           label.size = 0.5,   # Border thickness
-           label.r = unit(0.25, "lines"),  # Rounded corners
-           label.color = "grey",
-           size = 3, 
-           #parse = T,
-           label.padding = unit(0.5, "lines"))  +
+  annotate("text", y = c(-0.1,
+                         -0.1,
+                         coef_group1,
+                         coef_group3), 
+           x = c(3.2,1.7,2.9,2.35),
+           label = c("Main models", "Residuals", "Anti-immigration", "Pro-immigration"),
+           color = c("black", "black", colors[c(1,3)]),
+           size = c(4,4,3,3)) +
+  geom_text(aes(y = coef, label = sprintf("%.3f", coef)),  
+            vjust = -1, color = c(colors[c(1,3)], colors[c(1,3)]), size = 3) +
+  ylim(-0.11,0.055) +
+  coord_flip() +
   
-  # lower plot
-  geom_segment(data = df_arrows2, aes(x = x, y = y, xend = xend, yend = y, color = color), 
-               arrow = arrow(length = unit(0.2, "inches"), type = "closed"),
-               size = 1.5) +
-  geom_segment(data = df_arrows3, aes(x = x, y = y, xend = xend, yend = y, color = color), 
-               arrow = arrow(length = unit(0.2, "inches"), type = "closed"),
-               size = 1.5) +
-  geom_rect(aes(xmin = 4.15, xmax = 4.65, ymin = -0.1, ymax = -2.3), fill = "grey90", color = "black", linetype = "solid", size = 0.5, radius = unit(0.2, "npc")) + 
-  annotate("text", x = 4.4, y = -1.2, label = "Results (AMEs)", angle = 90, color = "black", size = 5, hjust = 0.5, vjust = 0.5) +
-  geom_rect(aes(xmin = 0.75, xmax = 1.25, ymin = -0.1, ymax = -2.3), fill = "grey90", color = "black", linetype = "solid", size = 0.5, radius = unit(0.2, "npc")) + 
-  annotate("text", x = 1, y = -1.2, label = "Researcher\nideology", angle = 90, color = "black", size = 4.5, hjust = 0.5, vjust = 0.5) +
-  # model specification box
-  geom_rect(aes(xmin = 2.25, xmax = 2.75, ymin = -0.1, ymax = -2.3), fill = "grey90", color = "black", linetype = "solid", size = 0.5, radius = unit(0.2, "npc")) + 
-  annotate("text", x = 2.5, y = -1.2, label = "Expected outcomes of\nunique model specifications", angle = 90, color = "black", size = 4.5, hjust = 0.5, vjust = 0.5) +
-  annotate("text", x = 3.5, y = -0.80, label = "=  +0.015*", size = 3.8, color = colors[3]) +
-  annotate("text", x = 3.5, y = -1.60, label = "=  -0.013*", size = 3.8, color = colors[1]) +
-  annotate("text", x = 1.4, y = -0.2, label = "Pro-immigration", size = 3.8, color = colors[3], hjust = 0) +
-  annotate("text", x = 1.4, y = -2.2, label = "Anti-immigration", size = 3.8, color = colors[1], hjust = 0) +
-    geom_point(data = df_points2, aes(x = x, y = y, fill = fill, color = fill), size = 5, shape = 21) +
-      annotate("label", x = 3.45,
-           y = -2,  
-           label = "Unique specification priors\nexplain 65% of\nthe ideology effect",
-           color = "black",  # Set text color to colors[1]
-           fill = "white",     # Background fill color of the box
-           label.size = 0.5,   # Border thickness
-           label.r = unit(0.25, "lines"),  # Rounded corners
-           label.color = "grey",
-           size = 3, 
-           #parse = T,
-           label.padding = unit(0.5, "lines"))  +
-  scale_fill_identity() +
-  scale_color_identity() +
+  scale_color_manual(values = colors[c(1,3)]) +
   theme_classic() +
-  coord_cartesian(clip = "off") +
-  theme(axis.title = element_blank(),
-        axis.text = element_blank(),
-        axis.line = element_blank(),
-        axis.ticks = element_blank())
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        legend.position = "none")
 
 dev.off()
 
