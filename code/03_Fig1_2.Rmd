@@ -40,6 +40,7 @@ pacman::p_load(packages, character.only = T)
 
 # palette
 colors <- c("#453781FF", "#3CBB75FF", "#F28C28")
+colors_classic <- c("red", "forestgreen", "blue")
 
 ```
 
@@ -143,7 +144,7 @@ y_pos3 <- c(3, 3, 3)
 y_pos4 <- c(4, 4, 4)
 ```
 
-#### Variant 1
+#### Color Blind
 
 ```{r fig1p}
 agg_png(here("results", "Fig1A.png"), res = 144, height = 500, width = 800)
@@ -210,8 +211,77 @@ dev.off()
 
 include_graphics(here("results", "Fig1A.png"))
 ```
+#### RGB
+
+```{r fig1p}
+agg_png(here("results", "Fig1A_RGB.png"), res = 144, height = 500, width = 800)
+
+f1argb <- ggplot() +
+  scale_x_continuous(limits = c(1, 7.1)) +
+  scale_y_continuous(limits = c(1, 11.1)) +
+
+  scale_color_identity() + #use specified colors
+  # experiment info text
+  annotate("text", x = 1.2, y = 11.1, label = "71 teams independently used the same dataset to test a single\nhypothesis: that immigration reduces support for social policies", hjust = 0, size = 3.3, color = "grey30", vjust = 1) +
+  annotate("text", x = 1.2, y = 8.9, label = "They were asked prior to their research tasks if immigration\nlaws in their country should be made stronger or more relaxed", hjust = 0,  vjust = 0.8, size = 3.3, color = "grey30", fontface = "italic") +
+  # Add many analysts blurb
+
+  annotate("text", x = 3, y = 5, label = "Political ideology", hjust = 1, vjust = 0, size = 3.5) +
+
+  # lines
+  geom_segment(aes(x = 1.2, y = 7.5, xend = 7, yend = 7.5), linetype = "dashed", color = "grey30", size = 0.3) +
+  geom_segment(aes(x = 1.5, y = 4.6, xend = 7, yend = 4.6), size = 0.3) +
+
+  annotate("text", x = 3, y = 2, label = "Pro-immigration", hjust = 1, color = colors_classic[3], size = 3.5) +
+  annotate("text", x = 3, y = 3, label = "Moderate", hjust = 1, color = colors_classic[2], size = 3.5) +
+  annotate("text", x = 3, y = 4, label = "Anti-immigration", hjust = 1, color = colors_classic[1], size = 3.5) +
+  annotate("text", x = 3, y = 1, label = "Total", hjust = 1, size = 3.5) +
+  
+  # Add the current annotations, shifted to x = 2, 3, 4 at y = 5
+  annotate("text", x = 4, y = 5, label = "# of\nteams", vjust = 0, size = 3.5) +
+  annotate("text", x = 4.8, y = 5, label = "Mean\nAME",  vjust = 0, size = 3.5) +
+  annotate("text", x = 6.175, y = 5.76, label = "Extreme 10%\nsig effects:",  vjust = 0, size = 3.5) +
+  annotate("text", x = 5.75, y = 5, label = "Negative",  vjust = 0, size = 3.5) +
+  annotate("text", x = 6.6, y = 5, label = "Positive",  vjust = 0, size = 3.5) +
+  # Add results from Tbl1 weighted
+  mapply(function(txt, x, y) {
+    annotate("text", x = x, y = y, label = txt)
+  }, Table_1_model[1:4,2], x_positions, y_pos1) +
+  mapply(function(txt, x, y) {
+    annotate("text", x = x, y = y, label = txt, color = colors_classic[1])}, 
+    Table_1_model[1:4,3], x_positions, y_pos4) +
+  mapply(function(txt, x, y) {
+    annotate("text", x = x, y = y, label = txt, color = colors_classic[2])}, 
+    Table_1_model[1:4,4], x_positions, y_pos3) +
+  mapply(function(txt, x, y) {
+    annotate("text", x = x, y = y, label = txt, color = colors_classic[3])}, 
+    Table_1_model[1:4,5], x_positions, y_pos2) +
+  
+  # Remove axis lines, ticks, and grid
+  theme_void() +
+  theme(
+    axis.line = element_blank(),
+    axis.ticks = element_blank(),
+    plot.margin = margin(t = 20, r = 80, b = 20, l = -10),
+    legend.position = "none" # Increased left margin
+  ) +
+  coord_cartesian(clip = "off")
+f1argb
+
+  
+# The dots, not used anymore
+  #geom_point(data = df_sphere, aes(x = x, y = y, color = color), size = 2.5) + 
+#H1 sybmol, not used anymore
+  #annotate("text", x = 1.2, y = 10.62, hjust = 0, label = expression(H[1]), size = 7) +
+
+dev.off()
+
+include_graphics(here("results", "Fig1A_RGB.png"))
+```
 
 ## Fig1B
+
+### Color Blind
 
 ```{r fig1b}
 agg_png(here("results", "Fig1B.png"), res = 144, width = 600, height = 500)
@@ -263,7 +333,57 @@ knitr::include_graphics(here("results", "Fig1B.png"))
 
 ```
 
+### Color Blind
 
+```{r fig1brgb}
+agg_png(here("results", "Fig1B_RGB.png"), res = 144, width = 600, height = 500)
+
+# create scaling axis
+custom_y_trans <- trans_new(
+  name = "split_scale",
+  transform = function(x) ifelse(x <= 1, x / 2, (x - 1) / (35 - 1) * 0.5 + 0.5),  # Compress 0-1 to lower half, >1 to upper half
+  inverse = function(x) ifelse(x <= 0.5, x * 2, (x - 0.5) * (35 - 1) / 0.5 + 1)  # Inverse of the transform
+)
+
+
+f1b <- df %>%
+  #subset(index != 2) %>%
+  ggplot() +
+  
+  # First density for index2, excluding NA values
+  stat_density(data = df %>% filter(!is.na(index2) & index2 == 1),
+               aes(x = AME), color = NA, fill = colors[2],
+               alpha = 0.4, adjust = 7, position = "identity", 
+               #trim = T
+               ) +
+  
+  # Second density for index1, excluding NA values
+  stat_density(data = df %>% filter(!is.na(index1) & index2 == 0),
+               aes(x = AME, group = index, color = factor(index)), 
+               alpha = 1, adjust = 6, position = "identity", geom = "line", 
+               #trim = T
+               ) +  
+  # Labels
+  labs(x = "AME", y = "Density", title = "", fill = "Index Group", color = "Index Group") +
+  scale_color_manual(values = colors_classic[c(1,3)]) +   
+  scale_fill_manual(values = c(colors_classic[2])) +  
+  annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nteams", hjust = 0, color = colors_classic[1], size = 3) +
+  annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nteams", hjust = 1, color = colors_classic[3], size = 3) +
+    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nteams", color = colors_classic[2], size = 3) +
+  geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title = element_text(size = 8)) +
+  scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
+  coord_cartesian(xlim = c(-0.45, 0.45))
+f1b
+dev.off()
+
+knitr::include_graphics(here("results", "Fig1B_RGB.png"))
+
+```
 
 ## FigS1
 
