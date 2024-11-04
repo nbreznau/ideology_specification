@@ -1,6 +1,6 @@
 ---
 title: "03 Data Viz"
-output: html_notebook
+output: false
 ---
 Replication workflow for:
 

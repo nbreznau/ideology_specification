@@ -1,6 +1,6 @@
 ---
 title: "01 Data Prep"
-output: html_notebook
+output: false
 ---
 Replication workflow for:
 
