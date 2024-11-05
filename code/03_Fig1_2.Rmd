@@ -589,8 +589,10 @@ plot_data_ame_dyad <- data.frame(
 
 ### Fig2A Model
 
+#### Color blind
+
 ```{r fig2a}
-agg_png(here("results", "Fig2A.png"), res = 144, height = 300, width = 650)
+#agg_png(here("results", "Fig2A.png"), res = 144, height = 300, width = 650)
 
 f2a <- ggplot(data = subset(plot_data_ame, weight == "m"), aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
   geom_point(aes(y = mean)) +
@@ -625,17 +627,60 @@ f2a <- ggplot(data = subset(plot_data_ame, weight == "m"), aes(x = factor(group,
 
 f2a
 
-dev.off()
+#dev.off()
 
-knitr::include_graphics(here("results", "Fig2A.png"))
+#knitr::include_graphics(here("results", "Fig2A.png"))
 ```
 
 
+#### RGB
+```{r fig2argb}
+#agg_png(here("results", "Fig2A.png"), res = 144, height = 300, width = 650)
+
+f2argb <- ggplot(data = subset(plot_data_ame, weight == "m"), aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point(aes(y = mean)) +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  # Numerical labels 
+  geom_text(aes(y = mean, label = sprintf("%.3f", mean)),  
+            vjust = -1, color = colors_classic[1:3], size = 3) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  ylim(-0.12, 0.065) +
+  
+  # Annotation for categories
+  annotate("text", y = c(coeff_group1 + weighted_mean_ame_group2m,
+                         weighted_mean_ame_group2m,
+                         coeff_group3 + weighted_mean_ame_group2m), 
+           x = c(2.7, 1.7, 0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors_classic[1:3],
+           size = 3) +
+  
+  # Flip coordinates and styling
+  coord_flip() +
+  scale_color_manual(values = colors_classic) +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        title = element_blank(),
+        plot.margin = unit(c(0, 0.5, 0.5, 0.5), "cm"),
+        legend.position = "none")
+
+f2a
+
+#dev.off()
+
+#knitr::include_graphics(here("results", "Fig2A.png"))
+```
 
 ### Fig2C Dyad
 
+#### Color Blind
+
 ```{r fig2c}
-agg_png(here("results", "Fig2C.png"), res = 144, height = 300, width = 650)
+#agg_png(here("results", "Fig2C.png"), res = 144, height = 300, width = 650)
 
 f2b <- plot_data_ame_dyad %>%
   subset(weight == "m") %>%
@@ -667,9 +712,49 @@ f2b <- plot_data_ame_dyad %>%
         legend.position = "none")
 f2b
 
-dev.off()
+#dev.off()
 
-knitr::include_graphics(here("results", "Fig2C.png"))
+#knitr::include_graphics(here("results", "Fig2C.png"))
+```
+
+#### RGB
+
+```{r fig2crgb}
+#agg_png(here("results", "Fig2C.png"), res = 144, height = 300, width = 650)
+
+f2brgb <- plot_data_ame_dyad %>%
+  subset(weight == "m") %>%
+  ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
+  ylim(-0.08,0.04) +
+  annotate("text", y = c(coeff_group1d + weighted_mean_ame_group2m_dyad,
+                         weighted_mean_ame_group2m_dyad,
+                         coeff_group3d + weighted_mean_ame_group2m_dyad), 
+           x = c(2.7,1.7,0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors_classic[1:3],
+           size = 3) +
+  geom_text(aes(y = mean, label = sprintf("%.3f", mean)),  
+            vjust = -1, color = colors_classic[1:3], size = 3) +
+  scale_color_manual(values = colors_classic) +
+  coord_flip() +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        title = element_blank(),
+        plot.margin = unit(c(0, 0.5, 0.5, 1), "cm"),
+        legend.position = "none")
+f2brgb
+
+#dev.off()
+
+#knitr::include_graphics(here("results", "Fig2C.png"))
 ```
 
 ## Fig2 densities
@@ -679,13 +764,13 @@ knitr::include_graphics(here("results", "Fig2C.png"))
 ```{r densA}
 densityA <- ggplot(df, aes(x = AME)) +
   stat_density(fill = "grey70", alpha = 0.7) +
-  labs(x = NULL, y = "Density", title = "A. Model-level results, N = 1,253") +  
+  labs(x = NULL, y = "Density", title = "A. Team-level results") +  
   geom_segment(x = coeff_group1 + weighted_mean_ame_group2m, xend = coeff_group1 + weighted_mean_ame_group2m,
-               y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors[1]) +
+               y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors_classic[1]) +
   geom_segment(x = coeff_group3 + weighted_mean_ame_group2m, xend = coeff_group3 + weighted_mean_ame_group2m,
-               y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors[3]) +
-  annotate("text", y = 30, x = coeff_group1 + weighted_mean_ame_group2m, label = paste(rank_coeff_group1,"th","\npercentile", sep = ""), hjust = 1, size = 2.5, color = colors[1]) +
-  annotate("text", y = 30, x = coeff_group3 + weighted_mean_ame_group2m, label = paste(rank_coeff_group3,"st","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors[3]) +
+               y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors_classic[3]) +
+  annotate("text", y = 30, x = coeff_group1 + weighted_mean_ame_group2m, label = paste(rank_coeff_group1,"th","\npercentile", sep = ""), hjust = 1, size = 2.5, color = colors_classic[1]) +
+  annotate("text", y = 30, x = coeff_group3 + weighted_mean_ame_group2m, label = paste(rank_coeff_group3,"st","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors_classic[3]) +
   xlim(-0.119,0.06) +
   theme_classic() +
   theme(
@@ -706,14 +791,14 @@ densityA
 ```{r densB}
 densityB <- ggplot(df_dyad, aes(x = AME)) +
   stat_density(fill = "grey70", alpha = 0.7) +
-  labs(x = NULL, y = "Density", title = "B. Researcher-model dyads, N = 2,680") +  
+  labs(x = NULL, y = "Density", title = "B. Researcher-model dyads results") +  
   xlim(-0.079,0.039) +
   geom_segment(x = coeff_group1d + weighted_mean_ame_group2m_dyad, xend = coeff_group1d + weighted_mean_ame_group2m_dyad,
-               y = 0, yend = 21, linetype = "dashed", size = 0.2, color = colors[1]) +
+               y = 0, yend = 21, linetype = "dashed", size = 0.2, color = colors_classic[1]) +
   geom_segment(x = coeff_group3d+weighted_mean_ame_group2m_dyad, xend = coeff_group3d+weighted_mean_ame_group2m_dyad,
-               y = 0, yend = 21, linetype = "dashed", size = 0.22, color = colors[3]) +
-  annotate("text", y = 36, x = coeff_group1d + weighted_mean_ame_group2m_dyad, label = paste(rank_coeff_group1d,"th","\npercentile", sep = ""), hjust = 1, size = 2.5, color = colors[1]) +
-  annotate("text", y = 36, x = coeff_group3d + weighted_mean_ame_group2m_dyad, label = paste(rank_coeff_group3d,"rd","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors[3]) +
+               y = 0, yend = 21, linetype = "dashed", size = 0.22, color = colors_classic[3]) +
+  annotate("text", y = 36, x = coeff_group1d + weighted_mean_ame_group2m_dyad, label = paste(rank_coeff_group1d,"th","\npercentile", sep = ""), hjust = 1, size = 2.5, color = colors_classic[1]) +
+  annotate("text", y = 36, x = coeff_group3d + weighted_mean_ame_group2m_dyad, label = paste(rank_coeff_group3d,"rd","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors_classic[3]) +
   theme_classic() +
   theme(
     axis.title = element_blank(),
@@ -733,7 +818,7 @@ densityB
 ```{r Fig2arrange}
 agg_png(here("results", "Fig2.png"), res = 144, height = 500, width = 1000)
 
-f2 <- ggarrange(densityA, densityB, f2a, f2b, nrow = 2, ncol = 2, heights = c(1, 2))
+f2 <- ggarrange(densityA, densityB, f2argb, f2brgb, nrow = 2, ncol = 2, heights = c(1, 2))
 
 f2
 
