@@ -1,6 +1,6 @@
 ---
 title: "Figure 4"
-output: html_notebook
+output: false
 ---
 
 ## Setup

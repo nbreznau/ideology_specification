@@ -1384,7 +1384,7 @@ null_pn_fit <- glm(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(mde
 null_pn_zero <- glm(formula=neg10s ~ 1,
              data = df,
              family = binomial(link = "logit"),
-             weights = nmodel_lp)
+             weights = fit_lp)
 
 ```
 
@@ -2008,7 +2008,11 @@ df_dyad <- df_dyad %>%
     
     # Rescale pweightp and pweighta to sum to 154
     pweightp = pweightp * (154 / sum(pweightp, na.rm = T)),
-    pweighta = pweighta * (154 / sum(pweighta, na.rm = T))
+    pweighta = pweighta * (154 / sum(pweighta, na.rm = T)),
+    
+    # fit statistic error correction
+    fit_p = pweightp * 10,
+    fit_a = pweighta * 10
   )
 
 log_1n <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
@@ -2016,30 +2020,60 @@ log_1n <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor
              family = binomial(link = "logit"),
              weights = pweightp)
 
+log_1n_fit <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_p)
+
 log_2n <- glm(formula=pos10s ~ indiv1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweightp)
+
+log_2n_fit <- glm(formula=pos10s ~ indiv1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_p)
 
 log_3n <- glm(formula=pos10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweightp)
 
+log_3n_fit <- glm(formula=pos10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_p)
+
 log_4n <- glm(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweightp)
+
+log_4n_fit <- glm(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_p)
 
 log_5n <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweightp)
 
+log_5n_fit <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_p)
+
 log_6n <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweightp)
+
+log_6n_fit <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_p)
 
 
 logp_1n <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
@@ -2047,50 +2081,100 @@ logp_1n <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + facto
              family = binomial(link = "logit"),
              weights = pweighta)
 
+logp_1n_fit <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_a)
+
 logp_2n <- glm(formula=pos10s ~ indiv1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweighta)
+
+logp_2n_fit <- glm(formula=pos10s ~ indiv1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_a)
 
 logp_3n <- glm(formula=pos10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweighta)
 
+logp_3n_fit <- glm(formula=pos10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_a)
+
 logp_4n <- glm(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweighta)
 
+logp_4n_fit <- glm(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_a)
+
 logp_5n <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
-             weights = pweightp)
+             weights = pweighta)
+
+logp_5n_fit <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_a)
 
 logp_6n <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweighta)
 
+logp_6n_fit <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_a)
+
 null_mn <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweightp)
+
+null_mn_fit <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_p)
 
 null_mn_zero <- glm(formula=pos10s ~ 1,
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweightp)
 
+null_mn_zero_fit <- glm(formula=pos10s ~ 1,
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_p)
+
 null_pn <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweighta)
 
+null_pn_fit <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_a)
+
 null_pn_zero <- glm(formula=pos10s ~ 1,
              data = df_dyad,
              family = binomial(link = "logit"),
              weights = pweighta)
+
+null_pn_zero_fit <- glm(formula=pos10s ~ 1,
+             data = df_dyad,
+             family = binomial(link = "logit"),
+             weights = fit_a)
 
 ```
 
@@ -2143,11 +2227,11 @@ Table_12[c(12,10,6,8),8] <- format(round(margins_log_6n$AME, 3), nsmall = 3)
 Table_12[c(13,11,7,9),8] <- sprintf("(%s)", format(round(margins_log_6n$SE, 3), nsmall = 3))
 
 
-Table_12[16,2:8] <- format(round( as.numeric(c((1-(logLik(null_mn)/logLik(null_mn_zero))), (1-(logLik(log_1n)/logLik(null_mn_zero))), (1-(logLik(log_2n)/logLik(null_mn_zero))), (1-(logLik(log_3n)/logLik(null_mn_zero))), (1-(logLik(log_4n)/logLik(null_mn_zero))), (1-(logLik(log_5n)/logLik(null_mn_zero))), (1-(logLik(log_6n))/logLik(null_mn_zero)))),3), nsmall = 3)
+Table_12[16,2:8] <- format(round( as.numeric(c((1-(logLik(null_mn_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_1n_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_2n_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_3n_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_4n_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_5n_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_6n_fit))/logLik(null_mn_zero_fit)))),3), nsmall = 3)
 
-Table_12[14,2:8] <- round(c(logLik((null_mn)), logLik(log_1n), logLik(log_2n), logLik(log_3n), logLik(log_4n), logLik(log_5n), logLik(log_6n)),2)
+Table_12[14,2:8] <- round(c(logLik((null_mn_fit)), logLik(log_1n_fit), logLik(log_2n_fit), logLik(log_3n_fit), logLik(log_4n_fit), logLik(log_5n_fit), logLik(log_6n_fit)),2)
 
-Table_12[15,2:8] <- round(c(AIC((null_mn)), AIC(log_1n), AIC(log_2n), AIC(log_3n), AIC(log_4n), AIC(log_5n), AIC(log_6n)),2)
+Table_12[15,2:8] <- round(c(AIC((null_mn_fit)), AIC(log_1n_fit), AIC(log_2n_fit), AIC(log_3n_fit), AIC(log_4n_fit), AIC(log_5n_fit), AIC(log_6n_fit)),2)
 
 
 #p_ models
@@ -2190,11 +2274,11 @@ Table_12[c(29,27,23,25),8] <- sprintf("(%s)", format(round(margins_logp_6n$SE, 3
 
 
 
-Table_12[32,2:8] <- format(round( as.numeric(c((1-(logLik(null_pn)/logLik(null_pn_zero))), (1-(logLik(logp_1n)/logLik(null_pn_zero))), (1-(logLik(logp_2n)/logLik(null_pn_zero))), (1-(logLik(logp_3n)/logLik(null_pn_zero))), (1-(logLik(logp_4n)/logLik(null_pn_zero))), (1-(logLik(logp_5n)/logLik(null_pn_zero))), (1-(logLik(logp_6n))/logLik(null_pn_zero)))),3), nsmall = 3)
+Table_12[32,2:8] <- format(round( as.numeric(c((1-(logLik(null_pn_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_1n_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_2n_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_3n_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_4n_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_5n_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_6n_fit))/logLik(null_pn_zero_fit)))),3), nsmall = 3)
 
-Table_12[30,2:8] <- round(c(logLik((null_pn)), logLik(logp_1n), logLik(logp_2n), logLik(logp_3n), logLik(logp_4n), logLik(logp_5n), logLik(logp_6n)),2)
+Table_12[30,2:8] <- round(c(logLik((null_pn_fit)), logLik(logp_1n_fit), logLik(logp_2n_fit), logLik(logp_3n_fit), logLik(logp_4n_fit), logLik(logp_5n_fit), logLik(logp_6n_fit)),2)
 
-Table_12[31,2:8] <- round(c(AIC((null_pn)), AIC(logp_1n), AIC(logp_2n), AIC(logp_3n), AIC(logp_4n), AIC(logp_5n), AIC(logp_6n)),2)
+Table_12[31,2:8] <- round(c(AIC((null_pn_fit)), AIC(logp_1n_fit), AIC(logp_2n_fit), AIC(logp_3n_fit), AIC(logp_4n_fit), AIC(logp_5n_fit), AIC(logp_6n_fit)),2)
 
 ############ Add stars from table
 
@@ -2318,14 +2402,26 @@ m_mame <- lm.cluster(formula=resid ~ group1 + group3 + stats_brw + topic_brw + t
 coef_group1 <- m_3$lm_res$coefficients["group1"]
 coef_group3 <- m_3$lm_res$coefficients["group3"]
 
+# for table 2 test
+coef_group1p <- p_3$lm_res$coefficients["group1"]
+coef_group3p <- p_3$lm_res$coefficients["group3"]
+
 se_group1 <- as.numeric(summary(m_3)[2,2])
 se_group3 <- as.numeric(summary(m_3)[3,2])
+se_group1p <- as.numeric(summary(p_3)[2,2])
+se_group3p <- as.numeric(summary(p_3)[3,2])
 
 coef_diff <- coef_group1 - coef_group3
 se_diff <- sqrt(se_group1^2 + se_group3^2)
 
+coef_diffp <- coef_group1p - coef_group3p
+se_diffp <- sqrt(se_group1p^2 + se_group3p^2)
+
 z_score <- coef_diff / se_diff
-p_value <- 2 * (1 - pnorm(abs(z_score)))  
+p_value <- 2 * (1 - pnorm(abs(z_score))) 
+
+z_scorep <- coef_diffp / se_diffp
+p_valuep <- 2 * (1 - pnorm(abs(z_scorep))) 
 
 coef_group1m <- m_mame$lm_res$coefficients["group1"]
 coef_group3m <- m_mame$lm_res$coefficients["group3"]
@@ -2361,7 +2457,7 @@ Table_14[4,4] <- format(round((coef_diffm/coef_diff)*100,1), nsmall = 1)
 Table_14[is.na(Table_14)] <- ""
 
 
-write_csv(Table_14, "results", "TableS14.csv")
+write_csv(Table_14, here("results", "TableS14.csv"))
 
 
 ```
