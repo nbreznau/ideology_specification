@@ -31,7 +31,8 @@ packages <- c("tidyverse",
               #"clubSandwich",
               "lmtest",
               "haven",
-              "margins"
+              "margins",
+              "survey"
               #"car"
               #"numDeriv",
               #"pscl",
@@ -117,6 +118,7 @@ add_asterisk_if_significant_by_row <- function(table, coef_rows, significance_le
   }
   return(table)
 }
+
  
 
 ```
@@ -739,7 +741,7 @@ kable(Table_4, col.names = c("","","",""))
 
 
 
-## Table 5. Neg Extreme. Model-level
+## Table 5. Neg Extreme. Team-Model-level
 
 
 ### Build Models
@@ -861,9 +863,125 @@ kable(Table_5, col.names = c("","","","","","","",""))
 
 
 ```
+## Table 6. Pos extreme. Team-Model-level
+
+### Build Models
+
+```{r t7}
+
+m_1p <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_2p <- lm.cluster(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_3p <- lm.cluster(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_4p <- lm.cluster(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_5p <- lm.cluster(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_6p <- lm.cluster(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
 
-## Table 6. Neg extreme. Individual-model dyads
+p_1p <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_2p <- lm.cluster(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_3p <- lm.cluster(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_4p <- lm.cluster(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_5p <- lm.cluster(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+p_6p <- lm.cluster(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+null_mp <- lm.cluster(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+null_pp <- lm.cluster(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+# re-run as lm's to get fit stats
+source(here("code", "Sub", "t6_fit.R"))
+
+```
+
+
+### Build Table
+
+```{r t7b}
+
+Table_6 <- as.data.frame(matrix(nrow = 32, ncol = 8))
+
+Table_6[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
+
+Table_6[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
+
+#m_ models
+Table_6[c(6,8),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_mp$lm_res$coefficients[i], summary(null_mp)[i, 2]))
+Table_6[c(7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_mp)[2:3, 2]), 3), nsmall = 3))
+
+Table_6[c(2,6,8),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_1p$lm_res$coefficients[i], summary(m_1p)[i, 2]))
+Table_6[c(3,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(m_1p)[2:4, 2]), 3), nsmall = 3))
+
+Table_6[c(2,10,6,8),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_2p$lm_res$coefficients[i], summary(m_2p)[i, 2]))
+Table_6[c(3,11,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(m_2p)[2:5, 2]), 3), nsmall = 3))
+
+Table_6[c(2,4,6,8),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_3p$lm_res$coefficients[i], summary(m_3p)[i, 2]))
+Table_6[c(3,5,7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(m_3p)[2:5, 2]), 3), nsmall = 3))
+
+Table_6[c(2,4,6,8,10),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(m_4p$lm_res$coefficients[i], summary(m_4p)[i, 2]))
+Table_6[c(3,5,7,9,11),6] <- sprintf("(%s)", format(round(as.numeric(summary(m_4p)[c(2,3,5,6,4), 2]), 3), nsmall = 3))
+
+Table_6[c(12,6,8),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_5p$lm_res$coefficients[i], summary(m_5p)[i, 2]))
+Table_6[c(13,7,9),7] <- sprintf("(%s)", format(round(as.numeric(summary(m_5p)[2:4, 2]), 3), nsmall = 3))
+
+Table_6[c(12,10,6,8),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_6p$lm_res$coefficients[i], summary(m_6p)[i, 2]))
+Table_6[c(13,11,7,9),8] <- sprintf("(%s)", format(round(as.numeric(summary(m_6p)[2:5, 2]), 3), nsmall = 3))
+
+
+
+Table_6[16,2:8] <- c(r2ext(null_mp), r2ext(m_1p), r2ext(m_2p), r2ext(m_3p), r2ext(m_4p), r2ext(m_5p), r2ext(m_6p))
+
+Table_6[14,2:8] <- round(c(logLik((null_mlp)), logLik(m_1lp), logLik(m_2lp), logLik(m_3lp), logLik(m_4lp), logLik(m_5lp), logLik(m_6lp)),2)
+
+Table_6[15,2:8] <- round(c(AIC((null_mlp)), AIC(m_1lp), AIC(m_2lp), AIC(m_3lp), AIC(m_4lp), AIC(m_5lp), AIC(m_6lp)),2)
+
+#p_ models
+Table_6[c(22,24),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_pp$lm_res$coefficients[i], summary(null_pp)[i, 2]))
+Table_6[c(23,25),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_pp)[2:3, 2]), 3), nsmall = 3))
+
+Table_6[c(18,22,24),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_1p$lm_res$coefficients[i], summary(p_1p)[i, 2]))
+Table_6[c(19,23,25),3] <- sprintf("(%s)", format(round(as.numeric(summary(p_1p)[2:4, 2]), 3), nsmall = 3))
+
+Table_6[c(18,26,22,24),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_2p$lm_res$coefficients[i], summary(p_2p)[i, 2]))
+Table_6[c(19,27,23,25),4] <- sprintf("(%s)", format(round(as.numeric(summary(p_2p)[2:5, 2]), 3), nsmall = 3))
+
+Table_6[c(18,20,22,24),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_3p$lm_res$coefficients[i], summary(p_3p)[i, 2]))
+Table_6[c(19,21,23,25),5] <- sprintf("(%s)", format(round(as.numeric(summary(p_3p)[2:5, 2]), 3), nsmall = 3))
+
+Table_6[c(18,20,22,24,26),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(p_4p$lm_res$coefficients[i], summary(p_4p)[i, 2]))
+Table_6[c(19,21,23,25,27),6] <- sprintf("(%s)", format(round(as.numeric(summary(p_4p)[c(2,3,5,6,4), 2]), 3), nsmall = 3))
+
+Table_6[c(28,22,24),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_5p$lm_res$coefficients[i], summary(p_5p)[i, 2]))
+Table_6[c(29,23,25),7] <- sprintf("(%s)", format(round(as.numeric(summary(p_5p)[2:4, 2]), 3), nsmall = 3))
+
+Table_6[c(28,26,22,24),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_6p$lm_res$coefficients[i], summary(p_6p)[i, 2]))
+Table_6[c(29,27,23,25),8] <- sprintf("(%s)", format(round(as.numeric(summary(p_6p)[2:5, 2]), 3), nsmall = 3))
+
+Table_6[32,2:8] <- c(r2ext(null_pp), r2ext(p_1p), r2ext(p_2p), r2ext(p_3p), r2ext(p_4p), r2ext(p_5p), r2ext(p_6p))
+
+Table_6[30,2:8] <- round(c(logLik((null_plp)), logLik(p_1lp), logLik(p_2lp), logLik(p_3lp), logLik(p_4lp), logLik(p_5lp), logLik(p_6lp)),2)
+
+Table_6[31,2:8] <- round(c(AIC((null_plp)), AIC(p_1lp), AIC(p_2lp), AIC(p_3lp), AIC(p_4lp), AIC(p_5lp), AIC(p_6lp)),2)
+
+Table_6[is.na(Table_6)] <- ""
+
+write.csv(Table_6, here::here("results", "TableS6.csv"), row.names = F)
+
+kable(Table_6, col.names = c("","","","","","","",""))
+
+
+```
+
+## Table 7. Neg extreme. Individual-model dyads
 
 Individual level models
 
@@ -911,124 +1029,6 @@ source(here("code", "Sub", "t5_fit.R"))
 
 ```{r t6b}
 
-Table_6 <- as.data.frame(matrix(nrow = 32, ncol = 8))
-
-Table_6[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
-
-Table_6[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
-
-#m_ models
-Table_6[c(6,8),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_mdn$lm_res$coefficients[i], summary(null_mdn)[i, 2]))
-Table_6[c(7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_mdn)[2:3, 2]), 3), nsmall = 3))
-
-Table_6[c(4,6,8),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_1dn$lm_res$coefficients[i], summary(m_1dn)[i, 2]))
-Table_6[c(5,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(m_1dn)[2:4, 2]), 3), nsmall = 3))
-
-Table_6[c(4,10,6,8),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_2dn$lm_res$coefficients[i], summary(m_2dn)[i, 2]))
-Table_6[c(5,11,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(m_2dn)[2:5, 2]), 3), nsmall = 3))
-
-Table_6[c(2,4,6,8),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_3dn$lm_res$coefficients[i], summary(m_3dn)[i, 2]))
-Table_6[c(3,5,7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(m_3dn)[2:5, 2]), 3), nsmall = 3))
-
-Table_6[c(2,4,6,8,10),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(m_4dn$lm_res$coefficients[i], summary(m_4dn)[i, 2]))
-Table_6[c(3,5,7,9,11),6] <- sprintf("(%s)", format(round(as.numeric(summary(m_4dn)[c(2,3,5,6,4), 2]), 3), nsmall = 3))
-
-Table_6[c(12,6,8),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_5dn$lm_res$coefficients[i], summary(m_5dn)[i, 2]))
-Table_6[c(13,7,9),7] <- sprintf("(%s)", format(round(as.numeric(summary(m_5dn)[2:4, 2]), 3), nsmall = 3))
-
-Table_6[c(12,10,6,8),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_6dn$lm_res$coefficients[i], summary(m_6dn)[i, 2]))
-Table_6[c(13,11,7,9),8] <- sprintf("(%s)", format(round(as.numeric(summary(m_6dn)[2:5, 2]), 3), nsmall = 3))
-
-
-Table_6[16,2:8] <- c(r2ext(null_mdn), r2ext(m_1dn), r2ext(m_2dn), r2ext(m_3dn), r2ext(m_4dn), r2ext(m_5dn), r2ext(m_6dn))
-
-Table_6[14,2:8] <- round(c(logLik((null_mldn)), logLik(m_1ldn), logLik(m_2ldn), logLik(m_3ldn), logLik(m_4ldn), logLik(m_5ldn), logLik(m_6ldn)),2)
-
-Table_6[15,2:8] <- round(c(AIC((null_mldn)), AIC(m_1ldn), AIC(m_2ldn), AIC(m_3ldn), AIC(m_4ldn), AIC(m_5ldn), AIC(m_6ldn)),2)
-
-#p_ models
-Table_6[c(22,24),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_pdn$lm_res$coefficients[i], summary(null_pdn)[i, 2]))
-Table_6[c(23,25),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_pdn)[2:3, 2]), 3), nsmall = 3))
-
-Table_6[c(20,22,24),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_1dn$lm_res$coefficients[i], summary(p_1dn)[i, 2]))
-Table_6[c(21,23,25),3] <- sprintf("(%s)", format(round(as.numeric(summary(p_1dn)[2:4, 2]), 3), nsmall = 3))
-
-Table_6[c(20,26,22,24),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_2dn$lm_res$coefficients[i], summary(p_2dn)[i, 2]))
-Table_6[c(21,27,23,25),4] <- sprintf("(%s)", format(round(as.numeric(summary(p_2dn)[2:5, 2]), 3), nsmall = 3))
-
-Table_6[c(18,20,22,24),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_3dn$lm_res$coefficients[i], summary(p_3dn)[i, 2]))
-Table_6[c(19,21,23,25),5] <- sprintf("(%s)", format(round(as.numeric(summary(p_3dn)[2:5, 2]), 3), nsmall = 3))
-
-Table_6[c(18,20,22,24,26),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(p_4dn$lm_res$coefficients[i], summary(p_4dn)[i, 2]))
-Table_6[c(19,21,23,25,27),6] <- sprintf("(%s)", format(round(as.numeric(summary(p_4dn)[c(2,3,5,6,4), 2]), 3), nsmall = 3))
-
-Table_6[c(28,22,24),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_5dn$lm_res$coefficients[i], summary(p_5dn)[i, 2]))
-Table_6[c(29,23,25),7] <- sprintf("(%s)", format(round(as.numeric(summary(p_5dn)[2:4, 2]), 3), nsmall = 3))
-
-Table_6[c(28,26,22,24),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_6dn$lm_res$coefficients[i], summary(p_6dn)[i, 2]))
-Table_6[c(29,27,23,25),8] <- sprintf("(%s)", format(round(as.numeric(summary(p_6dn)[2:5, 2]), 3), nsmall = 3))
-
-Table_6[32,2:8] <- c(r2ext(null_pdn), r2ext(p_1dn), r2ext(p_2dn), r2ext(p_3dn), r2ext(p_4dn), r2ext(p_5dn), r2ext(p_6dn))
-
-Table_6[30,2:8] <- round(c(logLik((null_pldn)), logLik(p_1ldn), logLik(p_2ldn), logLik(p_3ldn), logLik(p_4ldn), logLik(p_5ldn), logLik(p_6ldn)),2)
-
-Table_6[31,2:8] <- round(c(AIC((null_pldn)), AIC(p_1ldn), AIC(p_2ldn), AIC(p_3ldn), AIC(p_4ldn), AIC(p_5ldn), AIC(p_6ldn)),2)
-
-Table_6[is.na(Table_6)] <- ""
-
-write.csv(Table_6, here::here("results", "TableS6.csv"), row.names = F)
-
-kable(Table_6, col.names = c("","","","","","","",""))
-
-
-```
-
-
-## Table 7. Pos extreme. Model-level
-
-### Build Models
-
-```{r t7}
-
-m_1p <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
-
-m_2p <- lm.cluster(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
-
-m_3p <- lm.cluster(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
-
-m_4p <- lm.cluster(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
-
-m_5p <- lm.cluster(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
-
-m_6p <- lm.cluster(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
-
-
-p_1p <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
-
-p_2p <- lm.cluster(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
-
-p_3p <- lm.cluster(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
-
-p_4p <- lm.cluster(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
-
-p_5p <- lm.cluster(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
-
-p_6p <- lm.cluster(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
-
-null_mp <- lm.cluster(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
-
-null_pp <- lm.cluster(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
-
-# re-run as lm's to get fit stats
-source(here("code", "Sub", "t6_fit.R"))
-
-```
-
-
-### Build Table
-
-```{r t7b}
-
 Table_7 <- as.data.frame(matrix(nrow = 32, ncol = 8))
 
 Table_7[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
@@ -1036,62 +1036,61 @@ Table_7[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team"
 Table_7[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
 
 #m_ models
-Table_7[c(6,8),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_mp$lm_res$coefficients[i], summary(null_mp)[i, 2]))
-Table_7[c(7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_mp)[2:3, 2]), 3), nsmall = 3))
+Table_7[c(6,8),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_mdn$lm_res$coefficients[i], summary(null_mdn)[i, 2]))
+Table_7[c(7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_mdn)[2:3, 2]), 3), nsmall = 3))
 
-Table_7[c(2,6,8),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_1p$lm_res$coefficients[i], summary(m_1p)[i, 2]))
-Table_7[c(3,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(m_1p)[2:4, 2]), 3), nsmall = 3))
+Table_7[c(4,6,8),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_1dn$lm_res$coefficients[i], summary(m_1dn)[i, 2]))
+Table_7[c(5,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(m_1dn)[2:4, 2]), 3), nsmall = 3))
 
-Table_7[c(2,10,6,8),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_2p$lm_res$coefficients[i], summary(m_2p)[i, 2]))
-Table_7[c(3,11,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(m_2p)[2:5, 2]), 3), nsmall = 3))
+Table_7[c(4,10,6,8),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_2dn$lm_res$coefficients[i], summary(m_2dn)[i, 2]))
+Table_7[c(5,11,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(m_2dn)[2:5, 2]), 3), nsmall = 3))
 
-Table_7[c(2,4,6,8),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_3p$lm_res$coefficients[i], summary(m_3p)[i, 2]))
-Table_7[c(3,5,7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(m_3p)[2:5, 2]), 3), nsmall = 3))
+Table_7[c(2,4,6,8),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_3dn$lm_res$coefficients[i], summary(m_3dn)[i, 2]))
+Table_7[c(3,5,7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(m_3dn)[2:5, 2]), 3), nsmall = 3))
 
-Table_7[c(2,4,6,8,10),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(m_4p$lm_res$coefficients[i], summary(m_4p)[i, 2]))
-Table_7[c(3,5,7,9,11),6] <- sprintf("(%s)", format(round(as.numeric(summary(m_4p)[c(2,3,5,6,4), 2]), 3), nsmall = 3))
+Table_7[c(2,4,6,8,10),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(m_4dn$lm_res$coefficients[i], summary(m_4dn)[i, 2]))
+Table_7[c(3,5,7,9,11),6] <- sprintf("(%s)", format(round(as.numeric(summary(m_4dn)[c(2,3,5,6,4), 2]), 3), nsmall = 3))
 
-Table_7[c(12,6,8),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_5p$lm_res$coefficients[i], summary(m_5p)[i, 2]))
-Table_7[c(13,7,9),7] <- sprintf("(%s)", format(round(as.numeric(summary(m_5p)[2:4, 2]), 3), nsmall = 3))
+Table_7[c(12,6,8),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_5dn$lm_res$coefficients[i], summary(m_5dn)[i, 2]))
+Table_7[c(13,7,9),7] <- sprintf("(%s)", format(round(as.numeric(summary(m_5dn)[2:4, 2]), 3), nsmall = 3))
 
-Table_7[c(12,10,6,8),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_6p$lm_res$coefficients[i], summary(m_6p)[i, 2]))
-Table_7[c(13,11,7,9),8] <- sprintf("(%s)", format(round(as.numeric(summary(m_6p)[2:5, 2]), 3), nsmall = 3))
+Table_7[c(12,10,6,8),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_6dn$lm_res$coefficients[i], summary(m_6dn)[i, 2]))
+Table_7[c(13,11,7,9),8] <- sprintf("(%s)", format(round(as.numeric(summary(m_6dn)[2:5, 2]), 3), nsmall = 3))
 
 
+Table_7[16,2:8] <- c(r2ext(null_mdn), r2ext(m_1dn), r2ext(m_2dn), r2ext(m_3dn), r2ext(m_4dn), r2ext(m_5dn), r2ext(m_6dn))
 
-Table_7[16,2:8] <- c(r2ext(null_mp), r2ext(m_1p), r2ext(m_2p), r2ext(m_3p), r2ext(m_4p), r2ext(m_5p), r2ext(m_6p))
+Table_7[14,2:8] <- round(c(logLik((null_mldn)), logLik(m_1ldn), logLik(m_2ldn), logLik(m_3ldn), logLik(m_4ldn), logLik(m_5ldn), logLik(m_6ldn)),2)
 
-Table_7[14,2:8] <- round(c(logLik((null_mlp)), logLik(m_1lp), logLik(m_2lp), logLik(m_3lp), logLik(m_4lp), logLik(m_5lp), logLik(m_6lp)),2)
-
-Table_7[15,2:8] <- round(c(AIC((null_mlp)), AIC(m_1lp), AIC(m_2lp), AIC(m_3lp), AIC(m_4lp), AIC(m_5lp), AIC(m_6lp)),2)
+Table_7[15,2:8] <- round(c(AIC((null_mldn)), AIC(m_1ldn), AIC(m_2ldn), AIC(m_3ldn), AIC(m_4ldn), AIC(m_5ldn), AIC(m_6ldn)),2)
 
 #p_ models
-Table_7[c(22,24),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_pp$lm_res$coefficients[i], summary(null_pp)[i, 2]))
-Table_7[c(23,25),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_pp)[2:3, 2]), 3), nsmall = 3))
+Table_7[c(22,24),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_pdn$lm_res$coefficients[i], summary(null_pdn)[i, 2]))
+Table_7[c(23,25),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_pdn)[2:3, 2]), 3), nsmall = 3))
 
-Table_7[c(18,22,24),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_1p$lm_res$coefficients[i], summary(p_1p)[i, 2]))
-Table_7[c(19,23,25),3] <- sprintf("(%s)", format(round(as.numeric(summary(p_1p)[2:4, 2]), 3), nsmall = 3))
+Table_7[c(20,22,24),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_1dn$lm_res$coefficients[i], summary(p_1dn)[i, 2]))
+Table_7[c(21,23,25),3] <- sprintf("(%s)", format(round(as.numeric(summary(p_1dn)[2:4, 2]), 3), nsmall = 3))
 
-Table_7[c(18,26,22,24),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_2p$lm_res$coefficients[i], summary(p_2p)[i, 2]))
-Table_7[c(19,27,23,25),4] <- sprintf("(%s)", format(round(as.numeric(summary(p_2p)[2:5, 2]), 3), nsmall = 3))
+Table_7[c(20,26,22,24),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_2dn$lm_res$coefficients[i], summary(p_2dn)[i, 2]))
+Table_7[c(21,27,23,25),4] <- sprintf("(%s)", format(round(as.numeric(summary(p_2dn)[2:5, 2]), 3), nsmall = 3))
 
-Table_7[c(18,20,22,24),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_3p$lm_res$coefficients[i], summary(p_3p)[i, 2]))
-Table_7[c(19,21,23,25),5] <- sprintf("(%s)", format(round(as.numeric(summary(p_3p)[2:5, 2]), 3), nsmall = 3))
+Table_7[c(18,20,22,24),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_3dn$lm_res$coefficients[i], summary(p_3dn)[i, 2]))
+Table_7[c(19,21,23,25),5] <- sprintf("(%s)", format(round(as.numeric(summary(p_3dn)[2:5, 2]), 3), nsmall = 3))
 
-Table_7[c(18,20,22,24,26),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(p_4p$lm_res$coefficients[i], summary(p_4p)[i, 2]))
-Table_7[c(19,21,23,25,27),6] <- sprintf("(%s)", format(round(as.numeric(summary(p_4p)[c(2,3,5,6,4), 2]), 3), nsmall = 3))
+Table_7[c(18,20,22,24,26),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(p_4dn$lm_res$coefficients[i], summary(p_4dn)[i, 2]))
+Table_7[c(19,21,23,25,27),6] <- sprintf("(%s)", format(round(as.numeric(summary(p_4dn)[c(2,3,5,6,4), 2]), 3), nsmall = 3))
 
-Table_7[c(28,22,24),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_5p$lm_res$coefficients[i], summary(p_5p)[i, 2]))
-Table_7[c(29,23,25),7] <- sprintf("(%s)", format(round(as.numeric(summary(p_5p)[2:4, 2]), 3), nsmall = 3))
+Table_7[c(28,22,24),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_5dn$lm_res$coefficients[i], summary(p_5dn)[i, 2]))
+Table_7[c(29,23,25),7] <- sprintf("(%s)", format(round(as.numeric(summary(p_5dn)[2:4, 2]), 3), nsmall = 3))
 
-Table_7[c(28,26,22,24),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_6p$lm_res$coefficients[i], summary(p_6p)[i, 2]))
-Table_7[c(29,27,23,25),8] <- sprintf("(%s)", format(round(as.numeric(summary(p_6p)[2:5, 2]), 3), nsmall = 3))
+Table_7[c(28,26,22,24),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_6dn$lm_res$coefficients[i], summary(p_6dn)[i, 2]))
+Table_7[c(29,27,23,25),8] <- sprintf("(%s)", format(round(as.numeric(summary(p_6dn)[2:5, 2]), 3), nsmall = 3))
 
-Table_7[32,2:8] <- c(r2ext(null_pp), r2ext(p_1p), r2ext(p_2p), r2ext(p_3p), r2ext(p_4p), r2ext(p_5p), r2ext(p_6p))
+Table_7[32,2:8] <- c(r2ext(null_pdn), r2ext(p_1dn), r2ext(p_2dn), r2ext(p_3dn), r2ext(p_4dn), r2ext(p_5dn), r2ext(p_6dn))
 
-Table_7[30,2:8] <- round(c(logLik((null_plp)), logLik(p_1lp), logLik(p_2lp), logLik(p_3lp), logLik(p_4lp), logLik(p_5lp), logLik(p_6lp)),2)
+Table_7[30,2:8] <- round(c(logLik((null_pldn)), logLik(p_1ldn), logLik(p_2ldn), logLik(p_3ldn), logLik(p_4ldn), logLik(p_5ldn), logLik(p_6ldn)),2)
 
-Table_7[31,2:8] <- round(c(AIC((null_plp)), AIC(p_1lp), AIC(p_2lp), AIC(p_3lp), AIC(p_4lp), AIC(p_5lp), AIC(p_6lp)),2)
+Table_7[31,2:8] <- round(c(AIC((null_pldn)), AIC(p_1ldn), AIC(p_2ldn), AIC(p_3ldn), AIC(p_4ldn), AIC(p_5ldn), AIC(p_6ldn)),2)
 
 Table_7[is.na(Table_7)] <- ""
 
@@ -1101,6 +1100,9 @@ kable(Table_7, col.names = c("","","","","","","",""))
 
 
 ```
+
+
+
 
 
 ## Table 8. Pos extreme. Individual-model dyads
@@ -1222,169 +1224,13 @@ kable(Table_8, col.names = c("","","","","","","",""))
 
 ## Table 9. Neg Logit
 
-It does not seem to be possible to both weight and cluster using glm binomial. So the cluster has to be done after.
+Stata has a better routine for logit with weights, cluster and margins
 
 ### Build Models
 
 ```{r t9, warning = F}
 
-df$nmodel_l <- 1/df$nmodel
-df$nmodel_lp <- df$nmodel_l*df$pscore_1
 
-# fit statistics weights adjusted upwards to avoid biased fit statistics
-df$fit_l <- 100*(1/df$nmodel)
-df$fit_lp <- 100*(df$nmodel_l*df$pscore_1)
-
-log_1n <- glm(formula=neg10s ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_1n_fit <- glm(formula=neg10s ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-log_2n <- glm(formula=neg10s ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_2n_fit <- glm(formula=neg10s ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-log_3n <- glm(formula=neg10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_3n_fit <- glm(formula=neg10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-log_4n <- glm(formula=neg10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_4n_fit <- glm(formula=neg10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-log_5n <- glm(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_5n_fit <- glm(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-log_6n <- glm(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_6n_fit <- glm(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-
-logp_1n <- glm(formula=neg10s ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_1n_fit <- glm(formula=neg10s ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-logp_2n <- glm(formula=neg10s ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_2n_fit <- glm(formula=neg10s ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-logp_3n <- glm(formula=neg10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_3n_fit <- glm(formula=neg10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-logp_4n <- glm(formula=neg10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_4n_fit <- glm(formula=neg10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-logp_5n <- glm(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_5n_fit <- glm(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-logp_6n <- glm(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_6n_fit <- glm(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-null_mn <- glm(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-null_mn_fit <- glm(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-null_mn_zero <- glm(formula=neg10s ~ 1,
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-null_pn <- glm(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-null_pn_fit <- glm(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-null_pn_zero <- glm(formula=neg10s ~ 1,
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
 
 ```
 
@@ -1395,210 +1241,16 @@ Note that logistic models need to have the standard errors adjusted post hoc
 
 ```{r t9b}
 
-Table_9 <- as.data.frame(matrix(nrow = 32, ncol = 8))
-
-Table_9[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
-
-Table_9[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
-
-#m_ models
-margins_null_mn <- summary(margins(null_mn, vcov = vcovCL(null_mn, cluster = ~ df$u_teamid), variables = c("stats_brw", "topic_brw")))
-Table_9[c(6,8),2] <- format(round(margins_null_mn$AME, 3), nsmall = 3)
-Table_9[c(7,9),2] <- sprintf("(%s)", format(round(margins_null_mn$SE, 3), nsmall = 3))
-
-# For log_1n model
-margins_log_1n <- summary(margins(log_1n, vcov = vcovCL(log_1n, cluster = ~ df$u_teamid), variables = c("group3", "stats_brw", "topic_brw")))
-Table_9[c(4,6,8),3] <- format(round(margins_log_1n$AME, 3), nsmall = 3)
-Table_9[c(5,7,9),3] <- sprintf("(%s)", format(round(margins_log_1n$SE, 3), nsmall = 3))
-
-# For log_2n model
-margins_log_2n <- summary(margins(log_2n, vcov = vcovCL(log_2n, cluster = ~ df$u_teamid), variables = c("group3", "pbelief", "stats_brw", "topic_brw")))
-Table_9[c(4,10,6,8),4] <- format(round(margins_log_2n$AME, 3), nsmall = 3)
-Table_9[c(5,11,7,9),4] <- sprintf("(%s)", format(round(margins_log_2n$SE, 3), nsmall = 3))
-
-# For log_3n model
-margins_log_3n <- summary(margins(log_3n, vcov = vcovCL(log_3n, cluster = ~ df$u_teamid), variables = c("group1", "group3", "stats_brw", "topic_brw")))
-Table_9[c(2,4,6,8),5] <- format(round(margins_log_3n$AME, 3), nsmall = 3)
-Table_9[c(3,5,7,9),5] <- sprintf("(%s)", format(round(margins_log_3n$SE, 3), nsmall = 3))
-
-# For log_4n model
-margins_log_4n <- summary(margins(log_4n, vcov = vcovCL(log_4n, cluster = ~ df$u_teamid), variables = c("group1", "group3", "pbelief", "stats_brw", "topic_brw")))
-Table_9[c(2,4,10,6,8),6] <- format(round(margins_log_4n$AME, 3), nsmall = 3)
-Table_9[c(3,5,11,7,9),6] <- sprintf("(%s)", format(round(margins_log_4n$SE, 3), nsmall = 3))
-
-# For log_5n model
-margins_log_5n <- summary(margins(log_5n, vcov = vcovCL(log_5n, cluster = ~ df$u_teamid), variables = c("proindex", "stats_brw", "topic_brw")))
-Table_9[c(12,6,8),7] <- format(round(margins_log_5n$AME, 3), nsmall = 3)
-Table_9[c(13,7,9),7] <- sprintf("(%s)", format(round(margins_log_5n$SE, 3), nsmall = 3))
-
-# For log_6n model
-margins_log_6n <- summary(margins(log_6n, vcov = vcovCL(log_6n, cluster = ~ df$u_teamid), variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))
-Table_9[c(12,10,6,8),8] <- format(round(margins_log_6n$AME, 3), nsmall = 3)
-Table_9[c(13,11,7,9),8] <- sprintf("(%s)", format(round(margins_log_6n$SE, 3), nsmall = 3))
-
-
-
-Table_9[16,2:8] <- format(round( as.numeric(c((1-(logLik(null_mn_fit)/logLik(null_mn_zero))), (1-(logLik(log_1n_fit)/logLik(null_mn_zero))), (1-(logLik(log_2n_fit)/logLik(null_mn_zero))), (1-(logLik(log_3n_fit)/logLik(null_mn_zero))), (1-(logLik(log_4n_fit)/logLik(null_mn_zero))), (1-(logLik(log_5n_fit)/logLik(null_mn_zero))), (1-(logLik(log_6n_fit))/logLik(null_mn_zero)))),3), nsmall = 3)
-
-Table_9[14,2:8] <- round(c(logLik((null_mn_fit)), logLik(log_1n_fit), logLik(log_2n_fit), logLik(log_3n_fit), logLik(log_4n_fit), logLik(log_5n_fit), logLik(log_6n_fit)),2)
-
-Table_9[15,2:8] <- round(c(AIC((null_mn_fit)), AIC(log_1n_fit), AIC(log_2n_fit), AIC(log_3n_fit), AIC(log_4n_fit), AIC(log_5n_fit), AIC(log_6n_fit)),2)
-
-
-#p_ models
-# For null_pn model
-margins_null_pn <- summary(margins(null_pn, vcov = vcovCL(null_pn, cluster = ~ df$u_teamid), variables = c("stats_brw", "topic_brw")))
-Table_9[c(22,24),2] <- format(round(margins_null_pn$AME, 3), nsmall = 3)
-Table_9[c(23,25),2] <- sprintf("(%s)", format(round(margins_null_pn$SE, 3), nsmall = 3))
-
-# For logp_1n model
-margins_logp_1n <- summary(margins(logp_1n, vcov = vcovCL(logp_1n, cluster = ~ df$u_teamid), variables = c("group3", "stats_brw", "topic_brw")))
-Table_9[c(20,22,24),3] <- format(round(margins_logp_1n$AME, 3), nsmall = 3)
-Table_9[c(21,23,25),3] <- sprintf("(%s)", format(round(margins_logp_1n$SE, 3), nsmall = 3))
-
-# For logp_2n model
-margins_logp_2n <- summary(margins(logp_2n, vcov = vcovCL(logp_2n, cluster = ~ df$u_teamid), variables = c("group3", "pbelief", "stats_brw", "topic_brw")))
-Table_9[c(20,26,22,24),4] <- format(round(margins_logp_2n$AME, 3), nsmall = 3)
-Table_9[c(21,27,23,25),4] <- sprintf("(%s)", format(round(margins_logp_2n$SE, 3), nsmall = 3))
-
-# For logp_3n model
-margins_logp_3n <- summary(margins(logp_3n, vcov = vcovCL(logp_3n, cluster = ~ df$u_teamid), variables = c("group1", "group3", "stats_brw", "topic_brw")))
-Table_9[c(18,20,22,24),5] <- format(round(margins_logp_3n$AME, 3), nsmall = 3)
-Table_9[c(19,21,23,25),5] <- sprintf("(%s)", format(round(margins_logp_3n$SE, 3), nsmall = 3))
-
-# For logp_4n model
-margins_logp_4n <- summary(margins(logp_4n, vcov = vcovCL(logp_4n, cluster = ~ df$u_teamid), variables = c("group1", "group3", "pbelief", "stats_brw", "topic_brw")))
-Table_9[c(18,20,26,22,24),6] <- format(round(margins_logp_4n$AME, 3), nsmall = 3)
-Table_9[c(19,21,27,23,25),6] <- sprintf("(%s)", format(round(margins_logp_4n$SE, 3), nsmall = 3))
-
-# For logp_5n model
-margins_logp_5n <- summary(margins(logp_5n, vcov = vcovCL(logp_5n, cluster = ~ df$u_teamid), variables = c("proindex", "stats_brw", "topic_brw")))
-Table_9[c(28,22,24),7] <- format(round(margins_logp_5n$AME, 3), nsmall = 3)
-Table_9[c(29,23,25),7] <- sprintf("(%s)", format(round(margins_logp_5n$SE, 3), nsmall = 3))
-
-# For logp_6n model
-margins_logp_6n <- summary(margins(logp_6n, vcov = vcovCL(logp_6n, cluster = ~ df$u_teamid), variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))
-Table_9[c(28,26,22,24),8] <- format(round(margins_logp_6n$AME, 3), nsmall = 3)
-Table_9[c(29,27,23,25),8] <- sprintf("(%s)", format(round(margins_logp_6n$SE, 3), nsmall = 3))
-
-
-
-Table_9[32,2:8] <- format(round( as.numeric(c((1-(logLik(null_pn_fit)/logLik(null_pn_zero))), (1-(logLik(logp_1n_fit)/logLik(null_pn_zero))), (1-(logLik(logp_2n_fit)/logLik(null_pn_zero))), (1-(logLik(logp_3n_fit)/logLik(null_pn_zero))), (1-(logLik(logp_4n_fit)/logLik(null_pn_zero))), (1-(logLik(logp_5n_fit)/logLik(null_pn_zero))), (1-(logLik(logp_6n_fit))/logLik(null_pn_zero)))),3), nsmall = 3)
-
-Table_9[30,2:8] <- round(c(logLik((null_pn_fit)), logLik(logp_1n_fit), logLik(logp_2n_fit), logLik(logp_3n_fit), logLik(logp_4n_fit), logLik(logp_5n_fit), logLik(logp_6n_fit)),2)
-
-Table_9[31,2:8] <- round(c(AIC((null_pn_fit)), AIC(logp_1n_fit), AIC(logp_2n_fit), AIC(logp_3n_fit), AIC(logp_4n_fit), AIC(logp_5n_fit), AIC(logp_6n_fit)),2)
-
-############ Add stars from table
-
-Table_9 <- add_asterisk_if_significant_by_row(
-  Table_9,
-  coef_rows = c(2,4,6,8,10,12,18,20,22,24,26,28)
-)
-
-Table_9[is.na(Table_9)] <- ""
-
-write.csv(Table_9, here::here("results", "TableS9.csv"), row.names = F)
 ```
 
 ## Table 10. Neg Logit Dyad
+
+Stata has a better routine for logit with weights, cluster and margins
 
 ### Build Models
 
 ```{r t10, warning = F}
 
-# adjust weight to account for number of researchers 154
-df_dyad <- df_dyad %>%
-  mutate(
-    # Transform pweightp and pweighta
-    pweightp = pweight / min(pweight, na.rm = T),
-    pweighta = pweight * pscore_1,
-    
-    # Rescale pweightp and pweighta to sum to 154
-    pweightp = pweightp * (2709 / sum(pweightp, na.rm = T)),
-    pweighta = pweighta * (2709 / sum(pweighta, na.rm = T))
-  )
-
-log_1n <- glm(formula=neg10s ~ indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_2n <- glm(formula=neg10s ~ indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_3n <- glm(formula=neg10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_4n <- glm(formula=neg10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_5n <- glm(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_6n <- glm(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-
-logp_1n <- glm(formula=neg10s ~ indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_2n <- glm(formula=neg10s ~ indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_3n <- glm(formula=neg10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_4n <- glm(formula=neg10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_5n <- glm(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_6n <- glm(formula=neg10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-null_mn <- glm(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-null_mn_zero <- glm(formula=neg10s ~ 1,
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-null_pn <- glm(formula=neg10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-null_pn_zero <- glm(formula=neg10s ~ 1,
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
 
 ```
 
@@ -1607,279 +1259,16 @@ null_pn_zero <- glm(formula=neg10s ~ 1,
 
 ```{r t10b, warning = F}
 
-Table_10 <- as.data.frame(matrix(nrow = 32, ncol = 8))
-
-Table_10[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
-
-Table_10[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
-
-#m_ models
-margins_null_mn <- summary(margins(null_mn, vcov = vcovCL(null_mn, cluster = ~ df_dyad$u_id), variables = c("stats_brw", "topic_brw")))
-Table_10[c(6,8),2] <- format(round(margins_null_mn$AME, 3), nsmall = 3)
-Table_10[c(7,9),2] <- sprintf("(%s)", format(round(margins_null_mn$SE, 3), nsmall = 3))
-
-# For log_1n model
-margins_log_1n <- summary(margins(log_1n, vcov = vcovCL(log_1n, cluster = ~ df_dyad$u_id), variables = c("indiv3", "stats_brw", "topic_brw")))
-Table_10[c(4,6,8),3] <- format(round(margins_log_1n$AME, 3), nsmall = 3)
-Table_10[c(5,7,9),3] <- sprintf("(%s)", format(round(margins_log_1n$SE, 3), nsmall = 3))
-
-# For log_2n model
-margins_log_2n <- summary(margins(log_2n, vcov = vcovCL(log_2n, cluster = ~ df_dyad$u_id), variables = c("indiv3", "pbelief", "stats_brw", "topic_brw")))
-Table_10[c(4,10,6,8),4] <- format(round(margins_log_2n$AME, 3), nsmall = 3)
-Table_10[c(5,11,7,9),4] <- sprintf("(%s)", format(round(margins_log_2n$SE, 3), nsmall = 3))
-
-# For log_3n model
-margins_log_3n <- summary(margins(log_3n, vcov = vcovCL(log_3n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))
-Table_10[c(2,4,6,8),5] <- format(round(margins_log_3n$AME, 3), nsmall = 3)
-Table_10[c(3,5,7,9),5] <- sprintf("(%s)", format(round(margins_log_3n$SE, 3), nsmall = 3))
-
-# For log_4n model
-margins_log_4n <- summary(margins(log_4n, vcov = vcovCL(log_4n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))
-Table_10[c(2,4,10,6,8),6] <- format(round(margins_log_4n$AME, 3), nsmall = 3)
-Table_10[c(3,5,11,7,9),6] <- sprintf("(%s)", format(round(margins_log_4n$SE, 3), nsmall = 3))
-
-# For log_5n model
-margins_log_5n <- summary(margins(log_5n, vcov = vcovCL(log_5n, cluster = ~ df_dyad$u_id), variables = c("proindex", "stats_brw", "topic_brw")))
-Table_10[c(12,6,8),7] <- format(round(margins_log_5n$AME, 3), nsmall = 3)
-Table_10[c(13,7,9),7] <- sprintf("(%s)", format(round(margins_log_5n$SE, 3), nsmall = 3))
-
-# For log_6n model
-margins_log_6n <- summary(margins(log_6n, vcov = vcovCL(log_6n, cluster = ~ df_dyad$u_id), variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))
-Table_10[c(12,10,6,8),8] <- format(round(margins_log_6n$AME, 3), nsmall = 3)
-Table_10[c(13,11,7,9),8] <- sprintf("(%s)", format(round(margins_log_6n$SE, 3), nsmall = 3))
-
-
-
-Table_10[16,2:8] <- format(round( as.numeric(c((1-(logLik(null_mn)/logLik(null_mn_zero))), (1-(logLik(log_1n)/logLik(null_mn_zero))), (1-(logLik(log_2n)/logLik(null_mn_zero))), (1-(logLik(log_3n)/logLik(null_mn_zero))), (1-(logLik(log_4n)/logLik(null_mn_zero))), (1-(logLik(log_5n)/logLik(null_mn_zero))), (1-(logLik(log_6n))/logLik(null_mn_zero)))),3), nsmall = 3)
-
-Table_10[14,2:8] <- round(c(logLik((null_mn)), logLik(log_1n), logLik(log_2n), logLik(log_3n), logLik(log_4n), logLik(log_5n), logLik(log_6n)),2)
-
-Table_10[15,2:8] <- round(c(AIC((null_mn)), AIC(log_1n), AIC(log_2n), AIC(log_3n), AIC(log_4n), AIC(log_5n), AIC(log_6n)),2)
-
-
-#p_ models
-margins_null_pn <- summary(margins(null_pn, vcov = vcovCL(null_pn, cluster = ~ df_dyad$u_id), variables = c("stats_brw", "topic_brw")))
-Table_10[c(22,24),2] <- format(round(margins_null_pn$AME, 3), nsmall = 3)
-Table_10[c(23,25),2] <- sprintf("(%s)", format(round(margins_null_pn$SE, 3), nsmall = 3))
-
-# logp_1n model
-margins_logp_1n <- summary(margins(logp_1n, vcov = vcovCL(logp_1n, cluster = ~ df_dyad$u_id), variables = c("indiv3", "stats_brw", "topic_brw")))
-Table_10[c(20,22,24),3] <- format(round(margins_logp_1n$AME, 3), nsmall = 3)
-Table_10[c(21,23,25),3] <- sprintf("(%s)", format(round(margins_logp_1n$SE, 3), nsmall = 3))
-
-# logp_2n model
-margins_logp_2n <- summary(margins(logp_2n, vcov = vcovCL(logp_2n, cluster = ~ df_dyad$u_id), variables = c("indiv3", "pbelief", "stats_brw", "topic_brw")))
-Table_10[c(20,26,22,24),4] <- format(round(margins_logp_2n$AME, 3), nsmall = 3)
-Table_10[c(21,27,23,25),4] <- sprintf("(%s)", format(round(margins_logp_2n$SE, 3), nsmall = 3))
-
-# logp_3n model
-margins_logp_3n <- summary(margins(logp_3n, vcov = vcovCL(logp_3n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))
-Table_10[c(18,20,22,24),5] <- format(round(margins_logp_3n$AME, 3), nsmall = 3)
-Table_10[c(19,21,23,25),5] <- sprintf("(%s)", format(round(margins_logp_3n$SE, 3), nsmall = 3))
-
-# logp_4n model
-margins_logp_4n <- summary(margins(logp_4n, vcov = vcovCL(logp_4n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))
-Table_10[c(18,20,26,22,24),6] <- format(round(margins_logp_4n$AME, 3), nsmall = 3)
-Table_10[c(19,21,27,23,25),6] <- sprintf("(%s)", format(round(margins_logp_4n$SE, 3), nsmall = 3))
-
-# logp_5n model
-margins_logp_5n <- summary(margins(logp_5n, vcov = vcovCL(logp_5n, cluster = ~ df_dyad$u_id), variables = c("proindex", "stats_brw", "topic_brw")))
-Table_10[c(28,22,24),7] <- format(round(margins_logp_5n$AME, 3), nsmall = 3)
-Table_10[c(29,23,25),7] <- sprintf("(%s)", format(round(margins_logp_5n$SE, 3), nsmall = 3))
-
-# logp_6n model
-margins_logp_6n <- summary(margins(logp_6n, vcov = vcovCL(logp_6n, cluster = ~ df_dyad$u_id), variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))
-Table_10[c(28,26,22,24),8] <- format(round(margins_logp_6n$AME, 3), nsmall = 3)
-Table_10[c(29,27,23,25),8] <- sprintf("(%s)", format(round(margins_logp_6n$SE, 3), nsmall = 3))
-
-
-
-Table_10[32,2:8] <- format(round( as.numeric(c((1-(logLik(null_pn)/logLik(null_pn_zero))), (1-(logLik(logp_1n)/logLik(null_pn_zero))), (1-(logLik(logp_2n)/logLik(null_pn_zero))), (1-(logLik(logp_3n)/logLik(null_pn_zero))), (1-(logLik(logp_4n)/logLik(null_pn_zero))), (1-(logLik(logp_5n)/logLik(null_pn_zero))), (1-(logLik(logp_6n))/logLik(null_pn_zero)))),3), nsmall = 3)
-
-Table_10[30,2:8] <- round(c(logLik((null_pn)), logLik(logp_1n), logLik(logp_2n), logLik(logp_3n), logLik(logp_4n), logLik(logp_5n), logLik(logp_6n)),2)
-
-Table_10[31,2:8] <- round(c(AIC((null_pn)), AIC(logp_1n), AIC(logp_2n), AIC(logp_3n), AIC(logp_4n), AIC(logp_5n), AIC(logp_6n)),2)
-
-############ Add stars from table
-
-Table_10 <- add_asterisk_if_significant_by_row(
-  Table_10,
-  coef_rows = c(2,4,6,8,10,12,18,20,22,24,26,28)
-)
-
-Table_10[is.na(Table_10)] <- ""
-
-write.csv(Table_10, here::here("results", "TableS10.csv"), row.names = F)
-
 ```
 
 ## Table 11. Pos Logit
 
-The fit statistics come to close to zero (Log-Likelihood), these have to be calculated on a model with weights adjusted upwards.
+Stata has a better routine for logit with weights, cluster and margins
 
 ### Build Models
 
 ```{r t11, warning = F}
 
-df$nmodel_l <- 1/df$nmodel
-df$nmodel_lp <- df$nmodel_l*df$pscore_1
-
-# fit statistics weights adjusted upwards to avoid biased fit statistics
-df$fit_l <- 100*(1/df$nmodel)
-df$fit_lp <- 100*(df$nmodel_l*df$pscore_1)
-
-
-
-log_1n <- glm(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_1n_fit <- glm(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-log_2n <- glm(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_2n_fit <- glm(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-log_3n <- glm(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_3n_fit <- glm(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-log_4n <- glm(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_4n_fit <- glm(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-log_5n <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_5n_fit <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-log_6n <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-log_6n_fit <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-
-logp_1n <- glm(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_1n_fit <- glm(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-logp_2n <- glm(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_2n_fit <- glm(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-logp_3n <- glm(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_3n_fit <- glm(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-logp_4n <- glm(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_4n_fit <- glm(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-logp_5n <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_5n_fit <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-logp_6n <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-logp_6n_fit <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-null_mn <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_l)
-
-null_mn_fit <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-null_mn_zero <- glm(formula=pos10s ~ 1,
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_l)
-
-null_pn <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = nmodel_lp)
-
-null_pn_fit <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree),
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
-
-null_pn_zero <- glm(formula=pos10s ~ 1,
-             data = df,
-             family = binomial(link = "logit"),
-             weights = fit_lp)
 
 ```
 
@@ -1888,293 +1277,19 @@ null_pn_zero <- glm(formula=pos10s ~ 1,
 
 ```{r t11b, warning = F}
 
-Table_11 <- as.data.frame(matrix(nrow = 32, ncol = 8))
 
-Table_11[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
-
-Table_11[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
-
-#m_ models
-margins_null_mn <- summary(margins(null_mn, vcov = vcovCL(null_mn, cluster = ~ df$u_teamid), variables = c("stats_brw", "topic_brw")))
-Table_11[c(6,8),2] <- format(round(margins_null_mn$AME, 3), nsmall = 3)
-Table_11[c(7,9),2] <- sprintf("(%s)", format(round(margins_null_mn$SE, 3), nsmall = 3))
-
-# For log_1n model
-margins_log_1n <- summary(margins(log_1n, vcov = vcovCL(log_1n, cluster = ~ df$u_teamid), variables = c("group1", "stats_brw", "topic_brw")))
-Table_11[c(2,6,8),3] <- format(round(margins_log_1n$AME, 3), nsmall = 3)
-Table_11[c(3,7,9),3] <- sprintf("(%s)", format(round(margins_log_1n$SE, 3), nsmall = 3))
-
-# For log_2n model
-margins_log_2n <- summary(margins(log_2n, vcov = vcovCL(log_2n, cluster = ~ df$u_teamid), variables = c("group1", "pbelief", "stats_brw", "topic_brw")))
-Table_11[c(2,10,6,8),4] <- format(round(margins_log_2n$AME, 3), nsmall = 3)
-Table_11[c(3,11,7,9),4] <- sprintf("(%s)", format(round(margins_log_2n$SE, 3), nsmall = 3))
-
-# For log_3n model
-margins_log_3n <- summary(margins(log_3n, vcov = vcovCL(log_3n, cluster = ~ df$u_teamid), variables = c("group1", "group3", "stats_brw", "topic_brw")))
-Table_11[c(2,4,6,8),5] <- format(round(margins_log_3n$AME, 3), nsmall = 3)
-Table_11[c(3,5,7,9),5] <- sprintf("(%s)", format(round(margins_log_3n$SE, 3), nsmall = 3))
-
-# For log_4n model
-margins_log_4n <- summary(margins(log_4n, vcov = vcovCL(log_4n, cluster = ~ df$u_teamid), variables = c("group1", "group3", "pbelief", "stats_brw", "topic_brw")))
-Table_11[c(2,4,10,6,8),6] <- format(round(margins_log_4n$AME, 3), nsmall = 3)
-Table_11[c(3,5,11,7,9),6] <- sprintf("(%s)", format(round(margins_log_4n$SE, 3), nsmall = 3))
-
-# For log_5n model
-margins_log_5n <- summary(margins(log_5n, vcov = vcovCL(log_5n, cluster = ~ df$u_teamid), variables = c("proindex", "stats_brw", "topic_brw")))
-Table_11[c(12,6,8),7] <- format(round(margins_log_5n$AME, 3), nsmall = 3)
-Table_11[c(13,7,9),7] <- sprintf("(%s)", format(round(margins_log_5n$SE, 3), nsmall = 3))
-
-# For log_6n model
-margins_log_6n <- summary(margins(log_6n, vcov = vcovCL(log_6n, cluster = ~ df$u_teamid), variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))
-Table_11[c(12,10,6,8),8] <- format(round(margins_log_6n$AME, 3), nsmall = 3)
-Table_11[c(13,11,7,9),8] <- sprintf("(%s)", format(round(margins_log_6n$SE, 3), nsmall = 3))
-
-
-
-Table_11[16,2:8] <- format(round( as.numeric(c((1-(logLik(null_mn_fit)/logLik(null_mn_zero))), (1-(logLik(log_1n_fit)/logLik(null_mn_zero))), (1-(logLik(log_2n_fit)/logLik(null_mn_zero))), (1-(logLik(log_3n_fit)/logLik(null_mn_zero))), (1-(logLik(log_4n_fit)/logLik(null_mn_zero))), (1-(logLik(log_5n_fit)/logLik(null_mn_zero))), (1-(logLik(log_6n_fit))/logLik(null_mn_zero)))),3), nsmall = 3)
-
-Table_11[14,2:8] <- round(c(logLik((null_mn_fit)), logLik(log_1n_fit), logLik(log_2n_fit), logLik(log_3n_fit), logLik(log_4n_fit), logLik(log_5n_fit), logLik(log_6n_fit)),2)
-
-Table_11[15,2:8] <- round(c(AIC((null_mn_fit)), AIC(log_1n_fit), AIC(log_2n_fit), AIC(log_3n_fit), AIC(log_4n_fit), AIC(log_5n_fit), AIC(log_6n_fit)),2)
-
-
-#p_ models
-margins_null_pn <- summary(margins(null_pn, vcov = vcovCL(null_pn, cluster = ~ df$u_teamid), variables = c("stats_brw", "topic_brw")))
-Table_11[c(22,24),2] <- format(round(margins_null_pn$AME, 3), nsmall = 3)
-Table_11[c(23,25),2] <- sprintf("(%s)", format(round(margins_null_pn$SE, 3), nsmall = 3))
-
-# For logp_1n model
-margins_logp_1n <- summary(margins(logp_1n, vcov = vcovCL(logp_1n, cluster = ~ df$u_teamid), variables = c("group1", "stats_brw", "topic_brw")))
-Table_11[c(18,22,24),3] <- format(round(margins_logp_1n$AME, 3), nsmall = 3)
-Table_11[c(19,23,25),3] <- sprintf("(%s)", format(round(margins_logp_1n$SE, 3), nsmall = 3))
-
-# For logp_2n model
-margins_logp_2n <- summary(margins(logp_2n, vcov = vcovCL(logp_2n, cluster = ~ df$u_teamid), variables = c("group1", "pbelief", "stats_brw", "topic_brw")))
-Table_11[c(18,26,22,24),4] <- format(round(margins_logp_2n$AME, 3), nsmall = 3)
-Table_11[c(19,27,23,25),4] <- sprintf("(%s)", format(round(margins_logp_2n$SE, 3), nsmall = 3))
-
-# For logp_3n model
-margins_logp_3n <- summary(margins(logp_3n, vcov = vcovCL(logp_3n, cluster = ~ df$u_teamid), variables = c("group1", "group3", "stats_brw", "topic_brw")))
-Table_11[c(18,20,22,24),5] <- format(round(margins_logp_3n$AME, 3), nsmall = 3)
-Table_11[c(19,21,23,25),5] <- sprintf("(%s)", format(round(margins_logp_3n$SE, 3), nsmall = 3))
-
-# For logp_4n model
-margins_logp_4n <- summary(margins(logp_4n, vcov = vcovCL(logp_4n, cluster = ~ df$u_teamid), variables = c("group1", "group3", "pbelief", "stats_brw", "topic_brw")))
-Table_11[c(18,20,26,22,24),6] <- format(round(margins_logp_4n$AME, 3), nsmall = 3)
-Table_11[c(19,21,27,23,25),6] <- sprintf("(%s)", format(round(margins_logp_4n$SE, 3), nsmall = 3))
-
-# For logp_5n model
-margins_logp_5n <- summary(margins(logp_5n, vcov = vcovCL(logp_5n, cluster = ~ df$u_teamid), variables = c("proindex", "stats_brw", "topic_brw")))
-Table_11[c(28,22,24),7] <- format(round(margins_logp_5n$AME, 3), nsmall = 3)
-Table_11[c(29,23,25),7] <- sprintf("(%s)", format(round(margins_logp_5n$SE, 3), nsmall = 3))
-
-# For logp_6n model
-margins_logp_6n <- summary(margins(logp_6n, vcov = vcovCL(logp_6n, cluster = ~ df$u_teamid), variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))
-Table_11[c(28,26,22,24),8] <- format(round(margins_logp_6n$AME, 3), nsmall = 3)
-Table_11[c(29,27,23,25),8] <- sprintf("(%s)", format(round(margins_logp_6n$SE, 3), nsmall = 3))
-
-
-Table_11[32,2:8] <- format(round( as.numeric(c((1-(logLik(null_pn_fit)/logLik(null_pn_zero))), (1-(logLik(logp_1n_fit)/logLik(null_pn_zero))), (1-(logLik(logp_2n_fit)/logLik(null_pn_zero))), (1-(logLik(logp_3n_fit)/logLik(null_pn_zero))), (1-(logLik(logp_4n_fit)/logLik(null_pn_zero))), (1-(logLik(logp_5n_fit)/logLik(null_pn_zero))), (1-(logLik(logp_6n_fit))/logLik(null_pn_zero)))),3), nsmall = 3)
-
-Table_11[30,2:8] <- round(c(logLik((null_pn_fit)), logLik(logp_1n_fit), logLik(logp_2n_fit), logLik(logp_3n_fit), logLik(logp_4n_fit), logLik(logp_5n_fit), logLik(logp_6n_fit)),2)
-
-Table_11[31,2:8] <- round(c(AIC((null_pn_fit)), AIC(logp_1n_fit), AIC(logp_2n_fit), AIC(logp_3n_fit), AIC(logp_4n_fit), AIC(logp_5n_fit), AIC(logp_6n_fit)),2)
-
-############ Add stars from table
-
-Table_11 <- add_asterisk_if_significant_by_row(
-  Table_11,
-  coef_rows = c(2,4,6,8,10,12,18,20,22,24,26,28)
-)
-
-Table_11[is.na(Table_11)] <- ""
-
-write.csv(Table_11, here::here("results", "TableS11.csv"), row.names = F)
 ```
 
 
 ## Table 12. Pos Logit Dyad
 
+Stata has a better routine for logit with weights, cluster and margins
+
 ### Build Models
 
 ```{r t12, warning = F}
 
-# adjust weight to account for number of researchers 154
-df_dyad <- df_dyad %>%
-  mutate(
-    # Transform pweightp and pweighta
-    pweightp = pweight / min(pweight, na.rm = T),
-    pweighta = pweight * pscore_1,
-    
-    # Rescale pweightp and pweighta to sum to 154
-    pweightp = pweightp * (154 / sum(pweightp, na.rm = T)),
-    pweighta = pweighta * (154 / sum(pweighta, na.rm = T)),
-    
-    # fit statistic error correction
-    fit_p = pweightp * 10,
-    fit_a = pweighta * 10
-  )
 
-log_1n <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_1n_fit <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_p)
-
-log_2n <- glm(formula=pos10s ~ indiv1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_2n_fit <- glm(formula=pos10s ~ indiv1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_p)
-
-log_3n <- glm(formula=pos10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_3n_fit <- glm(formula=pos10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_p)
-
-log_4n <- glm(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_4n_fit <- glm(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_p)
-
-log_5n <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_5n_fit <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_p)
-
-log_6n <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-log_6n_fit <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_p)
-
-
-logp_1n <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_1n_fit <- glm(formula=pos10s ~ indiv1 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_a)
-
-logp_2n <- glm(formula=pos10s ~ indiv1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_2n_fit <- glm(formula=pos10s ~ indiv1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_a)
-
-logp_3n <- glm(formula=pos10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_3n_fit <- glm(formula=pos10s ~ indiv1 + indiv3 + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_a)
-
-logp_4n <- glm(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_4n_fit <- glm(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_a)
-
-logp_5n <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_5n_fit <- glm(formula=pos10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_a)
-
-logp_6n <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-logp_6n_fit <- glm(formula=pos10s ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_a)
-
-null_mn <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-null_mn_fit <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_p)
-
-null_mn_zero <- glm(formula=pos10s ~ 1,
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweightp)
-
-null_mn_zero_fit <- glm(formula=pos10s ~ 1,
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_p)
-
-null_pn <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-null_pn_fit <- glm(formula=pos10s ~ stats_brw + topic_brw + t2 + t3 + factor(backgr_degree),
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_a)
-
-null_pn_zero <- glm(formula=pos10s ~ 1,
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = pweighta)
-
-null_pn_zero_fit <- glm(formula=pos10s ~ 1,
-             data = df_dyad,
-             family = binomial(link = "logit"),
-             weights = fit_a)
 
 ```
 
@@ -2183,118 +1298,7 @@ null_pn_zero_fit <- glm(formula=pos10s ~ 1,
 
 ```{r t11b}
 
-Table_12 <- as.data.frame(matrix(nrow = 32, ncol = 8))
 
-Table_12[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
-
-Table_12[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
-
-# Extract coefficients and SEs directly using margins for each model
-
-# null_mn model
-margins_null_mn <- summary(margins(null_mn, vcov = vcovCL(null_mn, cluster = ~ df_dyad$u_id), variables = c("stats_brw", "topic_brw")))
-Table_12[c(6,8),2] <- format(round(margins_null_mn$AME, 3), nsmall = 3)
-Table_12[c(7,9),2] <- sprintf("(%s)", format(round(margins_null_mn$SE, 3), nsmall = 3))
-
-# log_1n model
-margins_log_1n <- summary(margins(log_1n, vcov = vcovCL(log_1n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "stats_brw", "topic_brw")))
-Table_12[c(2,6,8),3] <- format(round(margins_log_1n$AME, 3), nsmall = 3)
-Table_12[c(3,7,9),3] <- sprintf("(%s)", format(round(margins_log_1n$SE, 3), nsmall = 3))
-
-# log_2n model
-margins_log_2n <- summary(margins(log_2n, vcov = vcovCL(log_2n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "pbelief", "stats_brw", "topic_brw")))
-Table_12[c(2,10,6,8),4] <- format(round(margins_log_2n$AME, 3), nsmall = 3)
-Table_12[c(3,11,7,9),4] <- sprintf("(%s)", format(round(margins_log_2n$SE, 3), nsmall = 3))
-
-# log_3n model
-margins_log_3n <- summary(margins(log_3n, vcov = vcovCL(log_3n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))
-Table_12[c(2,4,6,8),5] <- format(round(margins_log_3n$AME, 3), nsmall = 3)
-Table_12[c(3,5,7,9),5] <- sprintf("(%s)", format(round(margins_log_3n$SE, 3), nsmall = 3))
-
-# log_4n model
-margins_log_4n <- summary(margins(log_4n, vcov = vcovCL(log_4n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))
-Table_12[c(2,4,10,6,8),6] <- format(round(margins_log_4n$AME, 3), nsmall = 3)
-Table_12[c(3,5,11,7,9),6] <- sprintf("(%s)", format(round(margins_log_4n$SE, 3), nsmall = 3))
-
-# log_5n model
-margins_log_5n <- summary(margins(log_5n, vcov = vcovCL(log_5n, cluster = ~ df_dyad$u_id), variables = c("proindex", "stats_brw", "topic_brw")))
-Table_12[c(12,6,8),7] <- format(round(margins_log_5n$AME, 3), nsmall = 3)
-Table_12[c(13,7,9),7] <- sprintf("(%s)", format(round(margins_log_5n$SE, 3), nsmall = 3))
-
-# log_6n model
-margins_log_6n <- summary(margins(log_6n, vcov = vcovCL(log_6n, cluster = ~ df_dyad$u_id), variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))
-Table_12[c(12,10,6,8),8] <- format(round(margins_log_6n$AME, 3), nsmall = 3)
-Table_12[c(13,11,7,9),8] <- sprintf("(%s)", format(round(margins_log_6n$SE, 3), nsmall = 3))
-
-
-Table_12[16,2:8] <- format(round( as.numeric(c((1-(logLik(null_mn_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_1n_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_2n_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_3n_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_4n_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_5n_fit)/logLik(null_mn_zero_fit))), (1-(logLik(log_6n_fit))/logLik(null_mn_zero_fit)))),3), nsmall = 3)
-
-Table_12[14,2:8] <- round(c(logLik((null_mn_fit)), logLik(log_1n_fit), logLik(log_2n_fit), logLik(log_3n_fit), logLik(log_4n_fit), logLik(log_5n_fit), logLik(log_6n_fit)),2)
-
-Table_12[15,2:8] <- round(c(AIC((null_mn_fit)), AIC(log_1n_fit), AIC(log_2n_fit), AIC(log_3n_fit), AIC(log_4n_fit), AIC(log_5n_fit), AIC(log_6n_fit)),2)
-
-
-#p_ models
-# Directly use `margins` with clustered standard errors
-
-# null_pn model
-margins_null_pn <- summary(margins(null_pn, vcov = vcovCL(null_pn, cluster = ~ df_dyad$u_id), variables = c("stats_brw", "topic_brw")))
-Table_12[c(22,24),2] <- format(round(margins_null_pn$AME, 3), nsmall = 3)
-Table_12[c(23,25),2] <- sprintf("(%s)", format(round(margins_null_pn$SE, 3), nsmall = 3))
-
-# logp_1n model
-margins_logp_1n <- summary(margins(logp_1n, vcov = vcovCL(logp_1n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "stats_brw", "topic_brw")))
-Table_12[c(18,22,24),3] <- format(round(margins_logp_1n$AME, 3), nsmall = 3)
-Table_12[c(19,23,25),3] <- sprintf("(%s)", format(round(margins_logp_1n$SE, 3), nsmall = 3))
-
-# logp_2n model
-margins_logp_2n <- summary(margins(logp_2n, vcov = vcovCL(logp_2n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "pbelief", "stats_brw", "topic_brw")))
-Table_12[c(18,26,22,24),4] <- format(round(margins_logp_2n$AME, 3), nsmall = 3)
-Table_12[c(19,27,23,25),4] <- sprintf("(%s)", format(round(margins_logp_2n$SE, 3), nsmall = 3))
-
-# logp_3n model
-margins_logp_3n <- summary(margins(logp_3n, vcov = vcovCL(logp_3n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "indiv3", "stats_brw", "topic_brw")))
-Table_12[c(18,20,22,24),5] <- format(round(margins_logp_3n$AME, 3), nsmall = 3)
-Table_12[c(19,21,23,25),5] <- sprintf("(%s)", format(round(margins_logp_3n$SE, 3), nsmall = 3))
-
-# logp_4n model
-margins_logp_4n <- summary(margins(logp_4n, vcov = vcovCL(logp_4n, cluster = ~ df_dyad$u_id), variables = c("indiv1", "indiv3", "pbelief", "stats_brw", "topic_brw")))
-Table_12[c(18,20,26,22,24),6] <- format(round(margins_logp_4n$AME, 3), nsmall = 3)
-Table_12[c(19,21,27,23,25),6] <- sprintf("(%s)", format(round(margins_logp_4n$SE, 3), nsmall = 3))
-
-# logp_5n model
-margins_logp_5n <- summary(margins(logp_5n, vcov = vcovCL(logp_5n, cluster = ~ df_dyad$u_id), variables = c("proindex", "stats_brw", "topic_brw")))
-Table_12[c(28,22,24),7] <- format(round(margins_logp_5n$AME, 3), nsmall = 3)
-Table_12[c(29,23,25),7] <- sprintf("(%s)", format(round(margins_logp_5n$SE, 3), nsmall = 3))
-
-# logp_6n model
-margins_logp_6n <- summary(margins(logp_6n, vcov = vcovCL(logp_6n, cluster = ~ df_dyad$u_id), variables = c("proindex", "pbelief", "stats_brw", "topic_brw")))
-Table_12[c(28,26,22,24),8] <- format(round(margins_logp_6n$AME, 3), nsmall = 3)
-Table_12[c(29,27,23,25),8] <- sprintf("(%s)", format(round(margins_logp_6n$SE, 3), nsmall = 3))
-
-
-
-Table_12[32,2:8] <- format(round( as.numeric(c((1-(logLik(null_pn_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_1n_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_2n_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_3n_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_4n_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_5n_fit)/logLik(null_pn_zero_fit))), (1-(logLik(logp_6n_fit))/logLik(null_pn_zero_fit)))),3), nsmall = 3)
-
-Table_12[30,2:8] <- round(c(logLik((null_pn_fit)), logLik(logp_1n_fit), logLik(logp_2n_fit), logLik(logp_3n_fit), logLik(logp_4n_fit), logLik(logp_5n_fit), logLik(logp_6n_fit)),2)
-
-Table_12[31,2:8] <- round(c(AIC((null_pn_fit)), AIC(logp_1n_fit), AIC(logp_2n_fit), AIC(logp_3n_fit), AIC(logp_4n_fit), AIC(logp_5n_fit), AIC(logp_6n_fit)),2)
-
-############ Add stars from table
-
-Table_12 <- add_asterisk_if_significant_by_row(
-  Table_12,
-  coef_rows = c(2,4,6,8,10,12)
-)
-
-Table_12 <- add_asterisk_if_significant_by_row(
-  Table_12,
-  coef_rows = c(18,20,22,24,26,28)
-)
-
-Table_12[is.na(Table_12)] <- ""
-
-write.csv(Table_12, here::here("results", "TableS12.csv"), row.names = F)
 
 ```
 
@@ -2395,9 +1399,9 @@ df <- df %>%
          peer_combo_mean = mean(pscore_Z, na.rm = T)) %>%
   ungroup()
 
-df$resid <- df$AME - df$ame_combo_mean
+#df$resid <- df$AME - df$ame_combo_mean
 
-m_mame <- lm.cluster(formula=resid ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+m_mame <- lm.cluster(formula=ame_combo_mean ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
 coef_group1 <- m_3$lm_res$coefficients["group1"]
 coef_group3 <- m_3$lm_res$coefficients["group3"]
@@ -2446,7 +1450,7 @@ Table_14 <- as.data.frame(matrix(ncol = 4, nrow = 4))
 
 Table_14[1,] <- c("", "Anti-immigration coef.", "Pro-immigration coef.", "Difference")
 
-Table_14[,1] <- c("", "Main model", "Residual, AME - expected", "Percent not explained by expected values")
+Table_14[,1] <- c("", "Main model (Table S2[3])", "Expected AME", "Percent explained by expected values")
 
 Table_14[2,2:4] <- format(round(c(coef_group1, coef_group3, coef_diff), 3), nsmall = 3)
 
@@ -2463,7 +1467,154 @@ write_csv(Table_14, here("results", "TableS14.csv"))
 ```
 
 
+## Table 15. Leave out two teams
 
+Because two teams split between categories with one anti-immigration and two-pro, we run the analyses in TableS2 with them dropped.
+
+### Build Models
+
+```{r t2rs}
+df.2 <- df %>%
+  subset(u_teamid != 61 & u_teamid != 64)
+
+
+m_1.2 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+m_2.2 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+m_3.2 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+m_4.2 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+m_5.2 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+m_6.2 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+m_1l.2 <- lm(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, data = df.2)
+
+m_2l.2 <- lm(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, data = df.2)
+
+m_3l.2 <- lm(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, data = df.2)
+
+m_4l.2 <- lm(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, data = df.2)
+
+m_5l.2 <- lm(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, data = df.2)
+
+m_6l.2 <- lm(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, data = df.2)
+
+
+p_1.2 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+p_2.2 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+p_3.2 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+p_4.2 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+p_5.2 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+p_6.2 <- lm.cluster(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+p_1l.2 <- lm(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, data = df.2)
+
+p_2l.2 <- lm(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, data = df.2)
+
+p_3l.2 <- lm(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, data = df.2)
+
+p_4l.2 <- lm(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, data = df.2)
+
+p_5l.2 <- lm(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel,  data = df.2)
+
+p_6l.2 <- lm(formula=AME ~ proindex + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel,  data = df.2)
+
+null_m.2 <- lm.cluster(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+null_p.2 <- lm.cluster(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel, cluster = "u_teamid", data = df.2)
+
+null_ml.2 <- lm(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, data = df.2)
+
+null_pl.2 <- lm(formula=AME ~ stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df.2$pscore_1/df.2$nmodel,  data = df.2)
+
+# re-run as lm's to get fit stats
+source(here("code", "Sub", "t2_fit.R"))
+
+```
+
+### Build Table
+
+```{r t2r}
+
+# Create the Table_2 dataframe and populate with regression results
+Table_15 <- as.data.frame(matrix(nrow = 32, ncol = 8))
+Table_15[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
+Table_15[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
+
+# Apply the function for each set of coefficients and standard errors
+Table_15[c(6,8),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_m.2$lm_res$coefficients[i], summary(null_m.2)[i,2]))
+Table_15[c(7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_m.2)[2:3,2]),3), nsmall = 3))
+
+Table_15[c(4,6,8),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_1.2$lm_res$coefficients[i], summary(m_1.2)[i,2]))
+Table_15[c(5,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(m_1.2)[2:4,2]),3), nsmall = 3))
+
+Table_15[c(4,10,6,8),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_2.2$lm_res$coefficients[i], summary(m_2.2)[i,2]))
+Table_15[c(5,11,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(m_2.2)[2:5,2]),3), nsmall = 3))
+
+Table_15[c(2,4,6,8),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_3.2$lm_res$coefficients[i], summary(m_3.2)[i,2]))
+Table_15[c(3,5,7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(m_3.2)[2:5,2]),3), nsmall = 3))
+
+Table_15[c(2,4,6,8,10),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(m_4.2$lm_res$coefficients[i], summary(m_4.2)[i,2]))
+Table_15[c(3,5,7,9,11),6] <- sprintf("(%s)", format(round(as.numeric(summary(m_4.2)[c(2,3,5,6,4),2]),3), nsmall = 3))
+
+Table_15[c(12,6,8),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_5.2$lm_res$coefficients[i], summary(m_5.2)[i,2]))
+Table_15[c(13,7,9),7] <- sprintf("(%s)", format(round(as.numeric(summary(m_5.2)[2:4,2]),3), nsmall = 3))
+
+Table_15[c(12,10,6,8),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_6.2$lm_res$coefficients[i], summary(m_6.2)[i,2]))
+Table_15[c(13,11,7,9),8] <- sprintf("(%s)", format(round(as.numeric(summary(m_6.2)[2:5,2]),3), nsmall = 3))
+
+# Add R-squared, Log-Likelihood, and AIC values
+Table_15[16,2:8] <- c(r2ext(null_m.2), r2ext(m_1.2), r2ext(m_2.2), r2ext(m_3.2), r2ext(m_4.2), r2ext(m_5.2), r2ext(m_6.2))
+Table_15[14,2:8] <- round(c(logLik((null_ml.2)), logLik(m_1l.2), logLik(m_2l.2), logLik(m_3l.2), logLik(m_4l.2), logLik(m_5l.2), logLik(m_6l.2)),2)
+Table_15[15,2:8] <- round(c(AIC((null_ml.2)), AIC(m_1l.2), AIC(m_2l.2), AIC(m_3l.2), AIC(m_4l.2), AIC(m_5l.2), AIC(m_6l.2)),2)
+
+# p_ models with add_asterisk_if_significant_cluster function
+Table_15[c(22,24),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_p.2$lm_res$coefficients[i], summary(null_p.2)[i, 2]))
+Table_15[c(23,25),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_p.2)[2:3, 2]), 3), nsmall = 3))
+
+Table_15[c(20,22,24),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_1.2$lm_res$coefficients[i], summary(p_1.2)[i, 2]))
+Table_15[c(21,23,25),3] <- sprintf("(%s)", format(round(as.numeric(summary(p_1.2)[2:4, 2]), 3), nsmall = 3))
+
+Table_15[c(20,26,22,24),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_2.2$lm_res$coefficients[i], summary(p_2.2)[i, 2]))
+Table_15[c(21,27,23,25),4] <- sprintf("(%s)", format(round(as.numeric(summary(p_2.2)[2:5, 2]), 3), nsmall = 3))
+
+Table_15[c(18,20,22,24),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_3.2$lm_res$coefficients[i], summary(p_3.2)[i, 2]))
+Table_15[c(19,21,23,25),5] <- sprintf("(%s)", format(round(as.numeric(summary(p_3.2)[2:5, 2]), 3), nsmall = 3))
+
+Table_15[c(18,20,22,24,26),6] <- sapply(c(2, 3, 5, 6, 4), function(i) add_asterisk_if_significant_cluster(p_4.2$lm_res$coefficients[i], summary(p_4.2)[i, 2]))
+Table_15[c(19,21,23,25,27),6] <- sprintf("(%s)", format(round(as.numeric(summary(p_4.2)[c(2, 3, 5, 6, 4), 2]), 3), nsmall = 3))
+
+Table_15[c(28,22,24),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_5.2$lm_res$coefficients[i], summary(p_5.2)[i, 2]))
+Table_15[c(29,23,25),7] <- sprintf("(%s)", format(round(as.numeric(summary(p_5.2)[2:4, 2]), 3), nsmall = 3))
+
+Table_15[c(28,26,22,24),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_6.2$lm_res$coefficients[i], summary(p_6.2)[i, 2]))
+Table_15[c(29,27,23,25),8] <- sprintf("(%s)", format(round(as.numeric(summary(p_6.2)[2:5, 2]), 3), nsmall = 3))
+
+# Add R-squared, Log-Likelihood, and AIC values
+Table_15[32,2:8] <- c(r2ext(null_p.2), r2ext(p_1.2), r2ext(p_2.2), r2ext(p_3.2), r2ext(p_4.2), r2ext(p_5.2), r2ext(p_6.2))
+Table_15[30,2:8] <- round(c(logLik((null_pl.2)), logLik(p_1l.2), logLik(p_2l.2), logLik(p_3l.2), logLik(p_4l.2), logLik(p_5l.2), logLik(p_6l.2)), 2)
+Table_15[31,2:8] <- round(c(AIC((null_pl.2)), AIC(p_1l.2), AIC(p_2l.2), AIC(p_3l.2), AIC(p_4l.2), AIC(p_5l.2), AIC(p_6l.2)), 2)
+
+
+# Replace NA values with an empty string
+Table_15[is.na(Table_15)] <- ""
+
+# Write the table to CSV
+write.csv(Table_15, here::here("results", "TableS15.csv"), row.names = FALSE)
+
+# Display the table
+kable(Table_15, col.names = c("","","","","","","",""))
+
+
+```
 
 ## Save Regression Estimates
 

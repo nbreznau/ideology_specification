@@ -157,7 +157,6 @@ f1a <- ggplot() +
   # experiment info text
   annotate("text", x = 1.2, y = 11.1, label = "71 teams independently used the same dataset to test a single\nhypothesis: that immigration reduces support for social policies", hjust = 0, size = 3.3, color = "grey30", vjust = 1) +
   annotate("text", x = 1.2, y = 8.9, label = "They were asked prior to their research tasks if immigration\nlaws in their country should be made stronger or more relaxed", hjust = 0,  vjust = 0.8, size = 3.3, color = "grey30", fontface = "italic") +
-  # Add many analysts blurb
 
   annotate("text", x = 3, y = 5, label = "Political ideology", hjust = 1, vjust = 0, size = 3.5) +
 
@@ -333,7 +332,7 @@ knitr::include_graphics(here("results", "Fig1B.png"))
 
 ```
 
-### Color Blind
+### RGB
 
 ```{r fig1brgb}
 agg_png(here("results", "Fig1B_RGB.png"), res = 144, width = 600, height = 500)
@@ -386,6 +385,8 @@ knitr::include_graphics(here("results", "Fig1B_RGB.png"))
 ```
 
 ## FigS1
+
+### Color Blind
 
 ```{r figs1}
 
@@ -452,6 +453,56 @@ area_in_range <- sum(density_obj$y[in_range][-1] * dx[in_range[-1]])
 percentage_shown <- area_in_range * 100
 
 percentage_shown
+```
+### RGB
+
+```{r figs1rgb}
+
+agg_png(here("results", "FigS1_RGB.png"), res = 144, width = 600, height = 500)
+
+# create scaling axis
+custom_y_trans <- trans_new(
+  name = "split_scale",
+  transform = function(x) ifelse(x <= 1, x / 2, (x - 1) / (35 - 1) * 0.5 + 0.5),  # Compress 0-1 to lower half, >1 to upper half
+  inverse = function(x) ifelse(x <= 0.5, x * 2, (x - 0.5) * (35 - 1) / 0.5 + 1)  # Inverse of the transform
+)
+
+
+f1b <- df_dyad %>%
+  #subset(indiv != 2) %>%
+  ggplot() +
+  
+  # First density for indiv2, excluding NA values
+  stat_density(data = df_dyad %>% filter(!is.na(indiv2) & indiv2 == 1),
+               aes(x = AME), color = NA, fill = colors_classic[2], 
+               alpha = 0.3, adjust = 5.5, position = "identity", trim = T) +
+  
+  # Second density for indiv1, excluding NA values
+  stat_density(data = df_dyad %>% filter(!is.na(indiv1) & indiv2 != 1),
+               aes(x = AME, group = indiv, color = factor(indiv)), 
+               alpha = 1, adjust = 5, position = "identity", geom = "line", 
+               #trim = T
+               ) +  
+  # Labels
+  labs(x = "AME", y = "Density", title = "", fill = "indiv Group", color = "indiv Group") +
+  scale_color_manual(values = colors_classic[c(3,1)]) +   
+  scale_fill_manual(values = c("white", colors_classic[2])) +  
+  annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nteams", hjust = 0, color = colors_classic[1], size = 3) +
+  annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nteams", hjust = 1, color = colors_classic[3], size = 3) +
+    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nteams", color = colors_classic[2], size = 3) +
+  geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title = element_text(size = 8)) +
+  scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
+  coord_cartesian(xlim = c(-0.45, 0.45))
+f1b
+dev.off()
+
+knitr::include_graphics(here("results", "FigS1_RGB.png"))
+
 ```
 
 
@@ -668,7 +719,7 @@ f2argb <- ggplot(data = subset(plot_data_ame, weight == "m"), aes(x = factor(gro
         plot.margin = unit(c(0, 0.5, 0.5, 0.5), "cm"),
         legend.position = "none")
 
-f2a
+f2argb
 
 #dev.off()
 
@@ -764,13 +815,13 @@ f2brgb
 ```{r densA}
 densityA <- ggplot(df, aes(x = AME)) +
   stat_density(fill = "grey70", alpha = 0.7) +
-  labs(x = NULL, y = "Density", title = "A. Team-level results") +  
+  labs(x = NULL, y = "Density", title = "A. Team-model level results") +  
   geom_segment(x = coeff_group1 + weighted_mean_ame_group2m, xend = coeff_group1 + weighted_mean_ame_group2m,
                y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors_classic[1]) +
   geom_segment(x = coeff_group3 + weighted_mean_ame_group2m, xend = coeff_group3 + weighted_mean_ame_group2m,
                y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors_classic[3]) +
   annotate("text", y = 30, x = coeff_group1 + weighted_mean_ame_group2m, label = paste(rank_coeff_group1,"th","\npercentile", sep = ""), hjust = 1, size = 2.5, color = colors_classic[1]) +
-  annotate("text", y = 30, x = coeff_group3 + weighted_mean_ame_group2m, label = paste(rank_coeff_group3,"st","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors_classic[3]) +
+  annotate("text", y = 30, x = coeff_group3 + weighted_mean_ame_group2m, label = paste(rank_coeff_group3,"th","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors_classic[3]) +
   xlim(-0.119,0.06) +
   theme_classic() +
   theme(
@@ -791,7 +842,7 @@ densityA
 ```{r densB}
 densityB <- ggplot(df_dyad, aes(x = AME)) +
   stat_density(fill = "grey70", alpha = 0.7) +
-  labs(x = NULL, y = "Density", title = "B. Researcher-model dyads results") +  
+  labs(x = NULL, y = "Density", title = "B. Researcher-model dyad results") +  
   xlim(-0.079,0.039) +
   geom_segment(x = coeff_group1d + weighted_mean_ame_group2m_dyad, xend = coeff_group1d + weighted_mean_ame_group2m_dyad,
                y = 0, yend = 21, linetype = "dashed", size = 0.2, color = colors_classic[1]) +

@@ -58,20 +58,86 @@ df <- cri %>%
 
 ```
 
+
+### What is the N?
+The N is 158. But there is an error in the team_size variable from the original study. The error is that the team_size for teamid == 93 is currently 2, but actually there were 3, and the team_size for teamid == 94 is currently 2, but there was only 1. 
+
+```{r cases}
+
+# valid cases from the PIs
+valid_id <- read_csv(here("data", "valid_ids.csv")) %>%
+  subset(u_teamid %in% df$u_teamid)
+
+team_size_check <- valid_id %>%
+  group_by(u_teamid) %>%
+  mutate(team_size_check = n()) %>%
+  select(-u_id) %>%
+  summarise_all(mean)
+
+df <- df %>%
+  left_join(team_size_check, by = "u_teamid")
+
+df <- df %>%
+  mutate(team_size_not_correct = ifelse(team_size - team_size_check == 0, 0, 1))
+
+df$u_teamid[df$team_size_not_correct == 1]
+
+df$team_size[df$u_teamid == 93]
+
+df$team_size_check[df$u_teamid == 93]
+
+df$team_size[df$u_teamid == 94]
+
+df$team_size_check[df$u_teamid == 94]
+
+# recode team_size to the correct sizes (two errors)
+df <- df %>%
+  mutate(team_size = ifelse(u_teamid == 93, 3,
+                            ifelse(u_teamid == 94, 1, team_size)))
+
+df_dyad <- df_dyad %>%
+  mutate(team_size = ifelse(u_teamid == 93, 3,
+                            ifelse(u_teamid == 94, 1, team_size)))
+
+total_participants <- df %>%
+  distinct(u_teamid, team_size) %>%
+  summarise(total_participants = sum(team_size, na.rm = TRUE))
+
+```
+
 ### Recoding
 
 1. Generate percent of team that are male (impute 0.67 for the team with missing, see Borjas Stata explanation)
 2. Generate implied standard error as ame/z
 3. Generate degree combinations (see Stata code for logic)
+
+Step 1: start with discipline of first author, the mdegree variable goes from 0 to 7 
+
+Step 2: reset the value of mdegree to 20 if the team has 2 people with different disciplines
+
+Step 3: reset the value of mdegree to 33 if the team has two sociologists, and a sociologist lead author
+	reset the value to 34 if the team has two political scientists, and a political scientist lead author
+	reset the value to 35 if the team has two sociologists, but a poli sci lead author
+	reset the value to 36 if the team has two political scientists, but a sociology lead author
+	reset the value to 40 if there is some other combination for 3-person teams 
+
+This would be the code:
+
+generate mdegree=degree1;
+replace mdegree=0 if counter2==3005;
+replace mdegree=20 if counter2==2204 | counter2==2306 | counter2==2504 | counter2==2703;
+replace mdegree=33 if counter2==3323 | counter2==3336 | counter2==3343;
+replace mdegree=34 if counter2==3414 | counter2==3443;
+replace mdegree=35 if counter2==3433;
+replace mdegree=36 if counter2==3344;
+replace mdegree=40 if counter2==3244 | counter2==3654;
+
 4. Generate pro-immigration and team-index
 5. Generate topic_knowledge and stat_skill (impute one missing team, see Stata)
 6. Generate belief in hypothesis variables
 
 
 ```{r recode}
-
-
-
 
 df <- df %>%
   mutate(p1_male = case_when(v_1101 == 2 ~ 0,
@@ -90,33 +156,21 @@ df <- df %>%
          d3 = ifelse(is.na(backgr_degree3), 0, as.numeric(backgr_degree3)),
          counter = d1*100 + d2*10 + d3,
          counter2 = team_size*1000 + counter,
-         mdegree = ifelse(counter2 == 1100, 1, NA),
+         mdegree = backgr_degree1,
          mdegree = case_when(
-           counter2 == 1100 ~ 1,
-           counter2 == 1200 ~ 2,
-           counter2 == 1300 ~ 3,
-           counter2 == 2303 ~ 3,
-           counter2 == 3333 ~ 3,
-           counter2 == 1400 ~ 4,
-           counter2 == 2400 ~ 4,
-           counter2 == 2404 ~ 4,
-           counter2 == 3444 ~ 4,
-           counter2 == 1500 ~ 5,
-           counter2 == 2505 ~ 5,
-           counter2 == 3555 ~ 5,
-           counter2 == 1600 ~ 6,
-           counter2 == 2606 ~ 6,
-           team_size == 2 & is.na(mdegree) ~ 20,
-           counter2 == 2606 ~ 20,
-           team_size == 3 & is.na(mdegree) & counter2 != 3433 & counter2 != 3344 & counter2 != 3443 & counter2 != 3414 & counter2 != 3244 & counter2 != 3343 & counter2 != 3336 & counter2 != 3323 ~ 30,
-           counter2 == 3323 ~ 31,
-           counter2 == 3336 ~ 31,
-           counter2 == 3343 ~ 31,
-           counter2 == 3244 ~ 32,
-           counter2 == 3414 ~ 32,
-           counter2 == 3443 ~ 32,
-           counter2 == 3344 ~ 33,
-           counter2 == 3433 ~ 34,
+           counter2 == 3005 ~ 0,
+           counter2 == 2204 ~ 20,
+           counter2 == 2306 ~ 20,
+           counter2 == 2504 ~ 20,
+           counter2 == 2703 ~ 20,
+           counter2 == 3323 ~ 33,
+           counter2 == 3336 ~ 33,
+           counter2 == 3343 ~ 33,
+           counter2 == 3414 ~ 34,
+           counter2 == 3443 ~ 34,
+           counter2 == 3433 ~ 35,
+           counter2 == 3344 ~ 36,
+           counter2 == 3654 ~ 36,
            .default = mdegree),
          pro_index = pro_immigrant,
          att1 = 7 - attitude_immigration_11,
@@ -220,7 +274,7 @@ df <- df %>%
 
 The new scores generated here in data/data_prep.
 
-Generate variable for high peer reivew.
+Generate variable for high peer review
 
 ```{r npr}
 
