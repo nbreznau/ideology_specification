@@ -368,11 +368,12 @@ df <- df %>%
          peer_combo_mean = mean(pscore_Z, na.rm = T)) %>%
   ungroup()
 
-df$resid <- df$AME - df$ame_combo_mean
+#df$resid <- df$AME - df$ame_combo_mean
 
 m_3 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
-m_mame <- lm.cluster(formula=resid ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_mame <- lm.cluster(formula=ame_combo_mean ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
 coef_group1 <- m_3$lm_res$coefficients["group1"]
 coef_group3 <- m_3$lm_res$coefficients["group3"]
@@ -429,24 +430,24 @@ df_mame %>%
   geom_errorbar(aes(ymin = coef_group1, ymax = coef_group3, x = 2.75), width = 0.2, color = "grey30", linetype = "dashed", size = 0.3) +
   geom_errorbar(aes(ymin = coef_group1m, ymax = coef_group3m, x = 1.005), width = 0.2, color = "grey30", linetype = "dashed", size = 0.3) +
   annotate("text", x = c(1.005, 2.75),
-           y = c(-0.025,-0.07), 
-           label = c("Difference\n= 0.023", "Difference\n= 0.079"),
+           y = c(-0.06,-0.07), 
+           label = c("Difference\n= 0.057", "Difference\n= 0.083"),
            color = "grey30",
            fontfact = "italic",
            size = 2.5) +
   labs(x = "Variables", y = "Marginal Effects", title = "") +
 
   annotate("text", y = c(-0.1,
-                         -0.068,
+                         -0.1,
                          coef_group1,
                          coef_group3), 
            x = c(3.3,1.5,3.2,2.35),
-           label = c("Main models", "Residuals from expected model outcomes", "Anti-immigration", "Pro-immigration"),
+           label = c("Main model", "Expected AME", "Anti-immigration", "Pro-immigration"),
            color = c("black", "black", colors[c(1,3)]),
            size = c(4,4,3,3)) +
       annotate("label", x = 2,
            y = -0.02,  
-           label = "The expected AME from unique\ncombinations of model components\nexplains 79.1% of the ideology effect",
+           label = "The expected AME from unique\ncombinations of model components\nexplains 68.7% of the ideology effect",
            color = "grey30",  # Set text color to colors_classic[1]
            fill = "white",     # Background fill color of the box
            label.size = 0.5,   # Border thickness
@@ -487,24 +488,24 @@ df_mame %>%
   geom_errorbar(aes(ymin = coef_group1, ymax = coef_group3, x = 2.75), width = 0.2, color = "grey30", linetype = "dashed", size = 0.3) +
   geom_errorbar(aes(ymin = coef_group1m, ymax = coef_group3m, x = 1.005), width = 0.2, color = "grey30", linetype = "dashed", size = 0.3) +
   annotate("text", x = c(1.005, 2.75),
-           y = c(-0.025,-0.07), 
-           label = c("Difference\n= 0.023", "Difference\n= 0.079"),
+           y = c(-0.06,-0.07), 
+           label = c("Difference\n= 0.057", "Difference\n= 0.083"),
            color = "grey30",
            fontfact = "italic",
            size = 2.5) +
   labs(x = "Variables", y = "Marginal Effects", title = "") +
 
   annotate("text", y = c(-0.1,
-                         -0.068,
+                         -0.097,
                          coef_group1,
                          coef_group3), 
            x = c(3.3,1.5,3.2,2.35),
-           label = c("Main models", "Residuals from expected model outcomes", "Anti-immigration", "Pro-immigration"),
+           label = c("Main model", "Expected AME", "Anti-immigration", "Pro-immigration"),
            color = c("black", "black", colors_classic[c(1,3)]),
            size = c(4,4,3,3)) +
       annotate("label", x = 2,
            y = -0.02,  
-           label = "The expected AME from unique\ncombinations of model components\nexplains 79.1% of the ideology effect",
+           label = "The expected AME from unique\ncombinations of model components\nexplains 68.7% of the ideology effect",
            color = "grey30",  # Set text color to colors_classic[1]
            fill = "white",     # Background fill color of the box
            label.size = 0.5,   # Border thickness

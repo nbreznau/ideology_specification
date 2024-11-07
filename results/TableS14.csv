@@ -1,5 +1,5 @@
 V1,V2,V3,V4
 ,Anti-immigration coef.,Pro-immigration coef.,Difference
-Main model (Table S2[3]),-0.049, 0.027,-0.077
-Expected AME,-0.039, 0.013,-0.052
-Percent explained by expected values,,,68.3
+Main model (Table S2[3]),-0.057, 0.026,-0.083
+Expected AME,-0.045, 0.012,-0.057
+Percent explained by expected values,,,68.7

@@ -225,4 +225,41 @@ dev.off()
 knitr::include_graphics(here("results", "Fig4.png"))
 
 ```
+## P-values
+
+```{r p}
+coeff_diff_group1_group2m <- coeff_group1 - weighted_mean_ame_group2m
+coeff_diff_group3_group2m <- coeff_group3 - weighted_mean_ame_group2m
+
+# Standard Errors for the differences
+se_diff_group1_group2m <- sqrt(se_group1^2 + weighted_se_ame_group2m^2)
+se_diff_group3_group2m <- sqrt(se_group3^2 + weighted_se_ame_group2m^2)
+
+# Calculate z-scores
+z_group1_group2m <- coeff_diff_group1_group2m / se_diff_group1_group2m
+z_group3_group2m <- coeff_diff_group3_group2m / se_diff_group3_group2m
+
+# Calculate p-values (two-tailed test)
+p_value_group1_group2m <- 2 * (1 - pnorm(abs(z_group1_group2m)))
+p_value_group3_group2m <- 2 * (1 - pnorm(abs(z_group3_group2m)))
+```
+
+## Citations
+
+```{r cites}
+
+packages %>%
+  map(citation) %>%
+  print(style = "text")
+
+
+```
+
+## Colophon
+
+```{r colo}
+
+sessionInfo()
+
+```
 

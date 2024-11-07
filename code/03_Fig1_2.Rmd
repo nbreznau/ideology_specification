@@ -821,7 +821,7 @@ densityA <- ggplot(df, aes(x = AME)) +
   geom_segment(x = coeff_group3 + weighted_mean_ame_group2m, xend = coeff_group3 + weighted_mean_ame_group2m,
                y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors_classic[3]) +
   annotate("text", y = 30, x = coeff_group1 + weighted_mean_ame_group2m, label = paste(rank_coeff_group1,"th","\npercentile", sep = ""), hjust = 1, size = 2.5, color = colors_classic[1]) +
-  annotate("text", y = 30, x = coeff_group3 + weighted_mean_ame_group2m, label = paste(rank_coeff_group3,"th","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors_classic[3]) +
+  annotate("text", y = 30, x = coeff_group3 + weighted_mean_ame_group2m, label = paste(rank_coeff_group3,"rd","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors_classic[3]) +
   xlim(-0.119,0.06) +
   theme_classic() +
   theme(
@@ -876,6 +876,33 @@ f2
 dev.off()
 
 knitr::include_graphics(here("results", "Fig2.png"))
+
+```
+## SEs for plot
+
+
+```{r ses}
+se_group1
+weighted_se_ame_group2m
+se_group3
+```
+
+## Citations
+
+```{r cites}
+
+packages %>%
+  map(citation) %>%
+  print(style = "text")
+
+
+```
+
+## Colophon
+
+```{r colo}
+
+sessionInfo()
 
 ```
 

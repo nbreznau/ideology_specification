@@ -11,7 +11,7 @@ When studying policy-relevant topics, researchers’ policy preferences may shap
 
 #### Data sources
 
-|
+
 
 
 #### Notes for users

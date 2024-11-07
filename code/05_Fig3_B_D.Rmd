@@ -226,7 +226,7 @@ plot_data_ame %>%
   geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
   labs(x = "Variables", y = "Marginal Effects", title = "") +
   #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
-  ylim(-0.03,0.13) +
+  ylim(-0.04,0.13) +
   annotate("text", y = c(coeff_group1 + weighted_mean_ame_group2m,
                          weighted_mean_ame_group2m,
                          coeff_group3 + weighted_mean_ame_group2m), 
@@ -263,7 +263,7 @@ plot_data_ame %>%
   geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
   labs(x = "Variables", y = "Marginal Effects", title = "") +
   #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
-  ylim(-0.03,0.13) +
+  ylim(-0.04,0.13) +
   annotate("text", y = c(coeff_group1 + weighted_mean_ame_group2m,
                          weighted_mean_ame_group2m,
                          coeff_group3 + weighted_mean_ame_group2m), 
@@ -302,7 +302,7 @@ plot_data_ame_dyad %>%
   geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
   labs(x = "Variables", y = "Marginal Effects", title = "") +
   #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
-  ylim(-0.03,0.13) +
+  ylim(-0.04,0.13) +
   annotate("text", y = c(coeff_group1d + weighted_mean_ame_group2m_dyad,
                          weighted_mean_ame_group2m_dyad,
                          coeff_group3d + weighted_mean_ame_group2m_dyad), 
@@ -339,7 +339,7 @@ plot_data_ame_dyad %>%
   geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
   labs(x = "Variables", y = "Marginal Effects", title = "") +
   #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
-  ylim(-0.03,0.13) +
+  ylim(-0.04,0.13) +
   annotate("text", y = c(coeff_group1d + weighted_mean_ame_group2m_dyad,
                          weighted_mean_ame_group2m_dyad,
                          coeff_group3d + weighted_mean_ame_group2m_dyad), 
@@ -364,6 +364,25 @@ dev.off()
 knitr::include_graphics(here("results", "Fig3D_RGB.png"))
 ```
 
+
+## Citations
+
+```{r cites}
+
+packages %>%
+  map(citation) %>%
+  print(style = "text")
+
+
+```
+
+## Colophon
+
+```{r colo}
+
+sessionInfo()
+
+```
 
 
 

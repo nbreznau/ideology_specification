@@ -396,6 +396,16 @@ m_2 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + 
 
 m_3 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
+diff <- coef(m_3)["group1"] - coef(m_3)["group3"]
+diff_test <- linearHypothesis(m_3, "group1 - group3 = 0")
+
+cov_matrix <- vcov(m_3)
+
+# Calculate the standard error for the difference
+se_diff <- sqrt(cov_matrix["group1", "group1"] + 
+                cov_matrix["group3", "group3"] - 
+                2 * cov_matrix["group1", "group3"])
+
 m_4 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
 m_5 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
@@ -408,6 +418,15 @@ p_1 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + facto
 p_2 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
 p_3 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
+
+diff <- coef(p_3)["group1"] - coef(p_3)["group3"]
+diff_test <- linearHypothesis(p_3, "group1 - group3 = 0")
+
+cov_matrix <- vcov(p_3)
+
+se_diff <- sqrt(cov_matrix["group1", "group1"] + 
+                cov_matrix["group3", "group3"] - 
+                2 * cov_matrix["group1", "group3"])
 
 p_4 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1/df$nmodel, cluster = "u_teamid", data = df)
 
@@ -515,6 +534,9 @@ m_2d <- lm.cluster(formula=AME ~ indiv3 + pbelief + stats_i + topic_i + t2 + t3 
 
 m_3d <- lm.cluster(formula=AME ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
+diff <- coef(m_3d)["indiv1"] - coef(m_3d)["indiv3"]
+diff_test <- linearHypothesis(m_3d, "indiv1 - indiv3 = 0")
+
 m_4d <- lm.cluster(formula=AME ~ indiv1 + indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
 m_5d <- lm.cluster(formula=AME ~ att + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
@@ -605,7 +627,7 @@ Table_3[c(29,27,23,25),8] <- sprintf("(%s)", format(round(as.numeric(summary(p_6
 # R-squared, Log-Likelihood, and AIC for p_ models
 Table_3[32,2:8] <- c(r2ext(null_pd), r2ext(p_1d), r2ext(p_2d), r2ext(p_3d), r2ext(p_4d), r2ext(p_5d), r2ext(p_6d))
 
-Table_3[30,2:8] <- round(c(logLik(null_pld), logLik(p_1ld), logLik(p_2ld), logLik(p_3ld), logLik(p_4ld), logLik(p_5ld), logLik(p_6ld)))
+Table_3[30,2:8] <- round(c(logLik(null_pld), logLik(p_1ld), logLik(p_2ld), logLik(p_3ld), logLik(p_4ld), logLik(p_5ld), logLik(p_6ld)),2)
 
 Table_3[31,2:8] <- round(c(AIC((null_pld)), AIC(p_1ld), AIC(p_2ld), AIC(p_3ld), AIC(p_4ld), AIC(p_5ld), AIC(p_6ld)),2)
 
@@ -754,6 +776,10 @@ m_2n <- lm.cluster(formula=neg10s ~ group3 + pbelief + stats_brw + topic_brw + t
 
 m_3n <- lm.cluster(formula=neg10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
+diff <- coef(m_3n)["group1"] - coef(m_3n)["group3"]
+diff_test <- linearHypothesis(m_3n, "group1 - group3 = 0")
+
+
 m_4n <- lm.cluster(formula=neg10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
 m_5n <- lm.cluster(formula=neg10s ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
@@ -874,6 +900,10 @@ m_1p <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + f
 m_2p <- lm.cluster(formula=pos10s ~ group1 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
 m_3p <- lm.cluster(formula=pos10s ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+diff <- coef(m_3p)["group1"] - coef(m_3p)["group3"]
+diff_test <- linearHypothesis(m_3p, "group1 - group3 = 0")
+
 
 m_4p <- lm.cluster(formula=pos10s ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
@@ -996,6 +1026,9 @@ m_2dn <- lm.cluster(formula=neg10s ~ indiv3 + pbelief + stats_i + topic_i + t2 +
 
 m_3dn <- lm.cluster(formula=neg10s ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
+diff <- coef(m_3dn)["indiv1"] - coef(m_3dn)["indiv3"]
+diff_test <- linearHypothesis(m_3dn, "indiv1 - indiv3 = 0")
+
 m_4dn <- lm.cluster(formula=neg10s ~ indiv1 + indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
 m_5dn <- lm.cluster(formula=neg10s ~ att + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
@@ -1117,6 +1150,9 @@ m_1dp <- lm.cluster(formula=pos10s ~ indiv1 + stats_i + topic_i + t2 + t3 + fact
 m_2dp <- lm.cluster(formula=pos10s ~ indiv1 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
 m_3dp <- lm.cluster(formula=pos10s ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
+
+diff <- coef(m_3dp)["indiv1"] - coef(m_3dp)["indiv3"]
+diff_test <- linearHypothesis(m_3dp, "indiv1 - indiv3 = 0")
 
 m_4dp <- lm.cluster(formula=pos10s ~ indiv1 + indiv3 + pbelief + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight, cluster = "u_teamid", data = df_dyad)
 
@@ -1484,6 +1520,10 @@ m_2.2 <- lm.cluster(formula=AME ~ group3 + pbelief + stats_brw + topic_brw + t2 
 
 m_3.2 <- lm.cluster(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, cluster = "u_teamid", data = df.2)
 
+diff <- coef(m_3.2)["group1"] - coef(m_3.2)["group3"]
+diff_test <- linearHypothesis(m_3.2, "group1 - group3 = 0")
+
+
 m_4.2 <- lm.cluster(formula=AME ~ group1 + group3 + pbelief + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, cluster = "u_teamid", data = df.2)
 
 m_5.2 <- lm.cluster(formula=AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df.2$nmodel, cluster = "u_teamid", data = df.2)
@@ -1616,6 +1656,149 @@ kable(Table_15, col.names = c("","","","","","","",""))
 
 ```
 
+## Fig S2
+
+Collect all coefficients and standard errors and put them in a spec curve
+
+### Extract coef
+
+```{r figs2}
+# extract coef
+numg <- function(df, row, col) {
+  value <- df[row, col]
+  value <- gsub("\\*$", "", value)
+  numeric_value <- as.numeric(value)
+  return(numeric_value)
+}
+
+# extract SE
+nums <- function(df, row, col) {
+  value <- df[row, col]
+  numeric_value <- as.numeric(gsub("[()]", "", value))
+  return(numeric_value)
+}
+
+
+
+
+Table_FS2 <- as.data.frame(matrix(nrow = 108, ncol = 5))
+
+colnames(Table_FS2) <- c("Tbl", "coef", "se", "dv", "dyad")
+
+Table_FS2[,1] <- c(rep("T2", 12), rep("T3", 12), rep("T5", 12), rep("T6", 12), rep("T7", 12), rep("T8", 12), rep("T15", 12), rep("T4", 24))
+
+Table_FS2[,4] <- c(rep(c("one_group", "one_group", "two_group", "two_group", "index", "index"), 14), rep(c("index", "index", "percent_pro", "percent_pro", "percent_pro", "one_group", "one_group", "percent_pro", "percent_pro", "percent_pro", "two_group", "two_group"), 2))
+
+Table_FS2[,5] <- c(rep(0, 12), rep(1, 12), rep(0,12), rep(0,12), rep(1,12), rep(1,12), rep(0,12), rep(0,24))
+
+Table_FS2[,2] <- c(
+  # Table 2
+  numg(Table_2,4,3), numg(Table_2,4,4), (numg(Table_2,4,5) - numg(Table_2,2,5)), (numg(Table_2,4,6) - numg(Table_2,2,6)), numg(Table_2,12,7), numg(Table_2,12,8),
+  numg(Table_2,20,3), numg(Table_2,20,4), (numg(Table_2,20,5) - numg(Table_2,18,5)), (numg(Table_2,20,6) - numg(Table_2,18,6)), numg(Table_2,28,7), numg(Table_2,28,8),
+  # Table 3
+  numg(Table_3,4,3), numg(Table_3,4,4), (numg(Table_3,4,5) - numg(Table_3,2,5)), (numg(Table_3,4,6) - numg(Table_3,2,6)), numg(Table_3,12,7), numg(Table_3,12,8),
+  numg(Table_3,20,3), numg(Table_3,20,4), (numg(Table_3,20,5) - numg(Table_3,18,5)), (numg(Table_3,20,6) - numg(Table_3,18,6)), numg(Table_3,28,7), numg(Table_3,28,8),
+  # Table 5
+  numg(Table_5,4,3), numg(Table_5,4,4), (numg(Table_5,4,5) - numg(Table_5,2,5)), (numg(Table_5,4,6) - numg(Table_5,2,6)), numg(Table_5,12,7), numg(Table_5,12,8),
+  numg(Table_5,20,3), numg(Table_5,20,4), (numg(Table_5,20,5) - numg(Table_5,18,5)), (numg(Table_5,20,6) - numg(Table_5,18,6)), numg(Table_5,28,7), numg(Table_5,28,8),
+  # Table 6
+  numg(Table_6,2,3), numg(Table_6,2,4), (numg(Table_6,4,5) - numg(Table_6,2,5)), (numg(Table_6,4,6) - numg(Table_6,2,6)), numg(Table_6,12,7), numg(Table_6,12,8),
+  numg(Table_6,18,3), numg(Table_6,18,4), (numg(Table_6,20,5) - numg(Table_6,18,5)), (numg(Table_6,20,6) - numg(Table_6,18,6)), numg(Table_6,28,7), numg(Table_6,28,8),
+  # Table 7
+  numg(Table_7,4,3), numg(Table_7,4,4), (numg(Table_7,4,5) - numg(Table_7,2,5)), (numg(Table_7,4,6) - numg(Table_7,2,6)), numg(Table_7,12,7), numg(Table_7,12,8),
+  numg(Table_7,20,3), numg(Table_7,20,4), (numg(Table_7,20,5) - numg(Table_7,18,5)), (numg(Table_7,20,6) - numg(Table_7,18,6)), numg(Table_7,28,7), numg(Table_7,28,8),
+  # Table 8
+  numg(Table_8,2,3), numg(Table_8,2,4), (numg(Table_8,4,5) - numg(Table_8,2,5)), (numg(Table_8,4,6) - numg(Table_8,2,6)), numg(Table_8,12,7), numg(Table_8,12,8),
+  numg(Table_8,18,3), numg(Table_8,18,4), (numg(Table_8,20,5) - numg(Table_8,18,5)), (numg(Table_8,20,6) - numg(Table_8,18,6)), numg(Table_8,28,7), numg(Table_8,28,8),
+  # Table 15
+  numg(Table_15,4,3), numg(Table_15,4,4), (numg(Table_15,4,5) - numg(Table_15,2,5)), (numg(Table_15,4,6) - numg(Table_15,2,6)), numg(Table_15,12,7), numg(Table_15,12,8),
+  numg(Table_15,20,3), numg(Table_15,20,4), (numg(Table_15,20,5) - numg(Table_15,18,5)), (numg(Table_15,20,6) - numg(Table_15,18,6)), numg(Table_15,28,7), numg(Table_15,28,8),
+  # Table 4
+  numg(Table_4,3,3), numg(Table_4,3,4), numg(Table_4,5,2), numg(Table_4,5,3), numg(Table_4,5,4), numg(Table_4,7,3), numg(Table_4,7,4), numg(Table_4,12,2), numg(Table_4,12,3), numg(Table_4,12,4), numg(Table_4,17,3), numg(Table_4,17,4),
+  numg(Table_4,21,3), numg(Table_4,21,4), numg(Table_4,23,2), numg(Table_4,23,3), numg(Table_4,23,4), numg(Table_4,25,3), numg(Table_4,25,4), numg(Table_4,30,2), numg(Table_4,30,3), numg(Table_4,30,4), numg(Table_4,35,3), numg(Table_4,35,4)
+)
+
+# standard errors
+Table_FS2[,3] <- c(
+  # Table 2
+  nums(Table_2,5,3), nums(Table_2,5,4), (nums(Table_2,5,5) - nums(Table_2,3,5)), (nums(Table_2,5,6) - nums(Table_2,3,6)), nums(Table_2,13,7), nums(Table_2,13,8),
+  nums(Table_2,21,3), nums(Table_2,21,4), (nums(Table_2,21,5) - nums(Table_2,19,5)), (nums(Table_2,21,6) - nums(Table_2,19,6)), nums(Table_2,29,7), nums(Table_2,29,8),
+  # Table 3
+  nums(Table_3,5,3), nums(Table_3,5,4), (nums(Table_3,5,5) - nums(Table_3,3,5)), (nums(Table_3,5,6) - nums(Table_3,3,6)), nums(Table_3,13,7), nums(Table_3,13,8),
+  nums(Table_3,21,3), nums(Table_3,21,4), (nums(Table_3,21,5) - nums(Table_3,19,5)), (nums(Table_3,21,6) - nums(Table_3,19,6)), nums(Table_3,29,7), nums(Table_3,29,8),
+  # Table 5
+  nums(Table_5,5,3), nums(Table_5,5,4), (nums(Table_5,5,5) - nums(Table_5,3,5)), (nums(Table_5,5,6) - nums(Table_5,3,6)), nums(Table_5,13,7), nums(Table_5,13,8),
+  nums(Table_5,21,3), nums(Table_5,21,4), (nums(Table_5,21,5) - nums(Table_5,19,5)), (nums(Table_5,21,6) - nums(Table_5,19,6)), nums(Table_5,29,7), nums(Table_5,29,8),
+  # Table 6
+  nums(Table_6,3,3), nums(Table_6,3,4), (nums(Table_6,5,5) - nums(Table_6,3,5)), (nums(Table_6,5,6) - nums(Table_6,3,6)), nums(Table_6,13,7), nums(Table_6,13,8),
+  nums(Table_6,19,3), nums(Table_6,19,4), (nums(Table_6,21,5) - nums(Table_6,19,5)), (nums(Table_6,21,6) - nums(Table_6,19,6)), nums(Table_6,29,7), nums(Table_6,29,8),
+  # Table 7
+  nums(Table_7,5,3), nums(Table_7,5,4), (nums(Table_7,5,5) - nums(Table_7,3,5)), (nums(Table_7,5,6) - nums(Table_7,3,6)), nums(Table_7,13,7), nums(Table_7,13,8),
+  nums(Table_7,21,3), nums(Table_7,21,4), (nums(Table_7,21,5) - nums(Table_7,19,5)), (nums(Table_7,21,6) - nums(Table_7,19,6)), nums(Table_7,29,7), nums(Table_7,29,8),
+  # Table 8
+  nums(Table_8,3,3), nums(Table_8,3,4), (nums(Table_8,5,5) - nums(Table_8,3,5)), (nums(Table_8,5,6) - nums(Table_8,3,6)), nums(Table_8,13,7), nums(Table_8,13,8),
+  nums(Table_8,19,3), nums(Table_8,19,4), (nums(Table_8,21,5) - nums(Table_8,19,5)), (nums(Table_8,21,6) - nums(Table_8,19,6)), nums(Table_8,29,7), nums(Table_8,29,8),
+  # Table 15
+  nums(Table_15,5,3), nums(Table_15,5,4), (nums(Table_15,5,5) - nums(Table_15,3,5)), (nums(Table_15,5,6) - nums(Table_15,3,6)), nums(Table_15,13,7), nums(Table_15,13,8),
+  nums(Table_15,21,3), nums(Table_15,21,4), (nums(Table_15,21,5) - nums(Table_15,19,5)), (nums(Table_15,21,6) - nums(Table_15,19,6)), nums(Table_15,29,7), nums(Table_15,29,8),
+  # Table 4
+  nums(Table_4,4,3), nums(Table_4,4,4), nums(Table_4,6,2), nums(Table_4,6,3), nums(Table_4,6,4), nums(Table_4,8,3), nums(Table_4,8,4), nums(Table_4,13,2), nums(Table_4,13,3), nums(Table_4,13,4), nums(Table_4,18,3), nums(Table_4,18,4),
+  nums(Table_4,22,3), nums(Table_4,22,4), nums(Table_4,24,2), nums(Table_4,24,3), nums(Table_4,24,4), nums(Table_4,26,3), nums(Table_4,26,4), nums(Table_4,31,2), nums(Table_4,31,3), nums(Table_4,31,4), nums(Table_4,36,3), nums(Table_4,36,4)
+)
+
+Table_FS2 <- Table_FS2 %>%
+  mutate(coef = abs(coef),
+    ci_lower = coef - 1.645 * se,
+    ci_upper = coef + 1.645 * se
+  ) %>%
+  arrange(coef) %>%
+  mutate(specification = row_number(),
+         crosses_zero = ci_lower < 0 & ci_upper > 0)
+
+Table_FS2$dv <- factor(Table_FS2$dv, levels = c("index", "percent_pro", "one_group", "two_group" ))
+
+
+
+```
+
+### Build Fig
+
+```{r figs2b}
+
+
+
+# Create the upper plot (point estimates with error bars for 90% CI)
+upper_plot <- ggplot(Table_FS2, aes(x = specification, y = coef)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = ci_lower, ymax = ci_upper), width = 0.2) +
+  labs(title = "",
+       x = "", y = "Coefficient") +
+  geom_hline(yintercept = 0, color = "grey30", linetype = "dashed") +
+  theme_classic() +
+  theme(axis.text.x = element_blank(), axis.ticks.x = element_blank())
+
+# Create the lower plot (categories for "dv" and "dyad" indicator)
+lower_plot <- ggplot(Table_FS2, aes(x = specification, y = dv, fill = factor(dyad))) +
+  geom_tile() +
+  scale_fill_manual(values = c("0" = "lightgray", "1" = "black"), name = "Dyad") +
+  labs(x = "Specification (Ordered by Coefficient)", y = "DV Category") +
+  theme_classic() 
+
+
+```
+
+### Plot fig
+
+```{r plotfigs2}
+agg_png(here("results", "FigS2.png"), res = 144, height = 800, width = 1000)
+
+ggarrange(upper_plot, lower_plot, heights = c(2,1), nrow = 2, ncol = 1, align = "v")
+
+dev.off()
+
+knitr::include_graphics(here("results", "FigS2.png"))
+```
+
 ## Save Regression Estimates
 
 ```{r savereg}
@@ -1631,6 +1814,7 @@ reg_results <- save(m_1, m_3, p_1, p_3, m_1d, m_3d, p_1d, p_3d, m_1n, m_3n, p_1n
 packages %>%
   map(citation) %>%
   print(style = "text")
+
 
 ```
 
