@@ -68,6 +68,10 @@ df_coeff <- data.frame(
 
 weighted.mean(df$peer_mean_Z, w = df$peerweight, na.rm = TRUE)
 
+y_var1 <- round(coeff_group1 + weighted_mean_ame_group2m,3)
+y_var2 <- round(weighted_mean_ame_group2m,3)
+y_var3 <- round(coeff_group3 + weighted_mean_ame_group2m,3)
+
 ```
 
 ## Fig4
@@ -146,6 +150,8 @@ knitr::include_graphics(here("results", "Fig4A_RGB.png"))
 ```{r f4coeff}
 agg_png(here("results", "Fig4B.png"), res = 144, height = 400, width = 800)
 
+
+
 f4b <- df_coeff %>%
   ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
   geom_point() +
@@ -160,6 +166,10 @@ f4b <- df_coeff %>%
            label = c("Anti-immigration", "Moderate", "Pro-immigration"),
            color = colors[1:3],
            size = 3) +
+    geom_text(aes(x = 3.1, y = y_var1, label = format(y_var1, nsmall = 3)), color = colors[1], vjust = -0.5, size = 3) +
+  geom_text(aes(x = 2.1, y = y_var2, label = format(y_var2, nsmall = 3)), color = colors[2], vjust = -0.5, size = 3) +
+  geom_text(aes(x = 1.1, y = y_var3, label = format(y_var3, nsmall = 3)), color = colors[3], vjust = -0.5, size = 3) +
+  # Other ggplot elements
   coord_flip() +
   scale_color_manual(values = colors) +
   theme_classic() +
@@ -196,6 +206,9 @@ f4b <- df_coeff %>%
            label = c("Anti-immigration", "Moderate", "Pro-immigration"),
            color = colors_classic[1:3],
            size = 3) +
+      geom_text(aes(x = 3.1, y = y_var1, label = format(y_var1, nsmall = 3)), color = colors_classic[1], vjust = -0.5, size = 3) +
+  geom_text(aes(x = 2.1, y = y_var2, label = format(y_var2, nsmall = 3)), color = colors_classic[2], vjust = -0.5, size = 3) +
+  geom_text(aes(x = 1.1, y = y_var3, label = format(y_var3, nsmall = 3)), color = colors_classic[3], vjust = -0.5, size = 3) +
   coord_flip() +
   scale_color_manual(values = colors_classic) +
   theme_classic() +

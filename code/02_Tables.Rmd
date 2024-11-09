@@ -32,8 +32,8 @@ packages <- c("tidyverse",
               "lmtest",
               "haven",
               "margins",
-              "survey"
-              #"car"
+              "survey",
+              "car"
               #"numDeriv",
               #"pscl",
               #"mediation"
@@ -1262,83 +1262,22 @@ kable(Table_8, col.names = c("","","","","","","",""))
 
 Stata has a better routine for logit with weights, cluster and margins
 
-### Build Models
+See [logit.log](..code/Stata/logit.log)
 
-```{r t9, warning = F}
+Neg Logit Dyad:
 
+This does not make any sense. Because of the covariance we introduce, the non-linear logit is basically uninterpretable.
 
-
-```
-
-
-### Build Table
-
-Note that logistic models need to have the standard errors adjusted post hoc
-
-```{r t9b}
-
-```
-
-## Table 10. Neg Logit Dyad
+## Table 10. Pos Logit
 
 Stata has a better routine for logit with weights, cluster and margins
 
-### Build Models
-
-```{r t10, warning = F}
+See [logit.log](..code/Stata/logit.log)
 
 
-```
+Individual-dyads are uninterpretable. Not run. 
 
-
-### Build Table
-
-```{r t10b, warning = F}
-
-```
-
-## Table 11. Pos Logit
-
-Stata has a better routine for logit with weights, cluster and margins
-
-### Build Models
-
-```{r t11, warning = F}
-
-
-```
-
-
-### Build Table
-
-```{r t11b, warning = F}
-
-
-```
-
-
-## Table 12. Pos Logit Dyad
-
-Stata has a better routine for logit with weights, cluster and margins
-
-### Build Models
-
-```{r t12, warning = F}
-
-
-
-```
-
-
-### Build Table
-
-```{r t11b}
-
-
-
-```
-
-## Table 13. Referee Score
+## Table 11. Referee Score
 
 ### Build Models
 
@@ -1351,19 +1290,32 @@ Stata has a better routine for logit with weights, cluster and margins
 > min(df$peer_mean_Z[df$quality2 == 1], na.rm = T)
 [1] 1.075595
 
-```{r t13}
+```{r t11}
 
-q_null <- lm(peer_mean_Z ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+q_null <- lm.cluster(peer_mean_Z ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree), cluster = "u_teamid", weights = df$peer_N*1/df$nmodel, data = df)
 
-q_1 <- lm(peer_mean_Z ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+q_1 <- lm.cluster(peer_mean_Z ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), cluster = "u_teamid", weights = df$peer_N*1/df$nmodel, data = df)
 
-q_2 <- lm(peer_mean_Z ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+q_2 <- lm.cluster(peer_mean_Z ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), cluster = "u_teamid", weights = df$peer_N*1/df$nmodel, data = df)
 
-qh_null <- lm(quality2 ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+qh_null <- lm.cluster(quality2 ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree), cluster = "u_teamid", weights = df$peer_N*1/df$nmodel, data = df)
 
-qh_1 <- lm(quality2 ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+qh_1 <- lm.cluster(quality2 ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), cluster = "u_teamid", weights = df$peer_N*1/df$nmodel, data = df)
 
-qh_2 <- lm(quality2 ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+qh_2 <- lm.cluster(quality2 ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), cluster = "u_teamid", weights = df$peer_N*1/df$nmodel, data = df)
+
+# models for LL
+q_nulll <- lm(peer_mean_Z ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree),  weights = df$peer_N*1/df$nmodel, data = df)
+
+q_1l <- lm(peer_mean_Z ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),  weights = df$peer_N*1/df$nmodel, data = df)
+
+q_2l <- lm(peer_mean_Z ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),  weights = df$peer_N*1/df$nmodel, data = df)
+
+qh_nulll <- lm(quality2 ~ + stats_brw + topic_brw + t2 + t3 + factor(mdegree),  weights = df$peer_N*1/df$nmodel, data = df)
+
+qh_1l <- lm(quality2 ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),  weights = df$peer_N*1/df$nmodel, data = df)
+
+qh_2l <- lm(quality2 ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree),  weights = df$peer_N*1/df$nmodel, data = df)
 
 
 
@@ -1372,44 +1324,50 @@ qh_2 <- lm(quality2 ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor
 
 ### Build Table
 
-```{r t13b}
-# Define a function to add an asterisk if p-value < 0.01
+```{r t11b}
 
 
 # Build the table with asterisks for significant coefficients
-Table_13 <- as.data.frame(matrix(nrow = 12, ncol = 7))
-Table_13[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Log-Lik", "AIC", "R-squared")
-Table_13[1,2:7] <- c("Null_1", "(1)", "(2)", "Null_2", "(3)", "(4)")
+Table_11 <- as.data.frame(matrix(nrow = 12, ncol = 7))
+Table_11[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Log-Lik", "AIC", "R-squared")
+Table_11[1,2:7] <- c("Null_1", "(1)", "(2)", "Null_2", "(3)", "(4)")
 
-# Apply the function for each set of coefficients and standard errors
-Table_13[c(6,8),2] <- sapply(2:3, function(i) add_asterisk_if_significant(q_null$coefficients[i], summary(q_null)$coefficients[i, "Std. Error"]))
-Table_13[c(7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(q_null)$coefficients[2:3, "Std. Error"]), 3), nsmall = 3))
+Table_11[c(6,8),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(q_null$lm_res$coefficients[i], summary(q_null)[i,2]))
 
-Table_13[c(4,6,8),3] <- sapply(2:4, function(i) add_asterisk_if_significant(q_1$coefficients[i], summary(q_1)$coefficients[i, "Std. Error"]))
-Table_13[c(5,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(q_1)$coefficients[2:4, "Std. Error"]), 3), nsmall = 3))
+Table_11[c(7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(q_null)[2:3,2]),3), nsmall = 3))
 
-Table_13[c(2,4,6,8),4] <- sapply(2:5, function(i) add_asterisk_if_significant(q_2$coefficients[i], summary(q_2)$coefficients[i, "Std. Error"]))
-Table_13[c(3,5,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(q_2)$coefficients[2:5, "Std. Error"]), 3), nsmall = 3))
+Table_11[c(4,6,8),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(q_1$lm_res$coefficients[i], summary(q_1)[i,2]))
 
-Table_13[c(6,8),5] <- sapply(2:3, function(i) add_asterisk_if_significant(qh_null$coefficients[i], summary(qh_null)$coefficients[i, "Std. Error"]))
-Table_13[c(7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(qh_null)$coefficients[2:3, "Std. Error"]), 3), nsmall = 3))
+Table_11[c(5,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(q_1)[2:4,2]),3), nsmall = 3))
 
-Table_13[c(4,6,8),6] <- sapply(2:4, function(i) add_asterisk_if_significant(qh_1$coefficients[i], summary(qh_1)$coefficients[i, "Std. Error"]))
-Table_13[c(5,7,9),6] <- sprintf("(%s)", format(round(as.numeric(summary(qh_1)$coefficients[2:4, "Std. Error"]), 3), nsmall = 3))
+Table_11[c(2,4,6,8),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(q_2$lm_res$coefficients[i], summary(q_2)[i,2]))
 
-Table_13[c(2,4,6,8),7] <- sapply(2:5, function(i) add_asterisk_if_significant(qh_2$coefficients[i], summary(qh_2)$coefficients[i, "Std. Error"]))
-Table_13[c(3,5,7,9),7] <- sprintf("(%s)", format(round(as.numeric(summary(qh_2)$coefficients[2:5, "Std. Error"]), 3), nsmall = 3))
+Table_11[c(3,5,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(q_2)[2:5,2]),3), nsmall = 3))
+
+
+#quality2
+Table_11[c(6,8),5] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(qh_null$lm_res$coefficients[i], summary(qh_null)[i,2]))
+
+Table_11[c(7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(qh_null)[2:3,2]),3), nsmall = 3))
+
+Table_11[c(4,6,8),6] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(qh_1$lm_res$coefficients[i], summary(qh_1)[i,2]))
+
+Table_11[c(5,7,9),6] <- sprintf("(%s)", format(round(as.numeric(summary(qh_1)[2:4,2]),3), nsmall = 3))
+
+Table_11[c(2,4,6,8),7] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(qh_2$lm_res$coefficients[i], summary(qh_2)[i,2]))
+
+Table_11[c(3,5,7,9),7] <- sprintf("(%s)", format(round(as.numeric(summary(qh_2)[2:5,2]),3), nsmall = 3))
 
 # Add R-squared, Log-Likelihood, and AIC values
-Table_13[12,2:7] <- c(r2x(q_null), r2x(q_1), r2x(q_2), r2x(qh_null), r2x(qh_1), r2x(qh_2))
-Table_13[10,2:7] <- round(c(logLik((q_null)), logLik(q_1), logLik(q_2), logLik(qh_null), logLik(qh_1), logLik(qh_2)), 2)
-Table_13[11,2:7] <- round(c(AIC((q_null)), AIC(q_1), AIC(q_2), AIC(qh_null), AIC(qh_1), AIC(qh_2)), 2)
+Table_11[12,2:7] <- c(r2ext(q_null), r2ext(q_1), r2ext(q_2), r2ext(qh_null), r2ext(qh_1), r2ext(qh_2))
+Table_11[10,2:7] <- round(c(logLik((q_nulll)), logLik(q_1l), logLik(q_2l), logLik(qh_nulll), logLik(qh_1l), logLik(qh_2l)), 2)
+Table_11[11,2:7] <- round(c(AIC((q_nulll)), AIC(q_1l), AIC(q_2l), AIC(qh_nulll), AIC(qh_1l), AIC(qh_2l)), 2)
 
 # Replace NA values with an empty string
-Table_13[is.na(Table_13)] <- ""
+Table_11[is.na(Table_11)] <- ""
 
 # Save the table as a CSV file
-write.csv(Table_13, here::here("results", "TableS13.csv"), row.names = FALSE)
+write.csv(Table_11, here::here("results", "TableS11.csv"), row.names = FALSE)
 
 
 
@@ -1418,11 +1376,11 @@ write.csv(Table_13, here::here("results", "TableS13.csv"), row.names = FALSE)
 ```
 
 
-## Table 14. Expected AME
+## Table 12. Expected AME
 
 ### Build Models
 
-```{r t14}
+```{r t12}
 df <- df %>%
   mutate(unique_combo = paste(Scale, Stock, Flow, level_cyear, allavailable, w1996, w2006, w2016, sep = "_")) %>%
   mutate(indicator = as.numeric(factor(unique_combo)))
@@ -1438,6 +1396,12 @@ df <- df %>%
 #df$resid <- df$AME - df$ame_combo_mean
 
 m_mame <- lm.cluster(formula=ame_combo_mean ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_mamep <- lm.cluster(formula=ame_combo_mean ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1*1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_mame3 <- lm.cluster(formula=ame_combo_mean ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_mamep3 <- lm.cluster(formula=ame_combo_mean ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$pscore_1*1/df$nmodel, cluster = "u_teamid", data = df)
 
 coef_group1 <- m_3$lm_res$coefficients["group1"]
 coef_group3 <- m_3$lm_res$coefficients["group3"]
@@ -1482,34 +1446,40 @@ p_valuem <- 2 * (1 - pnorm(abs(z_scorem)))
 
 ```{r t14b}
 
-Table_14 <- as.data.frame(matrix(ncol = 4, nrow = 4))
+Table_12 <- as.data.frame(matrix(ncol = 5, nrow = 9))
 
-Table_14[1,] <- c("", "Anti-immigration coef.", "Pro-immigration coef.", "Difference")
+Table_12[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "")
 
-Table_14[,1] <- c("", "Main model (Table S2[3])", "Expected AME", "Percent explained by expected values")
+Table_12[1,] <- c("", "(1)", "(2)", "(3)", "(4)")
 
-Table_14[2,2:4] <- format(round(c(coef_group1, coef_group3, coef_diff), 3), nsmall = 3)
+Table_12[c(4,6,8),2] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_mame3$lm_res$coefficients[i], summary(m_mame3)[i, 2]))
+Table_12[c(5,7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(m_mame3)[2:4, 2]), 3), nsmall = 3))
 
-Table_14[3,2:4] <- format(round(c(coef_group1m, coef_group3m, coef_diffm), 3), nsmall = 3)
+Table_12[c(4,6,8),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_mamep3$lm_res$coefficients[i], summary(m_mamep3)[i, 2]))
+Table_12[c(5,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(m_mamep3)[2:4, 2]), 3), nsmall = 3))
 
-Table_14[4,4] <- format(round((coef_diffm/coef_diff)*100,1), nsmall = 1)
+Table_12[c(2,4,6,8),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_mame$lm_res$coefficients[i], summary(m_mame)[i, 2]))
+Table_12[c(3,5,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(m_mame)[2:5, 2]), 3), nsmall = 3))
+
+Table_12[c(2,4,6,8),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_mamep$lm_res$coefficients[i], summary(m_mamep)[i, 2]))
+Table_12[c(3,5,7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(m_mamep)[2:5, 2]), 3), nsmall = 3))
                   
-Table_14[is.na(Table_14)] <- ""
+Table_12[is.na(Table_12)] <- ""
 
 
-write_csv(Table_14, here("results", "TableS14.csv"))
+write_csv(Table_12, here("results", "TableS12.csv"))
 
 
 ```
 
 
-## Table 15. Leave out two teams
+## Table 13. Leave out two teams
 
 Because two teams split between categories with one anti-immigration and two-pro, we run the analyses in TableS2 with them dropped.
 
 ### Build Models
 
-```{r t2rs}
+```{r t13}
 df.2 <- df %>%
   subset(u_teamid != 61 & u_teamid != 64)
 
@@ -1582,76 +1552,76 @@ source(here("code", "Sub", "t2_fit.R"))
 
 ### Build Table
 
-```{r t2r}
+```{r t13b}
 
-# Create the Table_2 dataframe and populate with regression results
-Table_15 <- as.data.frame(matrix(nrow = 32, ncol = 8))
-Table_15[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
-Table_15[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
+
+Table_13 <- as.data.frame(matrix(nrow = 32, ncol = 8))
+Table_13[,1] <- c("Variable", "Anti-immigration team", "", "Pro-immigration team", "", "Statistical skills", "", "Topic experience", "", "Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC",  "R-squared", "", "Anti-immigration team", "", "Pro-immigration team", "",  "Statistical skills", "", "Topic experience", "","Hypothesis prior", "", "Pro-immigration index", "", "Log-Lik", "AIC", "R-squared")
+Table_13[1,2:8] <- c("Null", "(1)", "(2)", "(3)", "(4)", "(5)", "(6)")
 
 # Apply the function for each set of coefficients and standard errors
-Table_15[c(6,8),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_m.2$lm_res$coefficients[i], summary(null_m.2)[i,2]))
-Table_15[c(7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_m.2)[2:3,2]),3), nsmall = 3))
+Table_13[c(6,8),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_m.2$lm_res$coefficients[i], summary(null_m.2)[i,2]))
+Table_13[c(7,9),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_m.2)[2:3,2]),3), nsmall = 3))
 
-Table_15[c(4,6,8),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_1.2$lm_res$coefficients[i], summary(m_1.2)[i,2]))
-Table_15[c(5,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(m_1.2)[2:4,2]),3), nsmall = 3))
+Table_13[c(4,6,8),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_1.2$lm_res$coefficients[i], summary(m_1.2)[i,2]))
+Table_13[c(5,7,9),3] <- sprintf("(%s)", format(round(as.numeric(summary(m_1.2)[2:4,2]),3), nsmall = 3))
 
-Table_15[c(4,10,6,8),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_2.2$lm_res$coefficients[i], summary(m_2.2)[i,2]))
-Table_15[c(5,11,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(m_2.2)[2:5,2]),3), nsmall = 3))
+Table_13[c(4,10,6,8),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_2.2$lm_res$coefficients[i], summary(m_2.2)[i,2]))
+Table_13[c(5,11,7,9),4] <- sprintf("(%s)", format(round(as.numeric(summary(m_2.2)[2:5,2]),3), nsmall = 3))
 
-Table_15[c(2,4,6,8),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_3.2$lm_res$coefficients[i], summary(m_3.2)[i,2]))
-Table_15[c(3,5,7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(m_3.2)[2:5,2]),3), nsmall = 3))
+Table_13[c(2,4,6,8),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_3.2$lm_res$coefficients[i], summary(m_3.2)[i,2]))
+Table_13[c(3,5,7,9),5] <- sprintf("(%s)", format(round(as.numeric(summary(m_3.2)[2:5,2]),3), nsmall = 3))
 
-Table_15[c(2,4,6,8,10),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(m_4.2$lm_res$coefficients[i], summary(m_4.2)[i,2]))
-Table_15[c(3,5,7,9,11),6] <- sprintf("(%s)", format(round(as.numeric(summary(m_4.2)[c(2,3,5,6,4),2]),3), nsmall = 3))
+Table_13[c(2,4,6,8,10),6] <- sapply(c(2,3,5,6,4), function(i) add_asterisk_if_significant_cluster(m_4.2$lm_res$coefficients[i], summary(m_4.2)[i,2]))
+Table_13[c(3,5,7,9,11),6] <- sprintf("(%s)", format(round(as.numeric(summary(m_4.2)[c(2,3,5,6,4),2]),3), nsmall = 3))
 
-Table_15[c(12,6,8),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_5.2$lm_res$coefficients[i], summary(m_5.2)[i,2]))
-Table_15[c(13,7,9),7] <- sprintf("(%s)", format(round(as.numeric(summary(m_5.2)[2:4,2]),3), nsmall = 3))
+Table_13[c(12,6,8),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(m_5.2$lm_res$coefficients[i], summary(m_5.2)[i,2]))
+Table_13[c(13,7,9),7] <- sprintf("(%s)", format(round(as.numeric(summary(m_5.2)[2:4,2]),3), nsmall = 3))
 
-Table_15[c(12,10,6,8),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_6.2$lm_res$coefficients[i], summary(m_6.2)[i,2]))
-Table_15[c(13,11,7,9),8] <- sprintf("(%s)", format(round(as.numeric(summary(m_6.2)[2:5,2]),3), nsmall = 3))
+Table_13[c(12,10,6,8),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(m_6.2$lm_res$coefficients[i], summary(m_6.2)[i,2]))
+Table_13[c(13,11,7,9),8] <- sprintf("(%s)", format(round(as.numeric(summary(m_6.2)[2:5,2]),3), nsmall = 3))
 
 # Add R-squared, Log-Likelihood, and AIC values
-Table_15[16,2:8] <- c(r2ext(null_m.2), r2ext(m_1.2), r2ext(m_2.2), r2ext(m_3.2), r2ext(m_4.2), r2ext(m_5.2), r2ext(m_6.2))
-Table_15[14,2:8] <- round(c(logLik((null_ml.2)), logLik(m_1l.2), logLik(m_2l.2), logLik(m_3l.2), logLik(m_4l.2), logLik(m_5l.2), logLik(m_6l.2)),2)
-Table_15[15,2:8] <- round(c(AIC((null_ml.2)), AIC(m_1l.2), AIC(m_2l.2), AIC(m_3l.2), AIC(m_4l.2), AIC(m_5l.2), AIC(m_6l.2)),2)
+Table_13[16,2:8] <- c(r2ext(null_m.2), r2ext(m_1.2), r2ext(m_2.2), r2ext(m_3.2), r2ext(m_4.2), r2ext(m_5.2), r2ext(m_6.2))
+Table_13[14,2:8] <- round(c(logLik((null_ml.2)), logLik(m_1l.2), logLik(m_2l.2), logLik(m_3l.2), logLik(m_4l.2), logLik(m_5l.2), logLik(m_6l.2)),2)
+Table_13[15,2:8] <- round(c(AIC((null_ml.2)), AIC(m_1l.2), AIC(m_2l.2), AIC(m_3l.2), AIC(m_4l.2), AIC(m_5l.2), AIC(m_6l.2)),2)
 
 # p_ models with add_asterisk_if_significant_cluster function
-Table_15[c(22,24),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_p.2$lm_res$coefficients[i], summary(null_p.2)[i, 2]))
-Table_15[c(23,25),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_p.2)[2:3, 2]), 3), nsmall = 3))
+Table_13[c(22,24),2] <- sapply(2:3, function(i) add_asterisk_if_significant_cluster(null_p.2$lm_res$coefficients[i], summary(null_p.2)[i, 2]))
+Table_13[c(23,25),2] <- sprintf("(%s)", format(round(as.numeric(summary(null_p.2)[2:3, 2]), 3), nsmall = 3))
 
-Table_15[c(20,22,24),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_1.2$lm_res$coefficients[i], summary(p_1.2)[i, 2]))
-Table_15[c(21,23,25),3] <- sprintf("(%s)", format(round(as.numeric(summary(p_1.2)[2:4, 2]), 3), nsmall = 3))
+Table_13[c(20,22,24),3] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_1.2$lm_res$coefficients[i], summary(p_1.2)[i, 2]))
+Table_13[c(21,23,25),3] <- sprintf("(%s)", format(round(as.numeric(summary(p_1.2)[2:4, 2]), 3), nsmall = 3))
 
-Table_15[c(20,26,22,24),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_2.2$lm_res$coefficients[i], summary(p_2.2)[i, 2]))
-Table_15[c(21,27,23,25),4] <- sprintf("(%s)", format(round(as.numeric(summary(p_2.2)[2:5, 2]), 3), nsmall = 3))
+Table_13[c(20,26,22,24),4] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_2.2$lm_res$coefficients[i], summary(p_2.2)[i, 2]))
+Table_13[c(21,27,23,25),4] <- sprintf("(%s)", format(round(as.numeric(summary(p_2.2)[2:5, 2]), 3), nsmall = 3))
 
-Table_15[c(18,20,22,24),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_3.2$lm_res$coefficients[i], summary(p_3.2)[i, 2]))
-Table_15[c(19,21,23,25),5] <- sprintf("(%s)", format(round(as.numeric(summary(p_3.2)[2:5, 2]), 3), nsmall = 3))
+Table_13[c(18,20,22,24),5] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_3.2$lm_res$coefficients[i], summary(p_3.2)[i, 2]))
+Table_13[c(19,21,23,25),5] <- sprintf("(%s)", format(round(as.numeric(summary(p_3.2)[2:5, 2]), 3), nsmall = 3))
 
-Table_15[c(18,20,22,24,26),6] <- sapply(c(2, 3, 5, 6, 4), function(i) add_asterisk_if_significant_cluster(p_4.2$lm_res$coefficients[i], summary(p_4.2)[i, 2]))
-Table_15[c(19,21,23,25,27),6] <- sprintf("(%s)", format(round(as.numeric(summary(p_4.2)[c(2, 3, 5, 6, 4), 2]), 3), nsmall = 3))
+Table_13[c(18,20,22,24,26),6] <- sapply(c(2, 3, 5, 6, 4), function(i) add_asterisk_if_significant_cluster(p_4.2$lm_res$coefficients[i], summary(p_4.2)[i, 2]))
+Table_13[c(19,21,23,25,27),6] <- sprintf("(%s)", format(round(as.numeric(summary(p_4.2)[c(2, 3, 5, 6, 4), 2]), 3), nsmall = 3))
 
-Table_15[c(28,22,24),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_5.2$lm_res$coefficients[i], summary(p_5.2)[i, 2]))
-Table_15[c(29,23,25),7] <- sprintf("(%s)", format(round(as.numeric(summary(p_5.2)[2:4, 2]), 3), nsmall = 3))
+Table_13[c(28,22,24),7] <- sapply(2:4, function(i) add_asterisk_if_significant_cluster(p_5.2$lm_res$coefficients[i], summary(p_5.2)[i, 2]))
+Table_13[c(29,23,25),7] <- sprintf("(%s)", format(round(as.numeric(summary(p_5.2)[2:4, 2]), 3), nsmall = 3))
 
-Table_15[c(28,26,22,24),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_6.2$lm_res$coefficients[i], summary(p_6.2)[i, 2]))
-Table_15[c(29,27,23,25),8] <- sprintf("(%s)", format(round(as.numeric(summary(p_6.2)[2:5, 2]), 3), nsmall = 3))
+Table_13[c(28,26,22,24),8] <- sapply(2:5, function(i) add_asterisk_if_significant_cluster(p_6.2$lm_res$coefficients[i], summary(p_6.2)[i, 2]))
+Table_13[c(29,27,23,25),8] <- sprintf("(%s)", format(round(as.numeric(summary(p_6.2)[2:5, 2]), 3), nsmall = 3))
 
 # Add R-squared, Log-Likelihood, and AIC values
-Table_15[32,2:8] <- c(r2ext(null_p.2), r2ext(p_1.2), r2ext(p_2.2), r2ext(p_3.2), r2ext(p_4.2), r2ext(p_5.2), r2ext(p_6.2))
-Table_15[30,2:8] <- round(c(logLik((null_pl.2)), logLik(p_1l.2), logLik(p_2l.2), logLik(p_3l.2), logLik(p_4l.2), logLik(p_5l.2), logLik(p_6l.2)), 2)
-Table_15[31,2:8] <- round(c(AIC((null_pl.2)), AIC(p_1l.2), AIC(p_2l.2), AIC(p_3l.2), AIC(p_4l.2), AIC(p_5l.2), AIC(p_6l.2)), 2)
+Table_13[32,2:8] <- c(r2ext(null_p.2), r2ext(p_1.2), r2ext(p_2.2), r2ext(p_3.2), r2ext(p_4.2), r2ext(p_5.2), r2ext(p_6.2))
+Table_13[30,2:8] <- round(c(logLik((null_pl.2)), logLik(p_1l.2), logLik(p_2l.2), logLik(p_3l.2), logLik(p_4l.2), logLik(p_5l.2), logLik(p_6l.2)), 2)
+Table_13[31,2:8] <- round(c(AIC((null_pl.2)), AIC(p_1l.2), AIC(p_2l.2), AIC(p_3l.2), AIC(p_4l.2), AIC(p_5l.2), AIC(p_6l.2)), 2)
 
 
 # Replace NA values with an empty string
-Table_15[is.na(Table_15)] <- ""
+Table_13[is.na(Table_13)] <- ""
 
 # Write the table to CSV
-write.csv(Table_15, here::here("results", "TableS15.csv"), row.names = FALSE)
+write.csv(Table_13, here::here("results", "TableS13.csv"), row.names = FALSE)
 
 # Display the table
-kable(Table_15, col.names = c("","","","","","","",""))
+kable(Table_13, col.names = c("","","","","","","",""))
 
 
 ```
