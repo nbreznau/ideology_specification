@@ -1,17 +1,17 @@
 ---
-title: "02 Analyses"
-output: false
+title: "02. Tables"
+output: html_document
 ---
 Replication workflow for:
 
-"Ideological Bias in Estimates of the Impact of Immigration"
+"Ideological bias in the production of research findings"
 
 [George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
 [Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
 
-The original workflow was developed by Borjas using Stata (see `reg_model.do` in this repository), and this workflow is an identical set of analyses by Breznau done in R. 
+Initial analyses performed in Stata (see `reg_model.do` in this repository), then final workflow developed in R, except for logit models which were left in Stata because it has a better package for handling weighting, clustering and predicting margins. 
 
-The file `df.rds` (also available as csv) was generated in the file `01_Data_Prep.Rmd`.
+The file `df.rds` and `df_dyad.rds` (also available as csv) were generated in the file `01_Data_Prep.Rmd`.
 
 ## Setup
 
@@ -24,19 +24,15 @@ packages <- c("tidyverse",
               "miceadds",
               "pacman",
               "here",
-              #"jtools",
-              #"sjPlot",
+              "ragg",
               "stringr",
               "sandwich",
-              #"clubSandwich",
               "lmtest",
               "haven",
               "margins",
               "survey",
-              "car"
-              #"numDeriv",
-              #"pscl",
-              #"mediation"
+              "car",
+              "ggpubr"
               )
 
 pacman::p_load(packages, character.only = T)
@@ -1680,9 +1676,9 @@ Table_FS2[,2] <- c(
   # Table 8
   numg(Table_8,2,3), numg(Table_8,2,4), (numg(Table_8,4,5) - numg(Table_8,2,5)), (numg(Table_8,4,6) - numg(Table_8,2,6)), numg(Table_8,12,7), numg(Table_8,12,8),
   numg(Table_8,18,3), numg(Table_8,18,4), (numg(Table_8,20,5) - numg(Table_8,18,5)), (numg(Table_8,20,6) - numg(Table_8,18,6)), numg(Table_8,28,7), numg(Table_8,28,8),
-  # Table 15
-  numg(Table_15,4,3), numg(Table_15,4,4), (numg(Table_15,4,5) - numg(Table_15,2,5)), (numg(Table_15,4,6) - numg(Table_15,2,6)), numg(Table_15,12,7), numg(Table_15,12,8),
-  numg(Table_15,20,3), numg(Table_15,20,4), (numg(Table_15,20,5) - numg(Table_15,18,5)), (numg(Table_15,20,6) - numg(Table_15,18,6)), numg(Table_15,28,7), numg(Table_15,28,8),
+  # Table 13
+  numg(Table_13,4,3), numg(Table_13,4,4), (numg(Table_13,4,5) - numg(Table_13,2,5)), (numg(Table_13,4,6) - numg(Table_13,2,6)), numg(Table_13,12,7), numg(Table_13,12,8),
+  numg(Table_13,20,3), numg(Table_13,20,4), (numg(Table_13,20,5) - numg(Table_13,18,5)), (numg(Table_13,20,6) - numg(Table_13,18,6)), numg(Table_13,28,7), numg(Table_13,28,8),
   # Table 4
   numg(Table_4,3,3), numg(Table_4,3,4), numg(Table_4,5,2), numg(Table_4,5,3), numg(Table_4,5,4), numg(Table_4,7,3), numg(Table_4,7,4), numg(Table_4,12,2), numg(Table_4,12,3), numg(Table_4,12,4), numg(Table_4,17,3), numg(Table_4,17,4),
   numg(Table_4,21,3), numg(Table_4,21,4), numg(Table_4,23,2), numg(Table_4,23,3), numg(Table_4,23,4), numg(Table_4,25,3), numg(Table_4,25,4), numg(Table_4,30,2), numg(Table_4,30,3), numg(Table_4,30,4), numg(Table_4,35,3), numg(Table_4,35,4)
@@ -1708,9 +1704,9 @@ Table_FS2[,3] <- c(
   # Table 8
   nums(Table_8,3,3), nums(Table_8,3,4), (nums(Table_8,5,5) - nums(Table_8,3,5)), (nums(Table_8,5,6) - nums(Table_8,3,6)), nums(Table_8,13,7), nums(Table_8,13,8),
   nums(Table_8,19,3), nums(Table_8,19,4), (nums(Table_8,21,5) - nums(Table_8,19,5)), (nums(Table_8,21,6) - nums(Table_8,19,6)), nums(Table_8,29,7), nums(Table_8,29,8),
-  # Table 15
-  nums(Table_15,5,3), nums(Table_15,5,4), (nums(Table_15,5,5) - nums(Table_15,3,5)), (nums(Table_15,5,6) - nums(Table_15,3,6)), nums(Table_15,13,7), nums(Table_15,13,8),
-  nums(Table_15,21,3), nums(Table_15,21,4), (nums(Table_15,21,5) - nums(Table_15,19,5)), (nums(Table_15,21,6) - nums(Table_15,19,6)), nums(Table_15,29,7), nums(Table_15,29,8),
+  # Table 13
+  nums(Table_13,5,3), nums(Table_13,5,4), (nums(Table_13,5,5) - nums(Table_13,3,5)), (nums(Table_13,5,6) - nums(Table_13,3,6)), nums(Table_13,13,7), nums(Table_13,13,8),
+  nums(Table_13,21,3), nums(Table_13,21,4), (nums(Table_13,21,5) - nums(Table_13,19,5)), (nums(Table_13,21,6) - nums(Table_13,19,6)), nums(Table_13,29,7), nums(Table_13,29,8),
   # Table 4
   nums(Table_4,4,3), nums(Table_4,4,4), nums(Table_4,6,2), nums(Table_4,6,3), nums(Table_4,6,4), nums(Table_4,8,3), nums(Table_4,8,4), nums(Table_4,13,2), nums(Table_4,13,3), nums(Table_4,13,4), nums(Table_4,18,3), nums(Table_4,18,4),
   nums(Table_4,22,3), nums(Table_4,22,4), nums(Table_4,24,2), nums(Table_4,24,3), nums(Table_4,24,4), nums(Table_4,26,3), nums(Table_4,26,4), nums(Table_4,31,2), nums(Table_4,31,3), nums(Table_4,31,4), nums(Table_4,36,3), nums(Table_4,36,4)

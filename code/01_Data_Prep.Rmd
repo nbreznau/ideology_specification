@@ -1,15 +1,15 @@
 ---
-title: "01 Data Prep"
-output: false
+title: "01. Data Prep"
+output: html_document
 ---
 Replication workflow for:
 
-"Ideological Bias in Estimates of the Impact of Immigration"
+"Ideological bias in the production of research findings"
 
 [George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
 [Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
 
-The original workflow was developed by Borjas using Stata (see `reg_model.do` in this repository), and this workflow is an identical set of analyses by Breznau done in R. 
+Initial analyses performed in Stata (see `reg_model.do` in this repository), then final workflow developed in R, except for logit models which were left in Stata because it has a better package for handling weighting, clustering and predicting margins. 
 
 The files `cri.csv` and `cri_team.csv` were generated in [Breznau, Rinke, Wuttke et al. 2022](https://www.pnas.org/doi/10.1073/pnas.2203150119) study, available in their [Github Repository](https://github.com/nbreznau/CRI). These data are supplemented from the original participant survey; public version available on the [Harvard Dataverse](https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/UUP8CX).
 

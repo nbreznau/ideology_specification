@@ -1,6 +1,6 @@
 ---
-title: "Figure 4"
-output: false
+title: "08. Figure 6"
+output: html_document
 ---
 
 ## Setup

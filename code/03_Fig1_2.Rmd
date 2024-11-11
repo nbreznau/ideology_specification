@@ -1,6 +1,6 @@
 ---
-title: "03 Data Viz"
-output: false
+title: "03 Figures 1 and 2"
+output: html_document
 ---
 Replication workflow for:
 
@@ -9,11 +9,7 @@ Replication workflow for:
 [George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
 [Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
 
-The original workflow was developed by Borjas using Stata (see `reg_model.do` in this repository), and this workflow is an identical set of analyses by Breznau done in R. 
-
-The file `df.rds` (also available as csv) was generated in the file `01_Data_Prep.Rmd`.
-
-Average Marginal Effects are identical to regression coefficients in the case of models without non-linearities, like ours.
+The file `df.rds` and `df_dyad.rds` (also available as csv) were generated in the file `01_Data_Prep.Rmd`.
 
 ## Setup
 
@@ -212,7 +208,7 @@ include_graphics(here("results", "Fig1A.png"))
 ```
 #### RGB
 
-```{r fig1p}
+```{r fig1rgb}
 agg_png(here("results", "Fig1A_RGB.png"), res = 144, height = 500, width = 800)
 
 f1argb <- ggplot() +

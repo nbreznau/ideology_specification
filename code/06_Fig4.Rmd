@@ -1,7 +1,15 @@
 ---
-title: "Figure 4"
-output: false
+title: "06. Figure 4"
+output: html_document
 ---
+
+"Ideological Bias in Estimates of the Impact of Immigration"
+
+[George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
+[Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
+
+The file `df.rds` and `df_dyad.rds` (also available as csv) were generated in the file `01_Data_Prep.Rmd`.
+
 
 ## Setup
 

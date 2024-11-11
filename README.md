@@ -1,20 +1,46 @@
 ### Ideological bias in the production of research findings
 
 [George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
+Harvard University <br>
 [Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
+German Institute for Adult Education
 
+
+<br>
+<br>
 
 #### Abstract
 
-When studying policy-relevant topics, researchers’ policy preferences may shape the design, execution, analysis, and interpretation of results. Detection of such bias is challenging because the research process itself is not normally part of a controlled experimental setting. Our analysis exploits a rare opportunity where 158 researchers working independently in 71 research teams participated in an experiment. They used the same data to answer the same well-defined empirical question: Does immigration reduce public support for social welfare policies? The researchers were surveyed about their position on immigration policy prior to conducting the research. Using those survey responses and the outcomes of their empirical analysis, we measure the impact of ideological priors on the estimates they produced. We find that research teams composed of pro-immigration researchers estimated more positive impacts of immigration on public support for social programs, while anti-immigration research teams reported more negative estimates. Moreover, the methods used by teams with strong pro- or anti-immigration priors received lower “referee scores” from their peers in the experiment. These lower-rated models, however, produced the different effects estimated by the teams at the tails of the immigration sentiment distribution. Our results make a case for viewing political ideology as an important factor in the debate over making science more reliable and reproducible. 
+This is the reproducible workflow for the study of how political ideology impacts research findings. It uses experimental data from the Crowdsourced Replication Initiative of [Breznau, Rinke and Wuttke et al](https://www.pnas.org/doi/10.1073/pnas.2203150119) involving 71 teams of 158 researchers who produced 1,253 estimates resulting from their various models testing the impace of immigration on public opinion using International Social Survey Program and various macro-indicator data. 
 
+<br>
+<br>
 
 #### Data sources
 
+| Filename | Source | Description |
+|-------------|--------------------|-------------------------------------------|
+| [cri.csv](https://github.com/nbreznau/CRI/blob/master/data/cri.csv) | [BRW Github Repo](https://github.com/nbreznau/CRI) | Model-level data containing specifications and effect outcomes |
+| [cri_team.csv](https://github.com/nbreznau/CRI/blob/master/data/cri_team.csv) | [BRW Github Repo](https://github.com/nbreznau/CRI) | Team-level data with researcher characteristics aggregated by team, with individual-researcher data in wide-format by team |
+| [peer_model_dyad.csv](https://doi.org/10.7910/DVN/UUP8CX) | [BRW Harvard Dataverse](https://doi.org/10.7910/DVN/UUP8CX) | Peer review scores by model |
+| [cri_new_peer_scores.csv](https://github.com/nbreznau/ideology_specification/blob/main/data/cri_new_peer_scores.csv) | Authors calculations | Model-specific average peer scores, Generated in this workflow, see code files 001-002 in [data/data_prep](https://github.com/nbreznau/ideology_specification/tree/main/data/data_prep) |
+| [cri_long_participant_ame_dyad.csv](https://github.com/nbreznau/ideology_specification/blob/main/data/cri_long_participant_ame_dyad.csv) | Authors calculations | Dyadic data with each participant-model combination within each team, so that teams with multiple participants have repeated observations of models per participant, see code file 003 in [data/data_prep](https://github.com/nbreznau/ideology_specification/tree/main/data/data_prep) | 
+| [sem_p.csv](https://github.com/nbreznau/ideology_specification/blob/main/data/sem_p.csv) | [BRW Github Repo](https://github.com/nbreznau/CRI) | Original factor analysis based scoring of statistics skills and topic experience by team, generated in BRW's [002_CRI_Data_Prep.Rmd](https://github.com/nbreznau/CRI/blob/master/code/data_prep/002_CRI_Data_Prep.Rmd) code. |
 
 
+*BRW = [Breznau, Rinke and Wuttke et al. 2022](https://www.pnas.org/doi/10.1073/pnas.2203150119)
+
+
+<br>
+<br>
 
 #### Notes for users
+
+The main R code is in separate files in the folder [code](https://github.com/nbreznau/ideology_specification/tree/main/code), numbered from 01-08. 
+
+Code knitted with results and figures are available in the folder [code/Knitted HTML Code](https://github.com/nbreznau/ideology_specification/tree/main/code/Knitted_HTML_code). This includes both RGB and Colorblind palette figures.
+
+Users can also find all RGB and colorblind figures as .png, as well as all Tables as .csv and .xlsx in the folder [results](https://github.com/nbreznau/ideology_specification/tree/main/results)
 
 
 
