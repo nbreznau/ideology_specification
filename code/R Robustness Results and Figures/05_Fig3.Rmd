@@ -82,13 +82,13 @@ y_var3 <- round(coeff_group3 + weighted_mean_ame_group2m,3)
 
 ```
 
-## Fig4
+## Fig3
 
 ### Color Blind
 
 ```{r f4}
 
-agg_png(here("results", "Fig4A.png"), res = 144, height = 600, width = 800)
+agg_png(here("results", "Fig3.png"), res = 144, height = 600, width = 800)
 
 f4a <- ggplot() +
   stat_density(data = df,
@@ -115,13 +115,14 @@ f4a
 
 dev.off()
 
-knitr::include_graphics(here("results", "Fig4A.png"))
+knitr::include_graphics(here("results", "Fig3.png"))
 ```
+
 ### RGB
 
 ```{r f4rgb}
 
-agg_png(here("results", "Fig4A_RGB.png"), res = 144, height = 600, width = 800)
+agg_png(here("results", "Fig3_RGB.png"), res = 144, height = 600, width = 800)
 
 f4a <- ggplot() +
   stat_density(data = df,
@@ -148,15 +149,15 @@ f4a
 
 dev.off()
 
-knitr::include_graphics(here("results", "Fig4A_RGB.png"))
+knitr::include_graphics(here("results", "Fig3_RGB.png"))
 ```
 
-## Coeffs
+## Marginal Effects
 
 ### Color Blind
 
 ```{r f4coeff}
-agg_png(here("results", "Fig4B.png"), res = 144, height = 400, width = 800)
+agg_png(here("results", "Fig_Margins_Ref_Scores.png"), res = 144, height = 400, width = 800)
 
 
 
@@ -191,14 +192,14 @@ f4b
 
 dev.off()
 
-knitr::include_graphics(here("results", "Fig4B.png"))
+knitr::include_graphics(here("results", "Fig_Margins_Ref_Scores.png"))
 
 ```
 
 ### RGB
 
 ```{r f4coeffrgb}
-agg_png(here("results", "Fig4B_RGB.png"), res = 144, height = 400, width = 800)
+agg_png(here("results", "Fig_Margins_Ref_Scores_RGB.png"), res = 144, height = 400, width = 800)
 
 f4b <- df_coeff %>%
   ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
@@ -230,22 +231,11 @@ f4b
 
 dev.off()
 
-knitr::include_graphics(here("results", "Fig4B_RGB.png"))
+knitr::include_graphics(here("results", "Fig_Margins_Ref_Scores_RGB.png"))
 
 ```
 
-## Build
 
-```{r fig4arrange}
-agg_png(here("results", "Fig4.png"), res = 144, height = 800, width = 800)
-
-ggarrange(f4a, f4b, nrow = 2, ncol = 1, heights = c(2,1.5))
-
-dev.off()
-
-knitr::include_graphics(here("results", "Fig4.png"))
-
-```
 ## P-values
 
 ```{r p}

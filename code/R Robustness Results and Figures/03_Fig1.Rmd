@@ -1,0 +1,140 @@
+---
+title: "08. Figure 6"
+output: html_document
+---
+
+## Setup
+
+```{r setup}
+packages <- c("tidyverse",
+              "ggpubr",
+              "knitr",
+              "pacman",
+              "here",
+              "ragg")
+
+pacman::p_load(packages, character.only = T)
+
+# palette
+colors <- c("#453781FF", "#3CBB75FF", "#F28C28")
+```
+
+## Data
+
+```{r data}
+
+df <- read_csv(here("data", "df.csv")) 
+
+df_dyad <- read_csv(here("data", "df_dyad.csv")) %>%
+  dplyr::select(u_id)
+
+df_survey <- read_csv(here("data", "cri_survey_long_public_nolabs.csv")) %>%
+  subset(u_id %in% df_dyad$u_id)
+
+# one of the teams had a person drop out
+valid <- c(213, 212, 211, 210, 209, 208, 205, 204, 203, 202, 197, 196, 195, 
+             194, 193, 192, 191, 190, 189, 188, 187, 186, 184, 183, 181, 180, 
+             179, 178, 177, 176, 174, 173, 172, 171, 170, 168, 167, 166, 165, 
+             164, 162, 161, 160, 159, 158, 157, 156, 155, 154, 153, 152, 151, 
+             150, 149, 148, 147, 146, 145, 144, 143, 142, 141, 140, 138, 137, 
+             136, 135, 134, 133, 130, 129, 128, 127, 126, 125, 124, 123, 122, 
+             121, 120, 119, 118, 117, 116, 114, 113, 112, 111, 110, 109, 105, 
+             104, 103, 102, 101, 100, 99, 98, 97, 96, 95, 94, 90, 89, 88, 87, 
+             86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 
+             70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 
+             54, 53, 52, 51, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 
+             36, 35, 34, 33, 32, 29, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 
+             17, 16, 15, 14, 13, 12, 11, 10, 8, 7, 6, 5, 4, 3, 2, 1)
+
+df_survey_full <- read_csv(here("data", "cri_survey_long_public_nolabs.csv")) %>%
+  subset(u_teamid %in% df$u_teamid) %>%
+  subset(u_id %in% valid)
+
+```
+
+## Clean
+
+```{r cl}
+
+
+df_survey <- df_survey %>%
+  mutate(att = 8 - as.numeric(attitude_immigration_1),
+         belief = 6 - as.numeric(belief_H1_1))
+
+# nobody responded with a 7 or a 5
+cross_tab <- table(factor(df_survey$belief, levels = 1:5), factor(df_survey$att, levels = 1:7))  # Force levels 1 to 7
+
+
+# Convert to data frame for plotting
+cross_tab_df <- as.data.frame(cross_tab)
+colnames(cross_tab_df) <- c("belief", "att", "count")
+
+
+df_cor <- dplyr::select(df_survey, belief, att) %>%
+  cor(., use = "pairwise.complete")
+
+# row percentages
+df_survey <- df_survey %>%
+  mutate(att_pct = ave(rep(1, n()), att, FUN = length) / n() * 100,
+         belief_pct = ave(rep(1, n()), belief, FUN = length) / n() * 100)
+
+```
+
+
+
+#### Ideology
+
+```{r fig6new}
+
+agg_png(here("results", "Fig1A.png"), res = 144, height = 600, width = 1000)
+
+df_plot <- df_survey_full %>%
+  mutate(att = 7 - as.numeric(attitude_immigration_1)) %>%
+  count(att) %>%
+  complete(att = 0:6, fill = list(n = 0)) %>%  # Ensure all levels 1 to 7 are present
+  mutate(percentage = (n / sum(n)) * 100)  # Calculate percentages
+
+
+f6a <- ggplot(df_plot, aes(x = att, y = n)) +
+  geom_bar(stat = "identity", color = "blue", fill = "blue") +
+  geom_text(aes(label = paste0(round(percentage, 1), "%")), 
+            vjust = -0.5, color = "black") +  # Add percentage labels above bars
+  xlab("Made tougher    <---              Immigration laws should be...            --->    Relaxed") +
+  scale_x_continuous(breaks = c(0:6)) +
+  theme_classic()
+f6a
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig1A.png"))
+
+```
+
+#### Belief
+
+```{r fig6newb}
+
+agg_png(here("results", "Fig1B.png"), res = 144, height = 600, width = 1000)
+
+df_plotb <- df_survey_full %>%
+  mutate(bel = 6 - as.numeric(belief_H1_1)) %>%
+  count(bel) %>%
+  complete(bel = 1:5, fill = list(n = 0)) %>%  
+  mutate(percentage = (n / sum(n)) * 100)  
+
+
+f6b <- ggplot(df_plotb, aes(x = bel, y = n)) +
+  geom_bar(stat = "identity", color = "forestgreen", fill = "forestgreen") +
+  geom_text(aes(label = paste0(round(percentage, 1), "%")), 
+            vjust = -0.5, color = "black") +  
+  xlab("Strongly disagree                ---          Neutral           ---                   Strongly agree\n \nThe hypothesis that immigration reduces public support for social policy is true") +
+  ylim(0,95) +
+  scale_x_continuous(breaks = c(1:5)) +
+  theme_classic()
+f6b
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig1B.png"))
+
+```

@@ -1,0 +1,798 @@
+---
+title: "03 Figure 2"
+output: html_document
+---
+Replication workflow for:
+
+"Ideological Bias in Estimates of the Impact of Immigration"
+
+[George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
+[Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
+
+The file `df.rds` and `df_dyad.rds` (also available as csv) were generated in the file `01_Data_Prep.Rmd`.
+
+## Setup
+
+```{r setup}
+
+packages <- c("tidyverse",
+              "knitr",
+              "ggpubr",
+              "pacman",
+              "here",
+              "ragg",
+              "margins",
+              "miceadds",
+              "ggplot2",
+              "viridis",
+              "ggridges",
+              "haven",
+              "broom",
+              "lm.beta",
+              "scales",
+              "car")
+
+pacman::p_load(packages, character.only = T)
+
+# palette
+colors <- c("#453781FF", "#3CBB75FF", "#F28C28")
+colors_classic <- c("red", "forestgreen", "blue")
+
+```
+
+
+## Data
+
+```{r data}
+
+df <- read_rds(here("data", "df.rds")) %>%
+  mutate(index1 = group1,
+         index2 = ifelse(group1 == 0 & group3 == 0, 1, 0),
+         index3 = group3)
+df_dyad <- read_csv(here("data", "df_dyad.csv"))
+
+# regression results from 02_Tables.Rmd
+load(here("results", "reg_results.Rdata"))
+
+Table_1_model <- read_rds(here("results", "Table_1_model.rds"))
+
+```
+
+## Reg Models
+
+Certain routines require non lm.cluster objects. Predicted values are identical so it is easier to work with lm objects.
+
+```{r regs}
+
+# add single weight variable, it is easier
+df <- df %>%
+  mutate(mweight = 1/nmodel,
+         peerweight = pscore_1/nmodel)
+
+# we scale up pweight slightly to arrive at 71 teams, some cases from df get dropped to dyads due to missing info
+
+df_dyad <- df_dyad %>%
+  mutate(mweight = pweight*1.019,
+         peerweight = pscore_1*(pweight*1.019))
+
+m_1lm <- lm(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$mweight, data = df)
+
+m_3lm <- lm(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$mweight, data = df)
+
+# test significance
+car::linearHypothesis(m_3lm, "group1 - group3 = 0")
+
+# Extract coefficients and covariance matrix
+coef_m3lm <- coef(m_3lm)
+vcov_m3lm <- vcov(m_3lm)
+
+# Calculate the difference between group1 and group3 coefficients
+difference <- coef_m3lm["group1"] - coef_m3lm["group3"]
+
+# Calculate the standard error of the difference
+# SE(diff) = sqrt(Var(group1) + Var(group3) - 2 * Cov(group1, group3))
+se_difference <- sqrt(vcov_m3lm["group1", "group1"] + 
+                      vcov_m3lm["group3", "group3"] - 
+                      2 * vcov_m3lm["group1", "group3"])
+
+# Display the results
+difference
+se_difference
+
+p_1lm <- lm(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$peerweight, data = df)
+
+p_3lm <- lm(formula=AME ~ group1 + group3 + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = df$peerweight, data = df)
+
+# Dyad level
+
+m_3dlm <- lm(formula=AME ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight,data = df_dyad)
+
+p_3dlm <- lm(formula=AME ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + factor(backgr_degree), weights = df_dyad$pweight*df_dyad$peerweight, data = df_dyad)
+```
+
+
+## Fig2A
+
+```{r fig2a}
+agg_png(here("results", "Fig2A.png"), res = 144, width = 600, height = 500)
+
+# create scaling axis
+#custom_y_trans <- trans_new(
+#  name = "split_scale",
+#  transform = function(x) ifelse(x <= 1, x / 2, (x - 1) / (35 - 1) * 0.5 + 0.5),  # Compress 0-1 to lower half, >1 to upper half
+#  inverse = function(x) ifelse(x <= 0.5, x * 2, (x - 0.5) * (35 - 1) / 0.5 + 1)  # Inverse of the transform
+#)
+
+
+f2a <- df %>%
+  #subset(index != 2) %>%
+  ggplot() +
+  
+  # First density for index2, excluding NA values
+  geom_density(data = df,
+               aes(x = AME), fill = NA, color =  "forestgreen",
+               alpha = 0.3, adjust = 3, position = "identity",
+               trim = T
+               ) +
+  
+
+  # Labels
+  labs(x = "Average Marginal Effect (AME)", y = "Density", title = "", fill = "Index Group", color = "Index Group") +
+  #scale_color_manual(values = colors[c(1,3)]) +   
+  #scale_fill_manual(values = c(colors[2])) +  
+  annotate("text", x = -0.093, y = 4, label = "10th Percentile", hjust = 1, color = "red", size = 3) +
+  annotate("text", x = 0.076, y = 4, label = "90th Percentile", hjust = 0, color = "red", size = 3) +
+  geom_hline(yintercept = 0, size = 0.25, linetype = "dashed", color = "grey30") +
+  geom_segment(aes(x = -0.073, xend = -0.073, y = 0, yend = 4), 
+               size = 0.25, linetype = "dashed", color = "red") +
+  geom_segment(aes(x = 0.056, xend = 0.056, y = 0, yend = 4), 
+               size = 0.25, linetype = "dashed", color = "red") +
+  
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title = element_text(size = 8)) +
+  #scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
+    scale_x_continuous(
+    breaks = c(-0.25, -0.073, 0, 0.056, 0.25),  # Add the vertical line values
+    labels = c("-0.25", "-0.073", "0", "0.056", "0.25") # Custom labels for the breaks
+  ) +
+  coord_cartesian(ylim = c(0.01, NA), xlim = c(-0.45, 0.45))
+f2a
+dev.off()
+
+knitr::include_graphics(here("results", "Fig2A.png"))
+```
+
+
+## Fig2B
+
+### Color Blind
+
+```{r fig1b}
+agg_png(here("results", "Fig2B.png"), res = 144, width = 600, height = 500)
+
+# create scaling axis
+custom_y_trans <- trans_new(
+  name = "split_scale",
+  transform = function(x) ifelse(x <= 1, x / 2, (x - 1) / (35 - 1) * 0.5 + 0.5),  # Compress 0-1 to lower half, >1 to upper half
+  inverse = function(x) ifelse(x <= 0.5, x * 2, (x - 0.5) * (35 - 1) / 0.5 + 1)  # Inverse of the transform
+)
+
+
+f1b <- df %>%
+  #subset(index != 2) %>%
+  ggplot() +
+  
+  # First density for index2, excluding NA values
+  stat_density(data = df %>% filter(!is.na(index2) & index2 == 1),
+               aes(x = AME), color = NA, fill = colors[2],
+               alpha = 0.3, adjust = 7, position = "identity", 
+               #trim = T
+               ) +
+  
+  # Second density for index1, excluding NA values
+  stat_density(data = df %>% filter(!is.na(index1) & index2 == 0),
+               aes(x = AME, group = index, color = factor(index)), 
+               alpha = 1, adjust = 6, position = "identity", geom = "line", 
+               #trim = T
+               ) +  
+  # Labels
+  labs(x = "AME", y = "Density", title = "", fill = "Index Group", color = "Index Group") +
+  scale_color_manual(values = colors[c(1,3)]) +   
+  scale_fill_manual(values = c(colors[2])) +  
+  annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nteams", hjust = 0, color = colors[1], size = 3) +
+  annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nteams", hjust = 1, color = colors[3], size = 3) +
+    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nteams", color = colors[2], size = 3) +
+  geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title = element_text(size = 8)) +
+  scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
+  coord_cartesian(xlim = c(-0.45, 0.45))
+f1b
+dev.off()
+
+knitr::include_graphics(here("results", "Fig2B.png"))
+
+```
+
+### RGB
+
+```{r fig1brgb}
+agg_png(here("results", "Fig2B_RGB.png"), res = 144, width = 600, height = 500)
+
+# create scaling axis
+custom_y_trans <- trans_new(
+  name = "split_scale",
+  transform = function(x) ifelse(x <= 1, x / 2, (x - 1) / (35 - 1) * 0.5 + 0.5),  # Compress 0-1 to lower half, >1 to upper half
+  inverse = function(x) ifelse(x <= 0.5, x * 2, (x - 0.5) * (35 - 1) / 0.5 + 1)  # Inverse of the transform
+)
+
+
+f1b <- df %>%
+  #subset(index != 2) %>%
+  ggplot() +
+  
+  # First density for index2, excluding NA values
+  stat_density(data = df %>% filter(!is.na(index2) & index2 == 1),
+               aes(x = AME), color = NA, fill = colors[2],
+               alpha = 0.4, adjust = 7, position = "identity", 
+               #trim = T
+               ) +
+  
+  # Second density for index1, excluding NA values
+  stat_density(data = df %>% filter(!is.na(index1) & index2 == 0),
+               aes(x = AME, group = index, color = factor(index)), 
+               alpha = 1, adjust = 6, position = "identity", geom = "line", 
+               #trim = T
+               ) +  
+  # Labels
+  labs(x = "AME", y = "Density", title = "", fill = "Index Group", color = "Index Group") +
+  scale_color_manual(values = colors_classic[c(1,3)]) +   
+  scale_fill_manual(values = c(colors_classic[2])) +  
+  annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nteams", hjust = 0, color = colors_classic[1], size = 3) +
+  annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nteams", hjust = 1, color = colors_classic[3], size = 3) +
+    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nteams", color = colors_classic[2], size = 3) +
+  geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title = element_text(size = 8)) +
+  scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
+  coord_cartesian(xlim = c(-0.45, 0.45))
+f1b
+dev.off()
+
+knitr::include_graphics(here("results", "Fig2B_RGB.png"))
+
+```
+
+## Fig2C
+
+### Color Blind
+
+```{r figs1}
+
+agg_png(here("results", "Fig2C.png"), res = 144, width = 600, height = 500)
+
+# create scaling axis
+custom_y_trans <- trans_new(
+  name = "split_scale",
+  transform = function(x) ifelse(x <= 1, x / 2, (x - 1) / (35 - 1) * 0.5 + 0.5),  # Compress 0-1 to lower half, >1 to upper half
+  inverse = function(x) ifelse(x <= 0.5, x * 2, (x - 0.5) * (35 - 1) / 0.5 + 1)  # Inverse of the transform
+)
+
+
+f1b <- df_dyad %>%
+  #subset(indiv != 2) %>%
+  ggplot() +
+  
+  # First density for indiv2, excluding NA values
+  stat_density(data = df_dyad %>% filter(!is.na(indiv2) & indiv2 == 1),
+               aes(x = AME), color = NA, fill = colors[2], 
+               alpha = 0.3, adjust = 5.5, position = "identity", trim = T) +
+  
+  # Second density for indiv1, excluding NA values
+  stat_density(data = df_dyad %>% filter(!is.na(indiv1) & indiv2 != 1),
+               aes(x = AME, group = indiv, color = factor(indiv)), 
+               alpha = 1, adjust = 5, position = "identity", geom = "line", 
+               #trim = T
+               ) +  
+  # Labels
+  labs(x = "AME", y = "Density", title = "", fill = "indiv Group", color = "indiv Group") +
+  scale_color_manual(values = colors[c(3,1)]) +   
+  scale_fill_manual(values = c("white", colors[2])) +  
+  annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nresearchers", hjust = 0, color = colors[1], size = 3) +
+  annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nresearchers", hjust = 1, color = colors[3], size = 3) +
+    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nresearchers", color = colors[2], size = 3) +
+  geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title = element_text(size = 8)) +
+  scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
+  coord_cartesian(xlim = c(-0.45, 0.45))
+f1b
+dev.off()
+
+knitr::include_graphics(here("results", "Fig2C.png"))
+```
+
+### Density under curve
+
+```{r denscalc}
+# Create a density object for the AME data
+density_obj <- density(df$AME)
+
+# Range in plot
+in_range <- density_obj$x >= -0.45 & density_obj$x <= 0.45
+
+# Calculate the area within this range using trapezoidal rule approximation
+dx <- diff(density_obj$x) # Differences between consecutive x values
+area_in_range <- sum(density_obj$y[in_range][-1] * dx[in_range[-1]])
+
+# Since the total area under the density curve is 1, calculate the percentage shown
+percentage_shown <- area_in_range * 100
+
+percentage_shown
+```
+
+
+### RGB
+
+```{r figs1rgb}
+
+agg_png(here("results", "Fig2C_RGB.png"), res = 144, width = 600, height = 500)
+
+# create scaling axis
+custom_y_trans <- trans_new(
+  name = "split_scale",
+  transform = function(x) ifelse(x <= 1, x / 2, (x - 1) / (35 - 1) * 0.5 + 0.5),  # Compress 0-1 to lower half, >1 to upper half
+  inverse = function(x) ifelse(x <= 0.5, x * 2, (x - 0.5) * (35 - 1) / 0.5 + 1)  # Inverse of the transform
+)
+
+
+f1b <- df_dyad %>%
+  #subset(indiv != 2) %>%
+  ggplot() +
+  
+  # First density for indiv2, excluding NA values
+  stat_density(data = df_dyad %>% filter(!is.na(indiv2) & indiv2 == 1),
+               aes(x = AME), color = NA, fill = colors_classic[2], 
+               alpha = 0.3, adjust = 5.5, position = "identity", trim = T) +
+  
+  # Second density for indiv1, excluding NA values
+  stat_density(data = df_dyad %>% filter(!is.na(indiv1) & indiv2 != 1),
+               aes(x = AME, group = indiv, color = factor(indiv)), 
+               alpha = 1, adjust = 5, position = "identity", geom = "line", 
+               #trim = T
+               ) +  
+  # Labels
+  labs(x = "AME", y = "Density", title = "", fill = "indiv Group", color = "indiv Group") +
+  scale_color_manual(values = colors_classic[c(3,1)]) +   
+  scale_fill_manual(values = c("white", colors_classic[2])) +  
+  annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nresearchers", hjust = 0, color = colors_classic[1], size = 3) +
+  annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nresearchers", hjust = 1, color = colors_classic[3], size = 3) +
+    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nresearchers", color = colors_classic[2], size = 3) +
+  geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title = element_text(size = 8)) +
+  scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
+  coord_cartesian(xlim = c(-0.45, 0.45))
+f1b
+dev.off()
+
+knitr::include_graphics(here("results", "Fig2C_RGB.png"))
+
+```
+
+
+## Fig 2
+
+
+### Predicted Margins
+Use regression coefficients for group1 and group3 and predicted values for group2.
+
+
+```{r amecalc}
+# 
+df$ame_group <- predict(m_3lm, newdata = df)
+
+df_dyad$ame_group <- predict(m_3dlm, newdata = df_dyad)
+
+
+df2 <- subset(df, group2 == 1) %>%
+  mutate(ame_group2_m_3 = ame_group,
+         ame_group2_p_3 = ame_group)
+
+df2_dyad <- subset(df_dyad, indiv2 == 1) %>%
+  mutate(ame_group2_m_3 = ame_group,
+         ame_group2_p_3 = ame_group) %>%
+  subset(!is.na(ame_group))
+
+# Weighted mean AME
+weighted_mean_ame_group2m <- sum(df2$ame_group2_m_3 * df2$mweight) / sum(df2$mweight)
+
+weighted_mean_ame_group2m_dyad <- sum(df2_dyad$ame_group2_m_3 * df2_dyad$mweight) / sum(df2_dyad$mweight)
+
+
+
+weighted_mean_ame_group2p <- sum(df2$ame_group2_m_3 * df2$peerweight) / sum(df2$peerweight)
+
+
+
+weighted_mean_ame_group2p_dyad <- sum(df2_dyad$ame_group2_m_3 * df2_dyad$peerweight) / sum(df2_dyad$peerweight)
+
+
+
+weighted_var_ame_group2m <- sum(df2$mweight * (df2$ame_group2_m_3 - weighted_mean_ame_group2m)^2) / sum(df2$mweight)
+
+weighted_var_ame_group2m_dyad <- sum(df2_dyad$mweight * (df2_dyad$ame_group2_m_3 - weighted_mean_ame_group2m_dyad)^2) / sum(df2_dyad$mweight)
+
+weighted_var_ame_group2p <- sum(df2$peerweight * (df2$ame_group2_m_3 - weighted_mean_ame_group2p)^2) / sum(df2$peerweight)
+
+
+weighted_var_ame_group2p_dyad <- sum(df2_dyad$peerweight * (df2_dyad$ame_group2_m_3 - weighted_mean_ame_group2p_dyad)^2) / sum(df2_dyad$peerweight)
+
+
+weighted_se_ame_group2m <- sqrt(weighted_var_ame_group2m / sum(df2$mweight))
+
+weighted_se_ame_group2m_dyad <- sqrt(weighted_var_ame_group2m_dyad / sum(df2_dyad$mweight))
+
+weighted_se_ame_group2p <- sqrt(weighted_var_ame_group2p / sum(df2$peerweight))
+
+weighted_se_ame_group2p_dyad <- sqrt(weighted_var_ame_group2p_dyad / sum(df2_dyad$peerweight))
+
+# get coeffs
+model_summary <- summary(m_3lm)
+model_summaryp <- summary(p_3lm)
+
+# Extract coefficients and standard errors for group1 and group3
+coeff_group1 <- model_summary$coefficients["group1", "Estimate"]
+se_group1 <- model_summary$coefficients["group1", "Std. Error"]
+
+coeff_group3 <- model_summary$coefficients["group3", "Estimate"]
+se_group3 <- model_summary$coefficients["group3", "Std. Error"]
+
+coeff_group1p <- model_summaryp$coefficients["group1", "Estimate"]
+se_group1p <- model_summaryp$coefficients["group1", "Std. Error"]
+
+coeff_group3p <- model_summaryp$coefficients["group3", "Estimate"]
+se_group3p <- model_summaryp$coefficients["group3", "Std. Error"]
+
+model_summaryd <- summary(m_3dlm)
+model_summarydp <- summary(p_3dlm)
+
+# Extract coefficients and standard errors for group1 and group3
+coeff_group1d <- model_summaryd$coefficients[grep("^indiv1$", rownames(model_summaryd$coefficients)), "Estimate"]
+se_group1d <- model_summaryd$coefficients[grep("^indiv1$", rownames(model_summaryd$coefficients)), "Std. Error"]
+
+coeff_group3d <- model_summaryd$coefficients[grep("^indiv3$", rownames(model_summaryd$coefficients)), "Estimate"]
+se_group3d <- model_summaryd$coefficients[grep("^indiv3$", rownames(model_summaryd$coefficients)), "Std. Error"]
+
+coeff_group1dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Estimate"]
+se_group1dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Std. Error"]
+
+coeff_group3dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Estimate"]
+se_group3dp <- model_summarydp$coefficients[grep("^indiv1$", rownames(model_summarydp$coefficients)), "Std. Error"]
+
+# get distributional properties
+rank_coeff_group1 <- round(ecdf(df$AME)(coeff_group1 + + weighted_mean_ame_group2m) * 100, 0)
+rank_coeff_group3 <- round(ecdf(df$AME)(coeff_group3 + + weighted_mean_ame_group2m) * 100, 0)
+
+rank_coeff_group1d <- round(ecdf(df_dyad$AME)(coeff_group1d + + weighted_mean_ame_group2m_dyad) * 100, 0)
+rank_coeff_group3d <- round(ecdf(df_dyad$AME)(coeff_group3d + weighted_mean_ame_group2m_dyad) * 100, 0)
+
+```
+
+### Plotting DFs
+
+```{r coefplot2}
+
+
+plot_data_ame <- data.frame(
+  group = c("group1_m", 
+            "group2_m", 
+            "group3_m", 
+            "group1_p", 
+            "group2_p", 
+            "group3_p"),
+  weight = c("m", "m", "m", "p", "p", "p"),
+  mean = c(coeff_group1 + weighted_mean_ame_group2m,
+           weighted_mean_ame_group2m,
+           coeff_group3 + weighted_mean_ame_group2m,
+           coeff_group1p + weighted_mean_ame_group2p,
+           weighted_mean_ame_group2p,
+           coeff_group3p + weighted_mean_ame_group2p),
+  se = c(se_group1, weighted_se_ame_group2m, se_group3,
+         se_group1p, weighted_se_ame_group2p, se_group3p))
+
+plot_data_ame_dyad <- data.frame(
+  group = c("group1_m", "group2_m", "group3_m", "group1_p", "group2_p", "group3_p"),
+  weight = c("m", "m", "m", "p", "p", "p"),
+  mean = c(coeff_group1d+weighted_mean_ame_group2m_dyad, weighted_mean_ame_group2m_dyad, coeff_group3d+weighted_mean_ame_group2m_dyad,
+           coeff_group1dp+weighted_mean_ame_group2p_dyad, weighted_mean_ame_group2p_dyad, coeff_group3dp+weighted_mean_ame_group2p_dyad),
+  se = c(se_group1d, weighted_se_ame_group2m_dyad, se_group3d,
+         se_group1dp, weighted_se_ame_group2p_dyad, se_group3dp)
+)
+
+
+```
+
+### Fig2A Model
+
+#### Color blind
+
+```{r fig2a}
+#agg_png(here("results", "Fig2A.png"), res = 144, height = 300, width = 650)
+
+f2a <- ggplot(data = subset(plot_data_ame, weight == "m"), aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point(aes(y = mean)) +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  # Numerical labels 
+  geom_text(aes(y = mean, label = sprintf("%.3f", mean)),  
+            vjust = -1, color = colors[1:3], size = 3) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  ylim(-0.12, 0.065) +
+  
+  # Annotation for categories
+  annotate("text", y = c(coeff_group1 + weighted_mean_ame_group2m,
+                         weighted_mean_ame_group2m,
+                         coeff_group3 + weighted_mean_ame_group2m), 
+           x = c(2.7, 1.7, 0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors[1:3],
+           size = 3) +
+  
+  # Flip coordinates and styling
+  coord_flip() +
+  scale_color_manual(values = colors) +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        title = element_blank(),
+        plot.margin = unit(c(0, 0.5, 0.5, 0.5), "cm"),
+        legend.position = "none")
+
+f2a
+
+#dev.off()
+
+#knitr::include_graphics(here("results", "Fig2A.png"))
+```
+
+
+#### RGB
+```{r fig2argb}
+#agg_png(here("results", "Fig2A.png"), res = 144, height = 300, width = 650)
+
+f2argb <- ggplot(data = subset(plot_data_ame, weight == "m"), aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point(aes(y = mean)) +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  # Numerical labels 
+  geom_text(aes(y = mean, label = sprintf("%.3f", mean)),  
+            vjust = -1, color = colors_classic[1:3], size = 3) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  ylim(-0.12, 0.065) +
+  
+  # Annotation for categories
+  annotate("text", y = c(coeff_group1 + weighted_mean_ame_group2m,
+                         weighted_mean_ame_group2m,
+                         coeff_group3 + weighted_mean_ame_group2m), 
+           x = c(2.7, 1.7, 0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors_classic[1:3],
+           size = 3) +
+  
+  # Flip coordinates and styling
+  coord_flip() +
+  scale_color_manual(values = colors_classic) +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        title = element_blank(),
+        plot.margin = unit(c(0, 0.5, 0.5, 0.5), "cm"),
+        legend.position = "none")
+
+f2argb
+
+#dev.off()
+
+#knitr::include_graphics(here("results", "Fig2A.png"))
+```
+
+### Fig2C Dyad
+
+#### Color Blind
+
+```{r fig2c}
+#agg_png(here("results", "Fig2C.png"), res = 144, height = 300, width = 650)
+
+f2b <- plot_data_ame_dyad %>%
+  subset(weight == "m") %>%
+  ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
+  ylim(-0.08,0.04) +
+  annotate("text", y = c(coeff_group1d + weighted_mean_ame_group2m_dyad,
+                         weighted_mean_ame_group2m_dyad,
+                         coeff_group3d + weighted_mean_ame_group2m_dyad), 
+           x = c(2.7,1.7,0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors[1:3],
+           size = 3) +
+  geom_text(aes(y = mean, label = sprintf("%.3f", mean)),  
+            vjust = -1, color = colors[1:3], size = 3) +
+  scale_color_manual(values = colors) +
+  coord_flip() +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        title = element_blank(),
+        plot.margin = unit(c(0, 0.5, 0.5, 1), "cm"),
+        legend.position = "none")
+f2b
+
+#dev.off()
+
+#knitr::include_graphics(here("results", "Fig2C.png"))
+```
+
+#### RGB
+
+```{r fig2crgb}
+#agg_png(here("results", "Fig2C.png"), res = 144, height = 300, width = 650)
+
+f2brgb <- plot_data_ame_dyad %>%
+  subset(weight == "m") %>%
+  ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = mean - 1.645 * se, ymax = mean + 1.645 * se), width = 0.1) +
+  labs(x = "Variables", y = "Marginal Effects", title = "") +
+  #geom_hline(yintercept = 0, linetype = "dotted", color = "grey") + 
+  ylim(-0.08,0.04) +
+  annotate("text", y = c(coeff_group1d + weighted_mean_ame_group2m_dyad,
+                         weighted_mean_ame_group2m_dyad,
+                         coeff_group3d + weighted_mean_ame_group2m_dyad), 
+           x = c(2.7,1.7,0.7),
+           label = c("Anti-immigration", "Moderate", "Pro-immigration"),
+           color = colors_classic[1:3],
+           size = 3) +
+  geom_text(aes(y = mean, label = sprintf("%.3f", mean)),  
+            vjust = -1, color = colors_classic[1:3], size = 3) +
+  scale_color_manual(values = colors_classic) +
+  coord_flip() +
+  theme_classic() +
+  theme(axis.line.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.title.x = element_text(size = 8),
+        axis.title.y = element_blank(),
+        title = element_blank(),
+        plot.margin = unit(c(0, 0.5, 0.5, 1), "cm"),
+        legend.position = "none")
+f2brgb
+
+#dev.off()
+
+#knitr::include_graphics(here("results", "Fig2C.png"))
+```
+
+## Fig2 densities
+
+### A model level
+
+```{r densA}
+densityA <- ggplot(df, aes(x = AME)) +
+  stat_density(fill = "grey70", alpha = 0.7) +
+  labs(x = NULL, y = "Density", title = "A. Team-model level results") +  
+  geom_segment(x = coeff_group1 + weighted_mean_ame_group2m, xend = coeff_group1 + weighted_mean_ame_group2m,
+               y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors_classic[1]) +
+  geom_segment(x = coeff_group3 + weighted_mean_ame_group2m, xend = coeff_group3 + weighted_mean_ame_group2m,
+               y = 0, yend = 17, linetype = "dashed", size = 0.2, color = colors_classic[3]) +
+  annotate("text", y = 30, x = coeff_group1 + weighted_mean_ame_group2m, label = paste(rank_coeff_group1,"th","\npercentile", sep = ""), hjust = 1, size = 2.5, color = colors_classic[1]) +
+  annotate("text", y = 30, x = coeff_group3 + weighted_mean_ame_group2m, label = paste(rank_coeff_group3,"rd","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors_classic[3]) +
+  xlim(-0.119,0.06) +
+  theme_classic() +
+  theme(
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank(),
+    title = element_text(size = 8),
+    plot.margin = unit(c(0.5, 0.5, 0, 0.5), "cm")
+  )
+densityA
+
+
+```
+
+### B dyad level
+
+```{r densB}
+densityB <- ggplot(df_dyad, aes(x = AME)) +
+  stat_density(fill = "grey70", alpha = 0.7) +
+  labs(x = NULL, y = "Density", title = "B. Researcher-model dyad results") +  
+  xlim(-0.079,0.039) +
+  geom_segment(x = coeff_group1d + weighted_mean_ame_group2m_dyad, xend = coeff_group1d + weighted_mean_ame_group2m_dyad,
+               y = 0, yend = 21, linetype = "dashed", size = 0.2, color = colors_classic[1]) +
+  geom_segment(x = coeff_group3d+weighted_mean_ame_group2m_dyad, xend = coeff_group3d+weighted_mean_ame_group2m_dyad,
+               y = 0, yend = 21, linetype = "dashed", size = 0.22, color = colors_classic[3]) +
+  annotate("text", y = 36, x = coeff_group1d + weighted_mean_ame_group2m_dyad, label = paste(rank_coeff_group1d,"th","\npercentile", sep = ""), hjust = 1, size = 2.5, color = colors_classic[1]) +
+  annotate("text", y = 36, x = coeff_group3d + weighted_mean_ame_group2m_dyad, label = paste(rank_coeff_group3d,"rd","\npercentile", sep = ""), hjust = 0, size = 2.5, color = colors_classic[3]) +
+  theme_classic() +
+  theme(
+    axis.title = element_blank(),
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.line = element_blank(),
+    title = element_text(size = 8),
+    plot.margin = unit(c(0.5, 0.5, 0, 1), "cm")
+  )
+densityB
+
+
+```
+
+## Fig2 Arrange
+
+```{r Fig2arrange}
+agg_png(here("results", "Fig2.png"), res = 144, height = 500, width = 1000)
+
+f2 <- ggarrange(densityA, densityB, f2argb, f2brgb, nrow = 2, ncol = 2, heights = c(1, 2))
+
+f2
+
+dev.off()
+
+knitr::include_graphics(here("results", "Fig2.png"))
+
+```
+## SEs for plot
+
+
+```{r ses}
+se_group1
+weighted_se_ame_group2m
+se_group3
+```
+
+## Citations
+
+```{r cites}
+
+packages %>%
+  map(citation) %>%
+  print(style = "text")
+
+
+```
+
+## Colophon
+
+```{r colo}
+
+sessionInfo()
+
+```
+
