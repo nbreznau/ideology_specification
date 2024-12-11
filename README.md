@@ -3,7 +3,7 @@
 [George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
 Harvard University <br>
 [Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
-German Institute for Adult Education
+German Institute for Adult Education - Leibniz Institute for Lifelong Learning
 
 
 <br>
@@ -11,7 +11,7 @@ German Institute for Adult Education
 
 #### Abstract
 
-This is the reproducible workflow for the study of how political ideology impacts research findings. It uses experimental data from the Crowdsourced Replication Initiative of [Breznau, Rinke and Wuttke et al](https://www.pnas.org/doi/10.1073/pnas.2203150119) involving 71 teams of 158 researchers who produced 1,253 estimates resulting from their various models testing the impace of immigration on public opinion using International Social Survey Program and various macro-indicator data. 
+This is the reproducible workflow for the study of how political ideology impacts research findings. It uses experimental data from the Crowdsourced Replication Initiative of [Breznau, Rinke and Wuttke et al](https://www.pnas.org/doi/10.1073/pnas.2203150119) involving 71 teams of 158 researchers who produced 1,253 estimates resulting from their various models testing the impact of immigration on public opinion using International Social Survey Program and various macro-indicator data. 
 
 <br>
 <br>
@@ -36,9 +36,12 @@ This is the reproducible workflow for the study of how political ideology impact
 
 #### Notes for users
 
-The main R code is in separate files in the folder [code](https://github.com/nbreznau/ideology_specification/tree/main/code), numbered from 01-08. 
+Stata and R code runs in separate named files starting with numbers indicating the order in which they must be run (01_, 02_, etc.).
 
-Code knitted with results and figures are available in the folder [code/Knitted HTML Code](https://github.com/nbreznau/ideology_specification/tree/main/code/Knitted_HTML_code). This includes both RGB and Colorblind palette figures.
+The main results were produced using Stata and can be found under [code/Stata Main Results](https://github.com/nbreznau/ideology_specification/tree/main/code/Stata_Main_Results). The log files are knitted into the folder `code/Log Files`.
+
+We used R to check the results and to produce the figures and this code is found in [code/R Robustness Results and Figures](https://github.com/nbreznau/ideology_specification/tree/main/code/R_Robustness_Results_and_Figures). The knitted files are also in the folder `code/Log Files` 
+
 
 Users can also find all RGB and colorblind figures as .png, as well as all Tables as .csv and .xlsx in the folder [results](https://github.com/nbreznau/ideology_specification/tree/main/results)
 

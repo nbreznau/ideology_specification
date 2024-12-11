@@ -132,10 +132,10 @@ f5a1 <- ggplot() +
   annotate("text", x = 1, y = 0.048, label = "Anti-immigration\nteams", size = 3.5, color = colors[1], hjust = 0) +
   annotate("text", x = 21, y = 0.05, label = "Moderate", size = 3.5, color = colors[2], hjust = 0) +
   annotate("text", x = 58, y = 0.048, label = "Pro-immigration\nteams", size = 3.5, color = colors[3], hjust = 1) +
-  geom_segment(aes(x = range02[1], xend = range02[1], y = 0, yend = 0.025), linetype = "dashed", color = "grey30") +  
+  geom_segment(aes(x = range02[1], xend = range02[1], y = 0, yend = 0.04), linetype = "dashed", color = "grey30") +  
   geom_segment(aes(x = range02[2], xend = range02[2], y = 0, yend = 0.025), linetype = "dashed", color = "grey30") +
   geom_segment(aes(x = range02[3]-0.5, xend = range02[3]-0.5, y = 0, yend = 0.036), linetype = "dashed", color = "grey30") +
-  annotate("text", y = 0.004, x = range02[1]-0.5, label = expression(italic("-0.02 avg.\nand lower")), size = 2.3, hjust = 1, color = "grey20") +
+  annotate("text", y = 0.037, x = range02[1]-0.5, label = expression(italic("-0.02 avg.\nand lower")), size = 2.3, hjust = 1, color = "grey20") +
   annotate("text", y = 0.023, x = range02[2]+0.5, label = expression(italic("0.02 avg.\nand higher")), size = 2.3, hjust = 0, color = "grey20") +
   annotate("text", y = 0.039, x = range02[3]-0.5, label = expression(italic("zero")), size = 2.3,  color = "grey20") +
   scale_color_manual(values = c(colors[1:3])) +
@@ -146,7 +146,7 @@ f5a1 <- ggplot() +
         #axis.title.y = element_blank(),
         axis.text.y = element_blank(),
         legend.position = "none")
-
+f5a1
 ```
 
 #### Specs
@@ -210,10 +210,10 @@ f5a1r <- ggplot() +
   annotate("text", x = 1, y = 0.048, label = "Anti-immigration\nteams", size = 3.5, color = colors_classic[1], hjust = 0) +
   annotate("text", x = 21, y = 0.05, label = "Moderate", size = 3.5, color = colors_classic[2], hjust = 0) +
   annotate("text", x = 58, y = 0.048, label = "Pro-immigration\nteams", size = 3.5, color = colors_classic[3], hjust = 1) +
-  geom_segment(aes(x = range02[1], xend = range02[1], y = 0, yend = 0.025), linetype = "dashed", color = "grey30") +  
+  geom_segment(aes(x = range02[1], xend = range02[1], y = 0, yend = 0.04), linetype = "dashed", color = "grey30") +  
   geom_segment(aes(x = range02[2], xend = range02[2], y = 0, yend = 0.025), linetype = "dashed", color = "grey30") +
   geom_segment(aes(x = range02[3]-0.5, xend = range02[3]-0.5, y = 0, yend = 0.036), linetype = "dashed", color = "grey30") +
-  annotate("text", y = 0.004, x = range02[1]-0.5, label = expression(italic("-0.02 avg.\nand lower")), size = 2.3, hjust = 1, color = "grey20") +
+  annotate("text", y = 0.037, x = range02[1]-0.5, label = expression(italic("-0.02 avg.\nand lower")), size = 2.3, hjust = 1, color = "grey20") +
   annotate("text", y = 0.023, x = range02[2]+0.5, label = expression(italic("0.02 avg.\nand higher")), size = 2.3, hjust = 0, color = "grey20") +
   annotate("text", y = 0.039, x = range02[3]-0.5, label = expression(italic("zero")), size = 2.3,  color = "grey20") +
   scale_color_manual(values = c(colors_classic[1:3])) +

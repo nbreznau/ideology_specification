@@ -1,16 +1,16 @@
 V1,V2,V3,V4,V5
 Variable,All teams,Anti-imm,Moderate,Pro-imm
-Mean AME,0.001,-0.019,-0.010,0.010
-% AME negative and significant,0.062,0.113,0.094,0.035
-% AME positive and significant,0.053,0.037,0.050,0.057
-Mean immigration sentiment,4.3,2.37,3.657,4.958
+Mean AME,0.001,-0.019,-0.008,0.014
+% AME negative and significant,0.062,0.113,0.086,0.028
+% AME positive and significant,0.053,0.037,0.050,0.059
+Mean immigration sentiment,4.3,2.37,3.962,5.199
 % Anti-immigration teams,0.127,1,0,0
-% Moderate teams,0.254,0,1,0
-% Pro-immigration teams,0.62,0,0,1
-% Believe hypothesis,0.549,0.704,0.435,0.564
-Statistical skills (Z),0.04,-0.547,0.138,0.119
-Topic experience (Z),0.089,-0.17,0.198,0.097
-Peer score (Z),0.235,0.194,0.49,0.098
-Team size,2.225,2.111,2.278,2.227
-N models,1253,134,404,715
-N teams,71,9,18,44
+% Moderate teams,0.437,0,1,0
+% Pro-immigration teams,0.437,0,0,1
+% Believe hypothesis,0.549,0.704,0.511,0.543
+Statistical skills (Z),0.04,-0.547,0.087,0.163
+Topic experience (Z),0.089,-0.17,0.154,0.099
+Peer score (Z),0.235,0.194,0.386,0.101
+Team size,2.225,2.111,2.194,2.29
+N models,1253,134,544,575
+N teams,71,9,31,31

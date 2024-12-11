@@ -1,0 +1,1397 @@
+--------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:/GitHub/ideology_specification/code/Log Files/01_Data_Prep.log
+  log type:  text
+ opened on:  11 Dec 2024, 10:35:23
+
+. clear matrix;
+
+. clear mata;
+
+. * SAVE NEW REFEREE SCORES AS .dta;
+. import delimited "$workd/data/cri_new_peer_scores.csv", clear varnames(1);
+(encoding automatically selected: ISO-8859-2)
+(3 vars, 1,261 obs)
+
+. gen str100 id100 = substr(id, 1, 100);
+
+. drop id;
+
+. gen id = id100;
+
+. drop id100;
+
+. destring peer_mean, replace force;
+peer_mean: contains nonnumeric characters; replaced as double
+(38 missing values generated)
+
+. destring peer_n, replace force;
+peer_n: contains nonnumeric characters; replaced as byte
+(38 missing values generated)
+
+. sort id;
+
+. save "$workd/data/cri_new_peer_scores.dta", replace;
+file /GitHub/ideology_specification/data/cri_new_peer_scores.dta saved
+
+. import delimited "$workd/data/cri.csv", clear bindquote(strict) varnames(1) maxquotedrows(1000);
+(encoding automatically selected: ISO-8859-2)
+(479 vars, 1,309 obs)
+
+. generate teamid=u_teamid;
+
+. destring teamid, force replace;
+teamid already numeric; no replace
+
+. unique teamid;
+Number of unique values of teamid is  73
+Number of records is  1309
+
+. *DROPS TEAMS WITH MISSING ID;
+. drop if teamid==.;
+(0 observations deleted)
+
+. *DROPS THE BASELINE BRADY-FINNIGAN RESULTS;
+. drop if teamid==0;
+(48 observations deleted)
+
+. unique teamid;
+Number of unique values of teamid is  72
+Number of records is  1261
+
+. *SIMPLIFY DATA SET BY DROPPING IRRELEVANT VARIABLES;
+. drop au-ve;
+
+. drop emigration_ivc-fbxleftright;
+
+. *AVERAGE MARGINAL EFFECT VARIABLE;
+. *START WITH 1253 MODELS WITH NON-MISSING AME;
+. destring ame, replace force;
+ame: contains nonnumeric characters; replaced as double
+(8 missing values generated)
+
+. drop if ame==.;
+(8 observations deleted)
+
+. summ ame;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+         ame |      1,253    .0007771    .1865197  -1.353765       2.47
+
+. *PRO-IMMIGRANT BACKUP VAR
+> generate proi = pro_immigrant;
+. *TEAM 1 DOES NOT REPORT AN AME, SO WILL BE DELETED;
+. list teamid if ame==.;
+
+. drop if teamid==1;
+(0 observations deleted)
+
+. unique teamid;
+Number of unique values of teamid is  71
+Number of records is  1253
+
+. *NUMBER OF MODELS PER TEAM;
+. egen nmodel=count(ame), by(teamid);
+
+. tabulate nmodel;
+
+     nmodel |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |          2        0.16        0.16
+          2 |         10        0.80        0.96
+          3 |          9        0.72        1.68
+          4 |         20        1.60        3.27
+          6 |         30        2.39        5.67
+          8 |         40        3.19        8.86
+         10 |         20        1.60       10.45
+         12 |        216       17.24       27.69
+         14 |         14        1.12       28.81
+         16 |         64        5.11       33.92
+         18 |         18        1.44       35.36
+         20 |         40        3.19       38.55
+         24 |        144       11.49       50.04
+         32 |         64        5.11       55.15
+         36 |        108        8.62       63.77
+         48 |        192       15.32       79.09
+         54 |         54        4.31       83.40
+         96 |         96        7.66       91.06
+        112 |        112        8.94      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. *TEAM SIZE;
+. *TEAMS 93 AND 94 HAVE TEAM SIZE MISCODED;
+. replace team_size=3 if teamid==93;
+(20 real changes made)
+
+. replace team_size=1 if teamid==94;
+(12 real changes made)
+
+. tabulate team_size;
+
+  team_size |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        289       23.06       23.06
+          2 |        367       29.29       52.35
+          3 |        597       47.65      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. generate t2=(team_size==2);
+
+. generate t3=(team_size==3);
+
+. unique teamid if team_size==1;
+Number of unique values of teamid is  15
+Number of records is  289
+
+. unique teamid if team_size==2;
+Number of unique values of teamid is  25
+Number of records is  367
+
+. unique teamid if team_size==3;
+Number of unique values of teamid is  31
+Number of records is  597
+
+. *PERCENT MEN IN TEAM;
+. destring v_1101, force gen(v1101);
+v_1101: contains nonnumeric characters; v1101 generated as byte
+(126 missing values generated)
+
+. destring v_1102, force gen(v1102);
+v_1102: contains nonnumeric characters; v1102 generated as byte
+(704 missing values generated)
+
+. destring v_1103, force gen(v1103);
+v_1103: contains nonnumeric characters; v1103 generated as byte
+(301 missing values generated)
+
+. tabulate v1101, missing;
+
+      v1101 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        839       66.96       66.96
+          2 |        288       22.98       89.94
+          . |        126       10.06      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. tabulate v1102, missing;
+
+      v1102 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        275       21.95       21.95
+          2 |        274       21.87       43.81
+          . |        704       56.19      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. tabulate v1103, missing;
+
+      v1103 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        498       39.74       39.74
+          2 |        454       36.23       75.98
+          . |        301       24.02      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. *TEAM 27 IS MISSING GENDER;
+. list team_size backgr_degree1 backgr_degree2 backgr_degree3 if teamid==27;
+
+      +-------------------------------------------+
+      | team_s~e   backg~e1   backg~e2   backg~e3 |
+      |-------------------------------------------|
+ 206. |        1          4         NA         NA |
+ 207. |        1          4         NA         NA |
+ 208. |        1          4         NA         NA |
+ 209. |        1          4         NA         NA |
+ 210. |        1          4         NA         NA |
+      |-------------------------------------------|
+ 211. |        1          4         NA         NA |
+ 212. |        1          4         NA         NA |
+ 213. |        1          4         NA         NA |
+ 214. |        1          4         NA         NA |
+ 215. |        1          4         NA         NA |
+      |-------------------------------------------|
+ 216. |        1          4         NA         NA |
+ 217. |        1          4         NA         NA |
+      +-------------------------------------------+
+
+. list v1101 v1102 v1103 if teamid==27;
+
+      +-----------------------+
+      | v1101   v1102   v1103 |
+      |-----------------------|
+ 206. |     .       .       . |
+ 207. |     .       .       . |
+ 208. |     .       .       . |
+ 209. |     .       .       . |
+ 210. |     .       .       . |
+      |-----------------------|
+ 211. |     .       .       . |
+ 212. |     .       .       . |
+ 213. |     .       .       . |
+ 214. |     .       .       . |
+ 215. |     .       .       . |
+      |-----------------------|
+ 216. |     .       .       . |
+ 217. |     .       .       . |
+      +-----------------------+
+
+. *WILL USE HOT DECK IMPUTATION TO FILL IN THE GENDER OF THAT OBSERVATION;
+. *TEAM 27 IS A ONE PERSON TEAM WITH A DEGREE IN FIELD 4;
+. *TEAM LEVEL DATA SHOWS THAT 3 OTHER TEAMS (83, 87, 96) WITH SAME CHARACTERISTICS;
+. *THOSE 3 TEAMS ARE 2 MEN AND ONE WOMEN;
+. *WILL ASSIGN PMALE = .67 FOR TEAM 27;
+. generate nmale=(v1101==1) + (v1102==1) + (v1103==1);
+
+. generate team=(v1101~=.) + (v1102~=.) + (v1103~=.);
+
+. generate pmale=nmale/team;
+(12 missing values generated)
+
+. replace pmale=.6666667 if teamid==27;
+(12 real changes made)
+
+. tabulate pmale;
+
+      pmale |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |        218       17.40       17.40
+   .3333333 |        251       20.03       37.43
+         .5 |         99        7.90       45.33
+   .6666667 |        111        8.86       54.19
+          1 |        574       45.81      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. *T-STATISTIC OF ESTIMATED AME AND IMPLIED STANDARD ERROR AT MODEL LEVEL;
+. destring z, force replace;
+z: contains nonnumeric characters; replaced as double
+(1 missing value generated)
+
+. generate oldz=z;
+(1 missing value generated)
+
+. replace z=abs(z);
+(686 real changes made)
+
+. gen std=abs(ame/z);
+(3 missing values generated)
+
+. summ ame z;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+         ame |      1,253    .0007771    .1865197  -1.353765       2.47
+           z |      1,252    2.132401    3.242033          0   49.35065
+
+. *FIELD OF HIGHEST DEGREE OF TEAM;
+. tabulate backgr_degree1;
+
+backgr_degr |
+        ee1 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |         12        0.96        0.96
+          2 |         90        7.18        8.14
+          3 |        691       55.15       63.29
+          4 |        330       26.34       89.62
+          5 |         58        4.63       94.25
+          6 |         36        2.87       97.13
+          7 |         16        1.28       98.40
+         NA |         20        1.60      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. destring backgr_degree1, force gen(degree1);
+backgr_degree1: contains nonnumeric characters; degree1 generated as byte
+(20 missing values generated)
+
+. destring backgr_degree2, force gen(degree2);
+backgr_degree2: contains nonnumeric characters; degree2 generated as byte
+(676 missing values generated)
+
+. destring backgr_degree3, force gen(degree3);
+backgr_degree3: contains nonnumeric characters; degree3 generated as byte
+(289 missing values generated)
+
+. tabulate backgr_degree1 degree1;
+
+backgr_deg |                              degree1
+      ree1 |         1          2          3          4          5          6 |     Total
+-----------+------------------------------------------------------------------+----------
+         1 |        12          0          0          0          0          0 |        12 
+         2 |         0         90          0          0          0          0 |        90 
+         3 |         0          0        691          0          0          0 |       691 
+         4 |         0          0          0        330          0          0 |       330 
+         5 |         0          0          0          0         58          0 |        58 
+         6 |         0          0          0          0          0         36 |        36 
+         7 |         0          0          0          0          0          0 |        16 
+-----------+------------------------------------------------------------------+----------
+     Total |        12         90        691        330         58         36 |     1,233 
+
+
+backgr_deg |  degree1
+      ree1 |         7 |     Total
+-----------+-----------+----------
+         1 |         0 |        12 
+         2 |         0 |        90 
+         3 |         0 |       691 
+         4 |         0 |       330 
+         5 |         0 |        58 
+         6 |         0 |        36 
+         7 |        16 |        16 
+-----------+-----------+----------
+     Total |        16 |     1,233 
+
+. summ degree1 degree2 degree3;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     degree1 |      1,233    3.408759    .9336709          1          7
+     degree2 |        577    3.102253    .9023186          1          5
+     degree3 |        964    3.525934    .8064844          3          6
+
+. generate d1=degree1;
+(20 missing values generated)
+
+. generate d2=degree2;
+(676 missing values generated)
+
+. generate d3=degree3;
+(289 missing values generated)
+
+. replace d1=0 if d1==.;
+(20 real changes made)
+
+. replace d2=0 if d2==.;
+(676 real changes made)
+
+. replace d3=0 if d3==.;
+(289 real changes made)
+
+. generate counter=d1*100 + d2*10 + d3;
+
+. generate counter2=team_size*1000 + counter;
+
+. summ d1-d3 counter counter2;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+          d1 |      1,253     3.35435    1.020034          0          7
+          d2 |      1,253    1.428571    1.663568          0          5
+          d3 |      1,253     2.71269    1.645637          0          6
+     counter |      1,253    352.4334    102.8099          5        703
+    counter2 |      1,253    2598.243    806.9205       1100       3654
+
+. tabulate counter2;
+
+   counter2 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       1100 |         12        0.96        0.96
+       1200 |         24        1.92        2.87
+       1300 |         71        5.67        8.54
+       1400 |        144       11.49       20.03
+       1500 |         26        2.08       22.11
+       1600 |         12        0.96       23.06
+       2204 |         48        3.83       26.90
+       2303 |        182       14.53       41.42
+       2306 |          9        0.72       42.14
+       2404 |         88        7.02       49.16
+       2504 |          6        0.48       49.64
+       2505 |         14        1.12       50.76
+       2606 |          4        0.32       51.08
+       2703 |         16        1.28       52.35
+       3005 |         20        1.60       53.95
+       3244 |         18        1.44       55.39
+       3323 |         32        2.55       57.94
+       3333 |        284       22.67       80.61
+       3336 |         36        2.87       83.48
+       3343 |         53        4.23       87.71
+       3344 |         24        1.92       89.62
+       3414 |         48        3.83       93.46
+       3433 |         22        1.76       95.21
+       3443 |         12        0.96       96.17
+       3444 |         16        1.28       97.45
+       3555 |         12        0.96       98.40
+       3654 |         20        1.60      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. generate mdegree=degree1;
+(20 missing values generated)
+
+. replace mdegree=0 if counter2==3005;
+(20 real changes made)
+
+. replace mdegree=20 if counter2==2204 | counter2==2306 | counter2==2504 | counter2==2703;
+(79 real changes made)
+
+. replace mdegree=33 if counter2==3323 | counter2==3336 | counter2==3343;
+(121 real changes made)
+
+. replace mdegree=34 if counter2==3414 | counter2==3443;
+(60 real changes made)
+
+. replace mdegree=35 if counter2==3433;
+(22 real changes made)
+
+. replace mdegree=36 if counter2==3344;
+(24 real changes made)
+
+. replace mdegree=40 if counter2==3244 | counter2==3654;
+(38 real changes made)
+
+. tabulate counter2, sum(mdegree);
+
+            |         Summary of mdegree
+   counter2 |        Mean   Std. dev.       Freq.
+------------+------------------------------------
+       1100 |           1           0          12
+       1200 |           2           0          24
+       1300 |           3           0          71
+       1400 |           4           0         144
+       1500 |           5           0          26
+       1600 |           6           0          12
+       2204 |          20           0          48
+       2303 |           3           0         182
+       2306 |          20           0           9
+       2404 |           4           0          88
+       2504 |          20           0           6
+       2505 |           5           0          14
+       2606 |           6           0           4
+       2703 |          20           0          16
+       3005 |           0           0          20
+       3244 |          40           0          18
+       3323 |          33           0          32
+       3333 |           3           0         284
+       3336 |          33           0          36
+       3343 |          33           0          53
+       3344 |          36           0          24
+       3414 |          34           0          48
+       3433 |          35           0          22
+       3443 |          34           0          12
+       3444 |           4           0          16
+       3555 |           5           0          12
+       3654 |          40           0          20
+------------+------------------------------------
+      Total |   11.002394   12.972353       1,253
+
+. *PRO-IMMIGRATION INDEX USES THE VARIABLE MEASURING THE GENERAL ATTITUDE TOWARDS IMMIGRATION, ATT
+> ITUDE_IMMIGRATION_11;
+. *A VARIABLE COLLECTED IN THE FIRST WAVE QUESTIONNAIRE;
+. *THE VARIABLE pro_immigrant in lower case IS THE MEAN OF THE INDEX WITHIN A TEAM;
+. *THE PRO_IMMIGRANT VARIABLE IN UPPER CASE ONLY HAS 3 VALUES AS COMPARED TO MORE THAN 6 FOR THE p
+> ro_immigrant VARIABLE;
+. *HIGHER VALUES OF PRO_IMMIGRANT INDICATE THAT IMMIGRATION LAWS SHOULD BE RELAXED, MORE IMMIGRATI
+> ON;
+. *NOTE THAT ATTITUDE_IMMIGRATION_11 IS IN REVERSE ORDER;
+. tabulate pro_immigrant attitude_immigration_11 if team_size==1;
+
+                 |                      attitude_immigration_11
+   pro_immigrant |         1          2          3          4          5          6 |     Total
+-----------------+------------------------------------------------------------------+----------
+               1 |         0          0          0          0          0         30 |        30 
+               2 |         0          0          0          0         24          0 |        24 
+               3 |         0          0          0         36          0          0 |        36 
+               4 |         0          0         14          0          0          0 |        14 
+               5 |         0         62          0          0          0          0 |        62 
+               6 |       123          0          0          0          0          0 |       123 
+-----------------+------------------------------------------------------------------+----------
+           Total |       123         62         14         36         24         30 |       289 
+
+. generate proindex=pro_immigrant;
+
+. destring proindex, force replace;
+proindex: all characters numeric; replaced as double
+
+. tabulate proindex proi, missing;
+
+           |                             proindex
+  proindex |         1          2   2.333333   2.666667          3   3.333333 |     Total
+-----------+------------------------------------------------------------------+----------
+         1 |        30          0          0          0          0          0 |        30 
+         2 |         0         24          0          0          0          0 |        24 
+  2.333333 |         0          0         12          0          0          0 |        12 
+  2.666667 |         0          0          0         24          0          0 |        24 
+         3 |         0          0          0          0         48          0 |        48 
+  3.333333 |         0          0          0          0          0         20 |        20 
+       3.5 |         0          0          0          0          0          0 |        80 
+  3.666667 |         0          0          0          0          0          0 |       128 
+         4 |         0          0          0          0          0          0 |        74 
+  4.333333 |         0          0          0          0          0          0 |       160 
+       4.5 |         0          0          0          0          0          0 |        98 
+  4.666667 |         0          0          0          0          0          0 |        52 
+         5 |         0          0          0          0          0          0 |       144 
+  5.333333 |         0          0          0          0          0          0 |        28 
+       5.5 |         0          0          0          0          0          0 |       122 
+  5.666667 |         0          0          0          0          0          0 |        18 
+         6 |         0          0          0          0          0          0 |       191 
+-----------+------------------------------------------------------------------+----------
+     Total |        30         24         12         24         48         20 |     1,253 
+
+
+           |                             proindex
+  proindex |       3.5   3.666667          4   4.333333        4.5   4.666667 |     Total
+-----------+------------------------------------------------------------------+----------
+         1 |         0          0          0          0          0          0 |        30 
+         2 |         0          0          0          0          0          0 |        24 
+  2.333333 |         0          0          0          0          0          0 |        12 
+  2.666667 |         0          0          0          0          0          0 |        24 
+         3 |         0          0          0          0          0          0 |        48 
+  3.333333 |         0          0          0          0          0          0 |        20 
+       3.5 |        80          0          0          0          0          0 |        80 
+  3.666667 |         0        128          0          0          0          0 |       128 
+         4 |         0          0         74          0          0          0 |        74 
+  4.333333 |         0          0          0        160          0          0 |       160 
+       4.5 |         0          0          0          0         98          0 |        98 
+  4.666667 |         0          0          0          0          0         52 |        52 
+         5 |         0          0          0          0          0          0 |       144 
+  5.333333 |         0          0          0          0          0          0 |        28 
+       5.5 |         0          0          0          0          0          0 |       122 
+  5.666667 |         0          0          0          0          0          0 |        18 
+         6 |         0          0          0          0          0          0 |       191 
+-----------+------------------------------------------------------------------+----------
+     Total |        80        128         74        160         98         52 |     1,253 
+
+
+           |                        proindex
+  proindex |         5   5.333333        5.5   5.666667          6 |     Total
+-----------+-------------------------------------------------------+----------
+         1 |         0          0          0          0          0 |        30 
+         2 |         0          0          0          0          0 |        24 
+  2.333333 |         0          0          0          0          0 |        12 
+  2.666667 |         0          0          0          0          0 |        24 
+         3 |         0          0          0          0          0 |        48 
+  3.333333 |         0          0          0          0          0 |        20 
+       3.5 |         0          0          0          0          0 |        80 
+  3.666667 |         0          0          0          0          0 |       128 
+         4 |         0          0          0          0          0 |        74 
+  4.333333 |         0          0          0          0          0 |       160 
+       4.5 |         0          0          0          0          0 |        98 
+  4.666667 |         0          0          0          0          0 |        52 
+         5 |       144          0          0          0          0 |       144 
+  5.333333 |         0         28          0          0          0 |        28 
+       5.5 |         0          0        122          0          0 |       122 
+  5.666667 |         0          0          0         18          0 |        18 
+         6 |         0          0          0          0        191 |       191 
+-----------+-------------------------------------------------------+----------
+     Total |       144         28        122         18        191 |     1,253 
+
+. destring attitude_immigration_11, force gen(att1);
+attitude_immigration_11: contains nonnumeric characters; att1 generated as byte
+(74 missing values generated)
+
+. destring attitude_immigration_12, force gen(att2);
+attitude_immigration_12: contains nonnumeric characters; att2 generated as byte
+(684 missing values generated)
+
+. destring attitude_immigration_13, force gen(att3);
+attitude_immigration_13: contains nonnumeric characters; att3 generated as byte
+(289 missing values generated)
+
+. *REVERSE ORDER OF THE ATTITUDE IMMIGRATION VARIABLES TO MAKE THEM CONSISTENT WITH PROINDEX;
+. replace att1=7-att1;
+(1,179 real changes made)
+
+. replace att2=7-att2;
+(569 real changes made)
+
+. replace att3=7-att3;
+(964 real changes made)
+
+. *NOT ALL MEMBERS IN TEAM RESPONDED TO THE ATTITUDE_IMMIGRATION VARIABLES;
+. *WILL USE ACTUAL NUMBER WHO RESPONDED TO DEFINE INDEX BELOW;
+. replace team=(att1~=.) + (att2~=.) + (att3~=.);
+(208 real changes made)
+
+. *NUMBER IN TEAM WHO RESPONDED WITH EACH PARTICULAR INDEX VALUE;
+. generate npro1=(att1==1) + (att2==1) + (att3==1);
+
+. generate npro2=(att1==2) + (att2==2) + (att3==2);
+
+. generate npro3=(att1==3) + (att2==3) + (att3==3);
+
+. generate npro4=(att1==4) + (att2==4) + (att3==4);
+
+. generate npro5=(att1==5) + (att2==5) + (att3==5);
+
+. generate npro6=(att1==6) + (att2==6) + (att3==6);
+
+. *THE Px VARIABLES GIVE % OF TEAM THAT IS IN EACH OF THE CODES;
+. generate p1=npro1/team;
+
+. generate p2=npro2/team;
+
+. generate p3=npro3/team;
+
+. generate p4=npro4/team;
+
+. generate p5=npro5/team;
+
+. generate p6=npro6/team;
+
+. *P12 P34 P56 GIVE % OF TEAM THAT IS 1,2 OR 3,4, OR 5,6;
+. generate p12=p1+p2;
+
+. generate p34=p3+p4;
+
+. generate p56=p5+p6;
+
+. *NOW DEFINING THE THREE TYPES OF TEAMS USED IN PAPER;
+. *GROUP 1, AT LEAST 1 PERSON IN TEAM IS ANTI-IMMIGRATION;
+. *GROUP 3, MORE THAN HALF OF TEAM IS PRO-IMMIGRATION;
+. *GROUP 2, THE MODERATE MIDDLE;
+. *BUT THERE IS AN OVERLAP OF 2 TEAMS, #61 and #64, BETWEEN GROUPS 1 AND 3, BOTH TEAMS HAVE 3 PERS
+> ONS;
+. *IN THESE TEAMS, 1 PERSON IS A 2 BUT BOTH OF THE OTHER PEOPLE ARE 5 OR 6;
+. *WILL CLASSIFY THEM AS PRO-IMMIGRATION GROUP SINCE MORE THAN HALF ARE PRO-IMMIGRATION;
+. generate group1=(p12>0);
+
+. generate group3=(p56>.5);
+
+. tabulate teamid if group1==1 & group3==1;
+
+     teamid |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         61 |         24       60.00       60.00
+         64 |         16       40.00      100.00
+------------+-----------------------------------
+      Total |         40      100.00
+
+. replace group1=0 if group3==1;
+(40 real changes made)
+
+. generate group2=1-group1-group3;
+
+. generate index=1*group1 +2*group2 + 3*group3;
+
+. unique teamid if group1==1;
+Number of unique values of teamid is  9
+Number of records is  134
+
+. unique teamid if group2==1;
+Number of unique values of teamid is  31
+Number of records is  544
+
+. unique teamid if group3==1;
+Number of unique values of teamid is  31
+Number of records is  575
+
+. tabulate index;
+
+      index |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        134       10.69       10.69
+          2 |        544       43.42       54.11
+          3 |        575       45.89      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. *TOPIC KNOWLEDGE;
+. tabulate topic_knowledge, missing;
+
+TOPIC_KNOWL |
+       EDGE |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       High |        390       31.13       31.13
+        Low |        366       29.21       60.34
+        Mid |        485       38.71       99.04
+         NA |         12        0.96      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. *MISSING DATA FOR THIS VARIABLE AND IT ALL BELONGS TO TEAM 27;
+. *MOREOVER TOPIC_KNOWLEDGE FOR TEAM 27 IN TEAM LEVEL DATA IS ALSO MISSING;
+. *WILL USE A HOT DECK PROCEDURE TO IMPUTE BASED ON MDEGREE, TEAM SIZE, AND PMALE;
+. tabulate teamid if topic_knowledge=="NA";
+
+     teamid |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         27 |         12      100.00      100.00
+------------+-----------------------------------
+      Total |         12      100.00
+
+. summ mdegree  if teamid==27;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     mdegree |         12           4           0          4          4
+
+. tabulate topic_knowledge if mdegree==40 & team_size==1 & pmale==0;
+no observations
+
+. tabulate topic_ipred if mdegree==40 & team_size==1 & pmale==0;
+no observations
+
+. replace topic_knowledge="Low" if teamid==27;
+(12 real changes made)
+
+. replace topic_ipred="-0.253722245526001" if teamid==27;
+(12 real changes made)
+
+. *TOPIC VARIABLE IN BRW COMES FROM A FACTOR ANALYSIS PREDICTION;
+. destring topic_ipred, force gen(topic_brw);
+topic_ipred: all characters numeric; topic_brw generated as double
+
+. tabulate topic_brw topic_knowledge, missing;
+
+           |         TOPIC_KNOWLEDGE
+ topic_brw |      High        Low        Mid |     Total
+-----------+---------------------------------+----------
+ -.3396846 |         0          8          0 |         8 
+ -.3125983 |         0         32          0 |        32 
+   -.30488 |         0         24          0 |        24 
+ -.2948698 |         0         12          0 |        12 
+ -.2924661 |         0         12          0 |        12 
+ -.2844923 |         0         12          0 |        12 
+ -.2842492 |         0         16          0 |        16 
+ -.2567398 |         0        112          0 |       112 
+ -.2537222 |         0        108          0 |       108 
+ -.2501658 |         0          6          0 |         6 
+ -.2323944 |         0         24          0 |        24 
+ -.2252685 |         0         12          0 |        12 
+ -.2088186 |         0          0         12 |        12 
+ -.2032106 |         0          0         12 |        12 
+ -.1750503 |         0          0          2 |         2 
+ -.1700541 |         0          0         48 |        48 
+ -.1684909 |         0          0          6 |         6 
+ -.1681252 |         0          0          4 |         4 
+  -.159743 |         0          0         24 |        24 
+  -.152279 |         0          0          3 |         3 
+ -.1431925 |         0          0          2 |         2 
+ -.1379568 |         0          0          2 |         2 
+ -.1322295 |         0          0         32 |        32 
+ -.1180402 |         0          0         48 |        48 
+ -.1180365 |         0          0         12 |        12 
+ -.1160367 |         0          0         20 |        20 
+ -.1126539 |         0          0          6 |         6 
+ -.1081857 |         0          0         18 |        18 
+ -.1060163 |         0          0         10 |        10 
+ -.1056993 |         0          0         12 |        12 
+ -.0988388 |         0          0          3 |         3 
+ -.0964761 |         0          0         36 |        36 
+ -.0910359 |         0          0         12 |        12 
+ -.0861576 |         0          0          1 |         1 
+ -.0766422 |         0          0         12 |        12 
+ -.0724543 |         0          0          8 |         8 
+ -.0630017 |         0          0         36 |        36 
+ -.0605945 |         0          0         16 |        16 
+ -.0572294 |         0          0         12 |        12 
+ -.0528801 |         0          0         10 |        10 
+ -.0390203 |         0          0         12 |        12 
+ -.0355067 |         0          0          8 |         8 
+ -.0346285 |         0          0          2 |         2 
+ -.0198385 |         0          0          6 |         6 
+ -.0190452 |         0          0         12 |        12 
+ -.0120221 |         0          0         20 |        20 
+ -.0084401 |         0          0          6 |         6 
+  .0020823 |        24          0          0 |        24 
+  .0121719 |        54          0          0 |        54 
+  .0199861 |         8          0          0 |         8 
+  .0227601 |        14          0          0 |        14 
+  .0236555 |        16          0          0 |        16 
+  .0544597 |        48          0          0 |        48 
+  .0605255 |        12          0          0 |        12 
+  .0693577 |        24          0          0 |        24 
+  .0731461 |         4          0          0 |         4 
+   .084274 |        16          0          0 |        16 
+  .0897856 |        12          0          0 |        12 
+  .1259155 |         2          0          0 |         2 
+  .1959201 |        12          0          0 |        12 
+  .2198415 |        36          0          0 |        36 
+   .233174 |        24          0          0 |        24 
+  .2384678 |         4          0          0 |         4 
+  .2590647 |         4          0          0 |         4 
+  .3775455 |         1          0          0 |         1 
+  .6968864 |        12          0          0 |        12 
+  .7740507 |         8          0          0 |         8 
+  .8162819 |         3          0          0 |         3 
+  .8381723 |         4          0          0 |         4 
+  1.210172 |        48          0          0 |        48 
+-----------+---------------------------------+----------
+     Total |       390        378        485 |     1,253 
+
+. summ topic_brw;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+   topic_brw |      1,253   -.0364832    .3129656  -.3396846   1.210172
+
+. *STATS INFO IS MISSING FOR TEAM 27, BUT TEAM 27 DATA IS NOT AVAILABLE IN TEAM DATA;
+. *WILL USE HOT DECK PROCEDURE;
+. tabulate statistics_skill if mdegree==40 & team_size==1 & pmale==0;
+no observations
+
+. tabulate stats_ipred if mdegree==40 & team_size==1 & pmale==0;
+no observations
+
+. replace statistics_skill="Mid" if teamid==27;
+(12 real changes made)
+
+. replace stats_ipred="0.102538885683808" if teamid==27;
+(12 real changes made)
+
+. *STATISTICS VARIABLE IN BRW COMES FROM A FACTOR ANALYSIS PREDICTION;
+. destring stats_ipred, force gen(stats_brw);
+stats_ipred: all characters numeric; stats_brw generated as double
+
+. tabulate teamid if stats_brw==.;
+no observations
+
+. replace stats_brw=0.649019158901927 if teamid==8;
+(0 real changes made)
+
+. tabulate statistics_skill, sum(stats_brw);
+
+STATISTICS_ |        Summary of stats_brw
+      SKILL |        Mean   Std. dev.       Freq.
+------------+------------------------------------
+       High |   .73442269   .24230561         178
+        Low |  -.51687865   .25222262         282
+        Mid |  -.03007244   .17214468         793
+------------+------------------------------------
+      Total |  -.03102952   .42165622       1,253
+
+. *REFEREE DATA;
+. *MODEL SCORE AND DUMMY VARIABLE INDICATING HIGH QUALITY RESEARCH;
+. tabulate model_score, missing;
+
+MODEL_SCORE |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       High |        294       23.46       23.46
+        Low |        417       33.28       56.74
+        Mid |        542       43.26      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. generate model_cat=1*(model_score=="Low") + 2*(model_score=="Mid") 
+>         + 3*(model_score=="High");
+
+.         *MODEL SCORE VARIABLE IN BRW COMES FROM A FACTOR ANALYSIS PREDICTION;
+. generate model_brw=total_score;
+
+. destring model_brw, force replace;
+model_brw already numeric; no replace
+
+. summ model_brw model_cat;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+   model_brw |      1,253    .4471207    .1142991   .1488998   .7288508
+   model_cat |      1,253    1.901836    .7471596          1          3
+
+. *GENERATE HIGH QUALITY RESEARCH VARIABLE;
+. *NOTE THAT QUALITY THRESHOLD IS DEFINED IN BRW STUDY;
+. generate quality=(model_cat==3);
+
+. *NOTE THAT SINGLE AUTHORS DO NOT PRODUCE VALUABLE RESEARCH;
+. tabulate model_score team_size;
+
+MODEL_SCOR |            team_size
+         E |         1          2          3 |     Total
+-----------+---------------------------------+----------
+      High |         0         19        275 |       294 
+       Low |       110        173        134 |       417 
+       Mid |       179        175        188 |       542 
+-----------+---------------------------------+----------
+     Total |       289        367        597 |     1,253 
+
+. *MERGING IN ALTERNATIVE REFEREE SCORE;
+. gen str100 id100 = substr(id, 1, 100);
+
+. drop id;
+
+. gen id = id100;
+
+. drop id100;
+
+. sort id;
+
+. merge id using "$workd/data/cri_new_peer_scores.dta";
+(you are using old merge syntax; see [D] merge for new syntax)
+
+. drop _merge;
+
+. drop if ame==.;
+(8 observations deleted)
+
+. tabulate peer_mean;
+
+  peer_mean |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          2 |          7        0.58        0.58
+        2.3 |          4        0.33        0.91
+        2.6 |          4        0.33        1.23
+          3 |         48        3.95        5.19
+   3.142857 |         12        0.99        6.17
+   3.285714 |         32        2.63        8.81
+        3.4 |          8        0.66        9.47
+        3.5 |         28        2.30       11.77
+   3.666667 |          4        0.33       12.10
+   3.692308 |          4        0.33       12.43
+        3.7 |          2        0.16       12.59
+   3.714286 |         12        0.99       13.58
+        3.8 |          8        0.66       14.24
+   3.833333 |         54        4.44       18.68
+   3.843137 |         24        1.98       20.66
+   3.888889 |          6        0.49       21.15
+        3.9 |         12        0.99       22.14
+       3.92 |         24        1.98       24.12
+   3.952381 |          6        0.49       24.61
+          4 |         20        1.65       26.26
+   4.033333 |         24        1.98       28.23
+   4.076923 |         16        1.32       29.55
+   4.111111 |         16        1.32       30.86
+   4.142857 |        130       10.70       41.56
+   4.153846 |          2        0.16       41.73
+   4.166667 |         24        1.98       43.70
+   4.173077 |          2        0.16       43.87
+   4.181818 |          4        0.33       44.20
+        4.2 |         12        0.99       45.19
+   4.222222 |         29        2.39       47.57
+   4.285714 |         16        1.32       48.89
+   4.304348 |          4        0.33       49.22
+   4.333333 |        124       10.21       59.42
+        4.4 |         42        3.46       62.88
+   4.428571 |         91        7.49       70.37
+   4.454545 |          1        0.08       70.45
+   4.461538 |         12        0.99       71.44
+   4.473684 |          1        0.08       71.52
+   4.481481 |          2        0.16       71.69
+   4.484848 |          1        0.08       71.77
+        4.5 |         67        5.51       77.28
+   4.521739 |          3        0.25       77.53
+       4.55 |          1        0.08       77.61
+   4.555556 |          1        0.08       77.70
+     4.5625 |          1        0.08       77.78
+   4.571429 |          4        0.33       78.11
+        4.6 |         14        1.15       79.26
+   4.636364 |         48        3.95       83.21
+   4.666667 |         92        7.57       90.78
+   4.756757 |         12        0.99       91.77
+        4.8 |         12        0.99       92.76
+   4.842105 |          8        0.66       93.42
+   4.888889 |          8        0.66       94.07
+       4.92 |         20        1.65       95.72
+          5 |         26        2.14       97.86
+        5.2 |          2        0.16       98.02
+       5.25 |         12        0.99       99.01
+   5.428571 |          8        0.66       99.67
+   5.666667 |          4        0.33      100.00
+------------+-----------------------------------
+      Total |      1,215      100.00
+
+. summ peer_mean, detail;
+
+                          peer_mean
+-------------------------------------------------------------
+      Percentiles      Smallest
+ 1%          2.6              2
+ 5%            3              2
+10%          3.5              2       Obs               1,215
+25%            4              2       Sum of wgt.       1,215
+
+50%     4.333333                      Mean           4.203944
+                        Largest       Std. dev.      .5266504
+75%          4.5       5.666667
+90%     4.666667       5.666667       Variance       .2773606
+95%         4.92       5.666667       Skewness      -.9818616
+99%         5.25       5.666667       Kurtosis       5.123153
+
+. generate quality2=(peer_mean>4.5);
+
+. replace quality2=. if peer_mean==.;
+(38 real changes made, 38 to missing)
+
+. *IMPUTING MISSING VALUES OF PEER_MEAN USING MODEL_SCORE AND SPECIFICATION CHARATERISTICS;
+. global design jobs-health logit ols stock flow changeflow w1985-w2016 orig13 eeurope allavailabl
+> e 
+>         twowayfe level_cyear mlm_fe mlm_re anynonlin;
+
+.         summ peer_mean model_score;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+   peer_mean |      1,215    4.203944    .5266504          2   5.666667
+ model_score |          0
+
+. generate pscore=peer_mean;
+(38 missing values generated)
+
+. regress peer_mean model_brw $design;
+note: changeflow omitted because of collinearity.
+
+      Source |       SS           df       MS      Number of obs   =     1,215
+-------------+----------------------------------   F(24, 1190)     =     34.05
+       Model |  137.086953        24  5.71195637   Prob > F        =    0.0000
+    Residual |  199.628857     1,190  .167755342   R-squared       =    0.4071
+-------------+----------------------------------   Adj R-squared   =    0.3952
+       Total |   336.71581     1,214  .277360634   Root MSE        =    .40958
+
+------------------------------------------------------------------------------
+   peer_mean | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   model_brw |   2.064219    .309029     6.68   0.000     1.457916    2.670521
+        jobs |   .0402603   .0275441     1.46   0.144    -.0137801    .0943008
+       unemp |   .0152979    .027794     0.55   0.582    -.0392329    .0698287
+     incdiff |   .0217294   .0277998     0.78   0.435    -.0328126    .0762714
+      oldage |   .0175151   .0275287     0.64   0.525    -.0364952    .0715254
+       house |   .0337241   .0327091     1.03   0.303    -.0304498     .097898
+      health |   .0694766   .0321217     2.16   0.031     .0064552     .132498
+       logit |   .0045312   .0350218     0.13   0.897    -.0641801    .0732425
+         ols |  -.4394082   .0690574    -6.36   0.000    -.5748961   -.3039203
+       stock |  -.1126832   .0867632    -1.30   0.194    -.2829091    .0575428
+        flow |  -.1076898   .0834466    -1.29   0.197    -.2714086     .056029
+  changeflow |          0  (omitted)
+       w1985 |   .3891232   .1279061     3.04   0.002     .1381766    .6400699
+       w1990 |  -.5689784   .1249991    -4.55   0.000    -.8142216   -.3237352
+       w1996 |   .4485643   .0430398    10.42   0.000      .364122    .5330066
+       w2006 |   .6075289   .0648645     9.37   0.000     .4802673    .7347905
+       w2016 |   .1748775   .0326295     5.36   0.000     .1108597    .2388954
+      orig13 |    .137428   .0355999     3.86   0.000     .0675826    .2072735
+     eeurope |   .0095592   .0610186     0.16   0.876    -.1101568    .1292753
+allavailable |   .2074884   .0507655     4.09   0.000     .1078885    .3070883
+    twowayfe |   .5312994   .0617502     8.60   0.000     .4101479    .6524509
+ level_cyear |  -.3346596   .0437875    -7.64   0.000    -.4205689   -.2487503
+      mlm_fe |   .1761109   .1100412     1.60   0.110    -.0397855    .3920073
+      mlm_re |   .3369553   .0749657     4.49   0.000     .1898758    .4840349
+   anynonlin |   .2283694   .0490613     4.65   0.000     .1321131    .3246257
+       _cons |    1.85225   .1701966    10.88   0.000     1.518331    2.186169
+------------------------------------------------------------------------------
+
+. predict phat;
+(option xb assumed; fitted values)
+
+. replace pscore=phat if peer_mean==.;
+(38 real changes made)
+
+. summ pscore peer_mean model_brw;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      pscore |      1,253    4.190467      .52501          2   5.666667
+   peer_mean |      1,215    4.203944    .5266504          2   5.666667
+   model_brw |      1,253    .4471207    .1142991   .1488998   .7288508
+
+. corr pscore model_brw;
+(obs=1,253)
+
+             |   pscore model_~w
+-------------+------------------
+      pscore |   1.0000
+   model_brw |   0.2007   1.0000
+
+
+. center peer_mean, standardize;
+(generated variables: c_peer_mean)
+
+. rename c_peer_mean zpeer_mean;
+
+. *BELIEF HYPOTHESIS HAS USUAL PROBLEM WITH MISSING DATA FOR TEAM 27;
+. *WILL AGAIN USE HOT DECK PROCEDURE;
+. tabulate belief_hypothesis if teamid==27;
+
+BELIEF_HYPO |
+     THESIS |      Freq.     Percent        Cum.
+------------+-----------------------------------
+         NA |         12      100.00      100.00
+------------+-----------------------------------
+      Total |         12      100.00
+
+. tabulate belief_ipred if teamid==27;
+
+       belief_ipred |      Freq.     Percent        Cum.
+--------------------+-----------------------------------
+                 NA |         12      100.00      100.00
+--------------------+-----------------------------------
+              Total |         12      100.00
+
+. tabulate belief_hypothesis if mdegree==40 & team_size==1 & pmale==0;
+no observations
+
+. replace belief_hypothesis="Low" if teamid==27;
+(12 real changes made)
+
+. replace belief_ipred="-1.13508799270782" if teamid==27;
+(12 real changes made)
+
+. tabulate belief_hypothesis, missing;
+
+BELIEF_HYPO |
+     THESIS |      Freq.     Percent        Cum.
+------------+-----------------------------------
+       High |        186       14.84       14.84
+        Low |        230       18.36       33.20
+        Mid |        837       66.80      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. generate belief_cat=1*(belief_hypothesis=="Low") + 2*(belief_hypothesis=="Mid") 
+>         + 3*(belief_hypothesis=="High");
+
+. tabulate belief_hypothesis belief_cat, missing;
+
+BELIEF_HYP |            belief_cat
+   OTHESIS |         1          2          3 |     Total
+-----------+---------------------------------+----------
+      High |         0          0        186 |       186 
+       Low |       230          0          0 |       230 
+       Mid |         0        837          0 |       837 
+-----------+---------------------------------+----------
+     Total |       230        837        186 |     1,253 
+
+. *THERE IS PROBABLY A MISCODING OF WHAT "HIGH BELIEF" MEANS IN DATA SET;
+. *USING TEAM LEVEL DATA AND RESHAPING IT LEADS TO 159 PARTICIPANTS;
+. *DOING TABULATION OF THE BELIEF_H1_Hx VARIABLES LEADS TO DISTRIBUTION OF BELIEF;
+. *SIMILAR TO THAT IN APPENDIX QUESTIONNAIRE, P. 84, WHERE 1 MEANS BELIEF IMM STRONGLY REDUCES SOC
+> IAL POLICY SUPPORT;
+. *NOTE HIGH VALUE OF BELIEF_1_AVG MEANS *WEAKER* BELIEF IN HYPOTHESIS IMMIGRATION REDUCES SOCIAL 
+> SUPPORT;
+. *NOTE THAT BELIEF_1_AVG AND BELIEF_H1_11 ARE THE SAME FOR SINGLE PERSON TEAMS;
+. tabulate belief_1_avg belief_hypothesis;
+
+                 |        BELIEF_HYPOTHESIS
+    belief_1_avg |      High        Low        Mid |     Total
+-----------------+---------------------------------+----------
+               1 |         0         96          0 |        96 
+1.66666666666667 |         0         16          0 |        16 
+               2 |         0        106        272 |       378 
+2.33333333333333 |         0          0        183 |       183 
+             2.5 |         0          0        126 |       126 
+2.66666666666667 |         0          0        111 |       111 
+               3 |       160         12        141 |       313 
+3.33333333333333 |        12          0          0 |        12 
+             3.5 |        14          0          4 |        18 
+-----------------+---------------------------------+----------
+           Total |       186        230        837 |     1,253 
+
+. tabulate belief_1_avg;
+
+    belief_1_avg |      Freq.     Percent        Cum.
+-----------------+-----------------------------------
+               1 |         96        7.66        7.66
+1.66666666666667 |         16        1.28        8.94
+               2 |        378       30.17       39.11
+2.33333333333333 |        183       14.60       53.71
+             2.5 |        126       10.06       63.77
+2.66666666666667 |        111        8.86       72.63
+               3 |        313       24.98       97.61
+3.33333333333333 |         12        0.96       98.56
+             3.5 |         18        1.44      100.00
+-----------------+-----------------------------------
+           Total |      1,253      100.00
+
+. tabulate belief_1_avg belief_h1_11 if team_size==1;
+
+                 |           belief_H1_11
+    belief_1_avg |         1          2          3 |     Total
+-----------------+---------------------------------+----------
+               1 |        96          0          0 |        96 
+               2 |         0         59          0 |        59 
+               3 |         0          0        134 |       134 
+-----------------+---------------------------------+----------
+           Total |        96         59        134 |       289 
+
+. destring belief_h1_11, force replace;
+belief_h1_11: contains nonnumeric characters; replaced as byte
+(20 missing values generated)
+
+. destring belief_h1_12, force replace;
+belief_h1_12: contains nonnumeric characters; replaced as byte
+(676 missing values generated)
+
+. destring belief_h1_13, force replace;
+belief_h1_13: contains nonnumeric characters; replaced as byte
+(289 missing values generated)
+
+. tabulate belief_h1_11, missing;
+
+belief_H1_1 |
+          1 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        112        8.94        8.94
+          2 |        702       56.03       64.96
+          3 |        383       30.57       95.53
+          4 |         36        2.87       98.40
+          . |         20        1.60      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. tabulate belief_h1_12, missing;
+
+belief_H1_1 |
+          2 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          2 |        251       20.03       20.03
+          3 |        326       26.02       46.05
+          . |        676       53.95      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. tabulate belief_h1_13, missing;
+
+belief_H1_1 |
+          3 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          2 |        550       43.89       43.89
+          3 |        384       30.65       74.54
+          4 |         30        2.39       76.94
+          . |        289       23.06      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. generate nbelief=(belief_h1_11<=2 & belief_h1_11~=.) 
+>         + (belief_h1_12<=2 & belief_h1_12~=.) + (belief_h1_13<=2 & belief_h1_13~=.);
+
+. replace team=(belief_h1_11~=.) + (belief_h1_12~=.) + (belief_h1_13~=.);
+(62 real changes made)
+
+. generate pbelief=nbelief/team;
+
+. tabulate pbelief;
+
+    pbelief |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |        319       25.46       25.46
+   .3333333 |         99        7.90       33.36
+         .5 |        150       11.97       45.33
+   .6666667 |        195       15.56       60.89
+          1 |        490       39.11      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. destring belief_ipred, force replace;
+belief_ipred: all characters numeric; replaced as double
+
+. *******************************************;
+. *TYPE OF DEPENDENT VARIABLE USED;
+. encode dv, generate(dep);
+
+. tabulate dv, sum(dep);
+
+            |            Summary of DV
+         DV |        Mean   Std. dev.       Freq.
+------------+------------------------------------
+     Health |           1           0         123
+      House |           2           0         123
+    IncDiff |           3           0         203
+       Jobs |           4           0         203
+     OldAge |           5           0         203
+    Scale_4 |           6           0          33
+    Scale_5 |           7           0          12
+    Scale_6 |           8           0         114
+Scale_Desrv |           9           0          18
+ Scale_Univ |          10           0          18
+      Unemp |          11           0         203
+------------+------------------------------------
+      Total |   5.2466081   3.2429326       1,253
+
+. tabulate scale;
+
+      Scale |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |      1,058       84.44       84.44
+          1 |        195       15.56      100.00
+------------+-----------------------------------
+      Total |      1,253      100.00
+
+. tabulate dv scale;
+
+            |         Scale
+         DV |         0          1 |     Total
+------------+----------------------+----------
+     Health |       123          0 |       123 
+      House |       123          0 |       123 
+    IncDiff |       203          0 |       203 
+       Jobs |       203          0 |       203 
+     OldAge |       203          0 |       203 
+    Scale_4 |         0         33 |        33 
+    Scale_5 |         0         12 |        12 
+    Scale_6 |         0        114 |       114 
+Scale_Desrv |         0         18 |        18 
+ Scale_Univ |         0         18 |        18 
+      Unemp |       203          0 |       203 
+------------+----------------------+----------
+      Total |     1,058        195 |     1,253 
+
+. *************************************************;
+. *STANDARDIZING THE STATISTICS AND TOPIC VARIABLES;
+. *NOTE CENTERING IS WEIGHTED BY INVERSE OF NUMBER OF MODELS;
+. generate stats_brw_orig=stats_brw;
+
+. generate topic_brw_orig=topic_brw;
+
+. center stats_brw topic_brw, standardize;
+(generated variables: c_stats_brw c_topic_brw)
+
+. drop stats_brw topic_brw;
+
+. rename c_stats_brw stats_brw;
+
+. rename c_topic_brw topic_brw;
+
+. summ stats_brw topic_brw;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+   stats_brw |      1,253   -2.47e-09           1  -3.135104   2.681392
+   topic_brw |      1,253    4.82e-09           1  -.9688011   3.983361
+
+. /*
+> *STANDARDIZING THE PROINDEX VARIABLE;
+> *HOWEVER, REGRESSIONS WILL USE THE ACTUAL INDEX ON THE 1-6 SCALE;
+> center proindex, standardize;
+> summ proindex c_proindex;
+> */
+> 
+> *GETTING EFFECTS ON ESTIMATE BY LOOKING AT EXTREME SIGNIFICANT COEFFICIENTS, USING 10TH AND 90TH
+>  PERCENTILES;
+. generate negsig=(ame<0 & z>1.645);
+
+. generate possig=(ame>0 & z>1.645);
+
+. summ ame;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+         ame |      1,253    .0007771    .1865197  -1.353765       2.47
+
+. generate pos10=(ame>.052);
+
+. generate neg10=(ame<-.071);
+
+. generate pos10s=(ame>.052 & z>1.645);
+
+. generate neg10s=(ame<-.071 & z>1.645);
+
+. summ pos10-neg10s;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+       pos10 |      1,253    .1005587    .3008635          0          1
+       neg10 |      1,253    .1005587    .3008635          0          1
+      pos10s |      1,253    .0526736    .2234702          0          1
+      neg10s |      1,253    .0630487    .2431475          0          1
+
+. summ pos10-neg10s [aw=model_brw];
+
+    Variable |     Obs      Weight        Mean   Std. dev.       Min        Max
+-------------+-----------------------------------------------------------------
+       pos10 |   1,253  560.242243    .1000907   .3002407          0          1
+       neg10 |   1,253  560.242243    .1076047   .3100043          0          1
+      pos10s |   1,253  560.242243    .0478909   .2136206          0          1
+      neg10s |   1,253  560.242243    .0661285   .2486058          0          1
+
+. *SAVE MODEL LEVEL DATA FOR GRAPHS;
+. save "$workd/data/df.dta", replace;
+file /GitHub/ideology_specification/data/df.dta saved
+
+. log close;
+      name:  <unnamed>
+       log:  C:/GitHub/ideology_specification/code/Log Files/01_Data_Prep.log
+  log type:  text
+ closed on:  11 Dec 2024, 10:35:24
+--------------------------------------------------------------------------------------------------

@@ -133,6 +133,14 @@ replace mdegree=36 if counter2==3344;
 replace mdegree=40 if counter2==3244 | counter2==3654;
 
 4. Generate pro-immigration and team-index
+
+where p12 is % of team that is anti, and p56 is % of team that is pro. 
+
+generate group1=(p12>0);
+generate group3=(p56>.5 & group1==0);
+generate group2=1-group1-group3;
+
+
 5. Generate topic_knowledge and stat_skill (impute one missing team, see Stata)
 6. Generate belief in hypothesis variables
 
@@ -220,14 +228,13 @@ df <- df %>%
          p12 = p1+p2,
          p34 = p3+p4,
          p56 = p5+p6,
-         group1 = ifelse(p12>0, 1, 0),
-         group3 = ifelse(pindex>=.5, 1, 0),
-         group3 = ifelse(group1==1 & group3==1, 1, group3),
-         group1 = ifelse(group1==1 & group3==1, 0, group1),
-         group2 = ifelse(group1==0 & group3==0, 1, 0),
-         group1 = ifelse(is.na(group1), 0, group1),
-         group2 = ifelse(is.na(group2), 0, group2),
+         group1 = ifelse(p12 > 0, 1, 0),
+         group3 = ifelse(p56 > .5, 1, 0),
          group3 = ifelse(is.na(group3), 0, group3),
+         group1 = ifelse(is.na(group1), 0, group1),
+         group1 = ifelse(group3 == 1, 0, group1),
+         group2 = 1 - group1 - group3,
+         group2 = ifelse(is.na(group2), 0, group2),
          index = 1*group1 + 2*group2 + 3*group3,
          topic_knowledge = ifelse(u_teamid==27, "Low", TOPIC_KNOWLEDGE),
          topic_ipred = ifelse(u_teamid == 27, -0.253722245526001, topic_ipred),
