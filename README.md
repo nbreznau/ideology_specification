@@ -38,7 +38,7 @@ This is the reproducible workflow for the study of how political ideology impact
 
 Stata and R code runs in separate named files starting with numbers indicating the order in which they must be run (01_, 02_, etc.).
 
-The main results were produced using Stata and can be found under [code/Stata Main Results](https://github.com/nbreznau/ideology_specification/tree/main/code/Stata_Main_Results). The log files are knitted into the folder `code/Log Files`.
+The main results were produced using Stata and can be found under [code/Stata Main Results](https://github.com/nbreznau/ideology_specification/tree/main/code/Stata_Main_Results). The log files are knitted into the folder `code/Log Files`. Note that users must install some ado's using 'ssc install', these commands are at the top of the .do files but commented out.
 
 We used R to check the results and to produce the figures and this code is found in [code/R Robustness Results and Figures](https://github.com/nbreznau/ideology_specification/tree/main/code/R_Robustness_Results_and_Figures). The knitted files are also in the folder `code/Log Files` 
 

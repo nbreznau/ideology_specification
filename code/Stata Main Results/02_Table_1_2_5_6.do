@@ -1,12 +1,58 @@
-#delimit ;
 
+#delimit ;
 * DEFINE WORKING DIRECTORY;
 global workd "/GitHub/ideology_specification";
-log using "$workd/code/Log Files/03_Regressions.log", replace;
+log using "$workd/code/Log Files/02_Table_1_2_5_6.log", replace;
 clear matrix;
 clear mata;
 
 use "$workd/data/df.dta", clear;
+
+
+
+
+*DESCRIPTIVE TABLE AT THE MODEL LEVEL;
+
+tabulate topic_knowledge, sum(topic_brw);
+tabulate statistics_skill, sum(stats_brw);
+tabulate model_score, sum(model_brw);
+
+generate hmodel=(model_score=="High");
+
+
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  ;
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==1 ;
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==2;
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==3;
+
+
+*SUMMARY STATS WEIGHTED BY THE INVERSE OF THE NUMBER OF MODELS;
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2   [aw=1/nmodel];
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==1  [aw=1/nmodel];
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==2 [aw=1/nmodel];
+summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
+	stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==3 [aw=1/nmodel];
+
+preserve;
+collapse (mean) team_size group1 group2 group3, by(teamid);
+summ team_size;
+summ team_size if group1==1;
+summ team_size if group2==1;
+summ team_size if group3==1;
+restore;
+
+
+
+
+
+
 
 
 ***************************************************************************;
@@ -32,9 +78,6 @@ lincom p56-p12;
 reg ame  group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(teamid);
 reg ame  group1 group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(teamid);
 lincom group3-group1;
-
-
-
 
 
 
@@ -66,6 +109,7 @@ lincom group3-group1;
 
 
 
+
 *GETTING PERCENTILE DIFFERENCE BETWEEN PRO AND ANTI IMMIGRATION TEAMS;
 
 
@@ -83,10 +127,14 @@ tabulate prame, sum(rame);
 
 
 
+
 ********************************************************************;
-
-
 *OLS REGRESSIONS ON OUTLYING NEGATIVE & SIGNIFICANT OUTCOMES;
+
+
+summ pos10-neg10s;
+summ pos10-neg10s [aw=model_brw];
+
 
 reg neg10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom p56-p12;
@@ -119,14 +167,7 @@ lincom p56-p12;
 reg pos10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=pscore/nmodel] ,  cluster(teamid);
 lincom group3-group1;
 
-
-
-
-
-
-
-
-
+	
 
 
 *RELATIONSHIP BETWEEN NEW MEASURE OF QUALITY OF RESEARCH AND PRO-IMMIGRATION INDEX;
@@ -138,17 +179,16 @@ lincom group3-group1;
 summ quality2;
 
 
-
-
-
-
-
 *WEIGHT ALSO BY PEER_N, NUMBER OF REVIEWERS THAT MODEL HAD;
 
 
 *NEW REFEREE SCORE MEASURE AS DEPENDENT VARIABLE;
 reg zpeer_mean p12 p56     stats_brw topic_brw t2 t3 i.mdegree  [aw=peer_n/nmodel] ,  cluster(teamid);
 reg zpeer_mean group1 group3     stats_brw topic_brw t2 t3 i.mdegree   [aw=peer_n/nmodel] ,  cluster(teamid);
+
+
+
+
 
 
 *QUALITY MODELS LOSE A LOT OF SINGLETON OBSERVATIONS IF WE USE LOGIT;
@@ -177,6 +217,7 @@ replace median = (         cond(missing(y1), 0, y1) +
         cond(missing(y3), 0, y3) ) / 2 
         if (missing(y1) + missing(y2) + missing(y3)) == 1 	;
 
+* For later loading;
+save "$workd/data/newmodel.dta", replace;
 
-
-********************************************************************;
+log close;

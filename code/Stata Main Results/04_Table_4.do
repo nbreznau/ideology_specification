@@ -1,15 +1,19 @@
 #delimit ;
-log using /volumes/ddisk/mi/researcher/reg_indiv.log, replace;
+*ssc install reghdfe
+*ssc install ftools
+
+global workd "/GitHub/ideology_specification";
+log using "$workd/code/Log Files/04_Table_4.log", replace;
 clear matrix;
 clear mata;
 
-
+use "$workd/data/df.dta", clear;
 
 
 
 *GETTING INDIVIDUAL LEVEL STATS & TOPIC INDECES;
 
-use "/volumes/Ddisk/MI/Researcher/sem_p.dta", clear;
+import delimited "$workd/data/sem_p.csv", clear varnames(1);
 
 keep u_id stats topic belief;
 rename stats stats_i;
@@ -17,27 +21,24 @@ rename topic topic_i;
 rename belief belief_i;
 sort u_id;
 
-save /volumes/ddisk/data/junkindex.dta, replace;
-
-
+save "$workd/data/index_p.dta", replace;
 
 
 
 
 *GETTING INDIVIDUAL-MODEL LEVEL DATA;
-
-use /volumes/ddisk/mi/researcher/cri_long_participant_ame_dyad.dta, replace;
+import delimited "$workd/data/cri_long_participant_ame_dyad.csv", clear bindquote(strict) varnames(1) maxquotedrows(1000);
 
 
 rename u_teamid teamid;
 
 *MERGING IN INDIVIDUAL LEVEL INDICES;
 sort u_id;
-merge u_id using /volumes/ddisk/data/junkindex.dta;
+merge u_id using "$workd/data/index_p.dta";
 drop _merge;
 
 
-rename AME ame;
+*rename AME ame;
 destring ame, force replace;
 drop if ame==.;
 
@@ -71,6 +72,23 @@ replace ame2=.35 if ame>.35;
 
 
 
+
+*TEAM SIZE;
+*TEAMS 93 AND 94 HAVE TEAM SIZE MISCODED;
+replace team_size=3 if teamid==93;
+replace team_size=1 if teamid==94;
+tabulate team_size;
+
+generate t2=(team_size==2);
+generate t3=(team_size==3);
+unique teamid if team_size==1;
+unique teamid if team_size==2;
+unique teamid if team_size==3;
+
+
+
+
+
 *INDIVIDUAL LEVEL FIELD OF STUDY;
 
 rename backgr_degree degree;
@@ -86,14 +104,9 @@ egen nmodel=count(ame), by(u_id);
 
 
 *BELIEF IN HYPOTHESIS AT INDIVIDUAL LEVEL;
-tabulate belief_H1_1;
-destring belief_H1_1, force replace;
-generate pbelief=(belief_H1_1<=2);
-
-
-
-
-
+tabulate belief_h1_1;
+destring belief_h1_1, force replace;
+generate pbelief=(belief_h1_1<=2);
 
 
 
@@ -101,23 +114,13 @@ generate pbelief=(belief_H1_1<=2);
 
 *MERGING IN ALTERNATIVE REFEREE SCORE;
 sort id;
-merge id using /volumes/ddisk/mi/researcher/cri_new_peer_scores.dta;
+merge id using "$workd/data/cri_new_peer_scores.dta";
 drop _merge;
 drop if ame==.;
 
 
 *IMPUTING MISSING VALUES OF PEER_MEAN USING MODEL_SCORE AND SPECIFICATION CHARATERISTICS;
-rename Jobs jobs;
-rename Unemp unemp;
-rename IncDiff incdiff;
-rename OldAge oldage;
-rename House house;
-rename Health health;
-rename Scale scale;
-rename Stock stock;
-rename Flow flow;
-rename ChangeFlow changeflow;
-rename BELIEF_HYPOTHESIS belief_hypothesis;
+
 global design jobs-health logit ols stock flow changeflow w1985-w2016 orig13 eeurope allavailable 
 	twowayfe level_cyear mlm_fe mlm_re anynonlin;
 
@@ -143,9 +146,6 @@ reg ame  indiv1 indiv3    stats_i topic_i  i.degree    ,  cluster(id);
 
 *NOTE THAT REGHDFE COMMAND CLUSTERING AT BOTH TEAM AND ID LEVEL IS SAME AS REG COMMAND CLUSTERING AT TEAM LEVEL;
 reghdfe ame  indiv1 indiv3   stats_i topic_i    , absorb(degree) cluster(teamid id);
-
-
-
 
 
 
@@ -178,13 +178,14 @@ summ stats_i stats_ipred topic_i topic_ipred  belief_i belief_ipred;
 
 
 
-egen statimp=mean(stats_i), by(degree STATISTICS_SKILL);
-egen topicimp=mean(topic_i), by(degree TOPIC_KNOWLEDGE );
+egen statimp=mean(stats_i), by(degree statistics_skill);
+egen topicimp=mean(topic_i), by(degree topic_knowledge);
 egen beliefimp=mean(belief_i), by(degree belief_hypothesis);
 
 replace stats_i=statimp if stats_i==.;
 replace topic_i=topicimp if topic_i==.;
 replace belief_i=beliefimp if belief_i==.;
+
 
 
 
@@ -198,19 +199,52 @@ summ ame stats_i stats_ipred topic_i topic_ipred belief_i belief_ipred stats_old
 
 
 
+
+
+
+*************************************************;
+
+*STANDARDIZING THE STATISTICS AND TOPIC VARIABLES;
+generate stats_i_orig=stats_i;
+generate topic_i_orig=topic_i;
+
+center stats_i topic_i, standardize;
+drop stats_i topic_i;
+rename c_stats_i stats_i;
+rename c_topic_i topic_i;
+summ stats_i topic_i;
+
+
+
+
+generate proindex=att;
+
+
+
+
 reg ame  indiv1 indiv3  stats_i topic_i i.degree  [aw=1/team_size]  ,  cluster(teamid);
 
 
 
 summ ame indiv1 indiv3 pbelief stats_i topic_i;
 
+
+
+
 *THE WEIGHT THAT WILL LEAD TO ABOUT 71 WEIGHTED OBSERVATIONS;
 generate pweight=1/(team_size*nmodel);
+
+reg ame   proindex  stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluster(teamid);
+reg ame   proindex  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(teamid);
+
+reg ame   indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluster(teamid);
+reg ame   indiv3  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(teamid);
 
 reg ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluster(teamid);
 lincom indiv3-indiv1;
 reg ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(teamid);
 lincom indiv3-indiv1;
+
 
 
 *INCLUDING BELIEF VARIABLE;
@@ -225,23 +259,43 @@ lincom indiv3-indiv1;
 
 generate pweight2=pscore*pweight;
 
-reghdfe ame  indiv1 indiv3  stats_i topic_i i.degree  [aw=pweight]    , 
+reghdfe ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight]    , 
 	absorb(degree) cluster(u_id teamid id);
 lincom indiv3-indiv1;
-reghdfe ame  indiv1 indiv3  stats_i topic_i i.degree  [aw=pweight2]    , 
-	absorb(degree) cluster(u_id teamid id);
-lincom indiv3-indiv1;
-
-reghdfe ame  indiv1 indiv3 pbelief stats_i topic_i i.degree  [aw=pweight]    , 
-	absorb(degree) cluster(u_id teamid id);
-lincom indiv3-indiv1;
-reghdfe ame  indiv1 indiv3 pbelief stats_i topic_i i.degree  [aw=pweight2]    , 
+reghdfe ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight2]    , 
 	absorb(degree) cluster(u_id teamid id);
 lincom indiv3-indiv1;
 
+reghdfe ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pweight]    , 
+	absorb(degree) cluster(u_id teamid id);
+lincom indiv3-indiv1;
+reghdfe ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pweight2]    , 
+	absorb(degree) cluster(u_id teamid id);
+lincom indiv3-indiv1;
 
 
-kkk;
+
+
+
+***********************************************;
+
+*GETTING PERCENTILE DIFFERENCE BETWEEN PRO AND ANTI IMMIGRATION TEAMS;
+
+
+
+reg ame  indiv1 indiv3    stats_i topic_i t2 t3 i.degree   [aw=pweight] ,  cluster(teamid);
+predict rame, resid;
+xtile prame=rame [aw=pweight], n(100);
+
+tabulate degree, gen(dum);
+center stats_i topic_i t2 t3 dum* [aw=pweight];
+reg ame indiv1 indiv3 c_* [aw=pweight], cluster(teamid);
+reg ame indiv1 indiv2 indiv3 c_* [aw=pweight], cluster(teamid) nocons;
+
+tabulate prame, sum(rame);
+
+
+
 
 
 
@@ -264,6 +318,25 @@ generate neg10s=(ame<-.071 & z>1.645);
 
 summ pos10-neg10s;
 summ pos10-neg10s [aw=model_brw];
+
+
+
+
+*OLS REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
+reg neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  cluster(teamid);
+lincom indiv3-indiv1;
+reg pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  cluster(teamid);
+lincom indiv3-indiv1;
+
+*OLS REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
+reg neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,  cluster(teamid);
+lincom indiv3-indiv1;
+reg pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,  cluster(teamid);
+lincom indiv3-indiv1;
+
+
+
+
 
 *LOGIT REGRESSIONS ON OUTLYING NEGATIVE & SIGNIFICANT COEFFICIENTS;
 quietly logit neg10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  cluster(teamid);

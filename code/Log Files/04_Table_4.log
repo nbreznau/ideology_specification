@@ -1,0 +1,1858 @@
+--------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:/GitHub/ideology_specification/code/Log Files/04_Table_4.log
+  log type:  text
+ opened on:  19 Dec 2024, 07:24:55
+
+. clear matrix;
+
+. clear mata;
+
+. use "$workd/data/df.dta", clear;
+
+. *GETTING INDIVIDUAL LEVEL STATS & TOPIC INDECES;
+. import delimited "$workd/data/sem_p.csv", clear varnames(1);
+(encoding automatically selected: ISO-8859-1)
+(33 vars, 147 obs)
+
+. keep u_id stats topic belief;
+
+. rename stats stats_i;
+
+. rename topic topic_i;
+
+. rename belief belief_i;
+
+. sort u_id;
+
+. save "$workd/data/index_p.dta", replace;
+file /GitHub/ideology_specification/data/index_p.dta saved
+
+. *GETTING INDIVIDUAL-MODEL LEVEL DATA;
+. import delimited "$workd/data/cri_long_participant_ame_dyad.csv", clear bindquote(strict) varnam
+> es(1) maxquotedrows(1000);
+(encoding automatically selected: ISO-8859-1)
+(653 vars, 2,838 obs)
+
+. rename u_teamid teamid;
+
+. *MERGING IN INDIVIDUAL LEVEL INDICES;
+. sort u_id;
+
+. merge u_id using "$workd/data/index_p.dta";
+(you are using old merge syntax; see [D] merge for new syntax)
+variable u_id does not uniquely identify observations in the master data
+
+. drop _merge;
+
+. *rename AME ame;
+. destring ame, force replace;
+ame: contains nonnumeric characters; replaced as double
+(24 missing values generated)
+
+. drop if ame==.;
+(24 observations deleted)
+
+. rename attitude_immigration_1 att;
+
+. destring att, force replace;
+att: contains nonnumeric characters; replaced as byte
+(102 missing values generated)
+
+. tabulate att;
+
+        att |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        542       19.99       19.99
+          2 |        801       29.54       49.52
+          3 |        809       29.83       79.35
+          4 |        374       13.79       93.14
+          5 |        102        3.76       96.90
+          6 |         84        3.10      100.00
+------------+-----------------------------------
+      Total |      2,712      100.00
+
+. replace att=7-att;
+(2,752 real changes made, 40 to missing)
+
+. tabulate att;
+
+        att |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |         84        3.10        3.10
+          2 |        102        3.76        6.86
+          3 |        374       13.79       20.65
+          4 |        809       29.83       50.48
+          5 |        801       29.54       80.01
+          6 |        542       19.99      100.00
+------------+-----------------------------------
+      Total |      2,712      100.00
+
+. generate index=1*(att==1 | att==2) + 2*(att==3 | att==4) + 3*(att==5 | att==6);
+
+. tabulate index, missing;
+
+      index |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          0 |        102        3.62        3.62
+          1 |        186        6.61       10.23
+          2 |      1,183       42.04       52.27
+          3 |      1,343       47.73      100.00
+------------+-----------------------------------
+      Total |      2,814      100.00
+
+. drop if index==0;
+(102 observations deleted)
+
+. generate indiv1=(index==1);
+
+. generate indiv2=(index==2);
+
+. generate indiv3=(index==3);
+
+. *GETTING HISTOGRAM USING INDIVIDUAL LEVEL DATA;
+. generate ame2=ame;
+
+. replace ame2=-.35 if ame<-.35;
+(57 real changes made)
+
+. replace ame2=.35 if ame>.35;
+(50 real changes made)
+
+.  *twoway (kdensity ame2 if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) 
+> bwidth(.03) )
+>         (kdensity ame2 if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(mediu
+> m) bwidth(.03) ) 
+>         (kdensity ame2 if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium)
+>  bwidth(.03)) ,
+>         legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant Researchers" 2 "Moderate Researche
+> rs" 3 "Pro-immigrant Researchers"))
+>         saving(/volumes/ddisk/mi/researcher/hist_ame_indiv.gph, replace);
+. *TEAM SIZE;
+. *TEAMS 93 AND 94 HAVE TEAM SIZE MISCODED;
+. replace team_size=3 if teamid==93;
+(60 real changes made)
+
+. replace team_size=1 if teamid==94;
+(12 real changes made)
+
+. tabulate team_size;
+
+  team_size |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        289       10.66       10.66
+          2 |        734       27.06       37.72
+          3 |      1,689       62.28      100.00
+------------+-----------------------------------
+      Total |      2,712      100.00
+
+. generate t2=(team_size==2);
+
+. generate t3=(team_size==3);
+
+. unique teamid if team_size==1;
+Number of unique values of teamid is  15
+Number of records is  289
+
+. unique teamid if team_size==2;
+Number of unique values of teamid is  25
+Number of records is  734
+
+. unique teamid if team_size==3;
+Number of unique values of teamid is  31
+Number of records is  1689
+
+. *INDIVIDUAL LEVEL FIELD OF STUDY;
+. rename backgr_degree degree;
+
+. destring degree, force replace;
+degree already numeric; no replace
+
+. *GET NUMBER OF MODELS EACH PERSON SUBMITTED;
+. egen nmodel=count(ame), by(u_id);
+
+. *BELIEF IN HYPOTHESIS AT INDIVIDUAL LEVEL;
+. tabulate belief_h1_1;
+
+belief_H1_1 |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |        112        4.13        4.13
+          2 |      1,449       53.43       57.56
+          3 |      1,085       40.01       97.57
+          4 |         66        2.43      100.00
+------------+-----------------------------------
+      Total |      2,712      100.00
+
+. destring belief_h1_1, force replace;
+belief_h1_1 already numeric; no replace
+
+. generate pbelief=(belief_h1_1<=2);
+
+. *MERGING IN ALTERNATIVE REFEREE SCORE;
+. sort id;
+
+. merge id using "$workd/data/cri_new_peer_scores.dta";
+(you are using old merge syntax; see [D] merge for new syntax)
+variable id does not uniquely identify observations in the master data
+
+. drop _merge;
+
+. drop if ame==.;
+(8 observations deleted)
+
+. *IMPUTING MISSING VALUES OF PEER_MEAN USING MODEL_SCORE AND SPECIFICATION CHARATERISTICS;
+. global design jobs-health logit ols stock flow changeflow w1985-w2016 orig13 eeurope allavailabl
+> e 
+>         twowayfe level_cyear mlm_fe mlm_re anynonlin;
+
+. generate model_brw=total_score;
+
+. summ peer_mean model_brw;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+   peer_mean |      2,598    4.228798    .5323697          2   5.666667
+   model_brw |      2,712    .4633839    .1202668   .1488998   .7288508
+
+. generate pscore=peer_mean;
+(114 missing values generated)
+
+. regress peer_mean model_brw $design;
+note: flow omitted because of collinearity.
+
+      Source |       SS           df       MS      Number of obs   =     2,598
+-------------+----------------------------------   F(24, 2573)     =     88.36
+       Model |   332.55362        24  13.8564008   Prob > F        =    0.0000
+    Residual |  403.481707     2,573  .156813722   R-squared       =    0.4518
+-------------+----------------------------------   Adj R-squared   =    0.4467
+       Total |  736.035327     2,597  .283417531   Root MSE        =      .396
+
+------------------------------------------------------------------------------
+   peer_mean | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+   model_brw |   1.855712   .1984005     9.35   0.000     1.466671    2.244753
+        jobs |   .0280607   .0183714     1.53   0.127    -.0079636    .0640849
+       unemp |   .0072046    .018576     0.39   0.698    -.0292209    .0436301
+     incdiff |   .0133108   .0185769     0.72   0.474    -.0231164    .0497381
+      oldage |   .0069133    .018319     0.38   0.706    -.0290081    .0428348
+       house |   .0413177   .0214585     1.93   0.054      -.00076    .0833954
+      health |    .085149   .0209055     4.07   0.000     .0441556    .1261424
+       logit |   .0148652   .0230738     0.64   0.519      -.03038    .0601103
+         ols |  -.4901154   .0459582   -10.66   0.000    -.5802341   -.3999967
+       stock |  -.0042758   .0163995    -0.26   0.794    -.0364332    .0278817
+        flow |          0  (omitted)
+  changeflow |   .1584201   .0608786     2.60   0.009     .0390441    .2777961
+       w1985 |   .3710236    .072428     5.12   0.000     .2290005    .5130467
+       w1990 |  -.5267518   .0722287    -7.29   0.000    -.6683841   -.3851195
+       w1996 |   .4441137   .0283795    15.65   0.000     .3884647    .4997627
+       w2006 |   .6110784   .0423805    14.42   0.000     .5279751    .6941817
+       w2016 |   .1906524    .023059     8.27   0.000     .1454364    .2358684
+      orig13 |   .0980407   .0252455     3.88   0.000     .0485372    .1475441
+     eeurope |   .0932425   .0405491     2.30   0.022     .0137303    .1727546
+allavailable |   .0827912    .036232     2.29   0.022     .0117443    .1538381
+    twowayfe |   .4824189   .0394731    12.22   0.000     .4050167    .5598212
+ level_cyear |  -.3268538   .0293765   -11.13   0.000    -.3844579   -.2692498
+      mlm_fe |    .175213   .0736978     2.38   0.018     .0307001     .319726
+      mlm_re |   .3682131   .0501796     7.34   0.000     .2698167    .4666095
+   anynonlin |   .2680278   .0316133     8.48   0.000     .2060378    .3300178
+       _cons |   1.869408   .0889635    21.01   0.000      1.69496    2.043855
+------------------------------------------------------------------------------
+
+. predict phat;
+(option xb assumed; fitted values)
+
+. replace pscore=phat if peer_mean==.;
+(114 real changes made)
+
+. summ pscore peer_mean model_brw;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+      pscore |      2,712    4.211879    .5283572          2   5.666667
+   peer_mean |      2,598    4.228798    .5323697          2   5.666667
+   model_brw |      2,712    .4633839    .1202668   .1488998   .7288508
+
+. corr pscore model_brw;
+(obs=2,712)
+
+             |   pscore model_~w
+-------------+------------------
+      pscore |   1.0000
+   model_brw |   0.2658   1.0000
+
+
+. *NOTE THAT USING ID AS WEIGHT LEADS TO MUCH LOWER STANDARD ERRORS;
+. reg ame  indiv1 indiv3    stats_i topic_i  i.degree    ,  cluster(teamid);
+
+Linear regression                               Number of obs     =      2,502
+                                                F(9, 69)          =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0188
+                                                Root MSE          =     .15148
+
+                                (Std. err. adjusted for 70 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0142726   .0161108    -0.89   0.379    -.0464127    .0178675
+      indiv3 |   .0161387   .0140532     1.15   0.255    -.0118966     .044174
+     stats_i |   .0418287   .0226315     1.85   0.069    -.0033198    .0869773
+     topic_i |  -.0682348   .0289283    -2.36   0.021    -.1259452   -.0105244
+             |
+      degree |
+          2  |  -.0342838   .0344492    -1.00   0.323    -.1030081    .0344405
+          3  |  -.0307864   .0287602    -1.07   0.288    -.0881615    .0265887
+          4  |  -.0429342   .0323247    -1.33   0.188    -.1074202    .0215518
+          5  |   -.025992    .056156    -0.46   0.645    -.1380201    .0860361
+          6  |  -.0511131   .0301199    -1.70   0.094    -.1112007    .0089745
+          7  |  -.0039511   .0307919    -0.13   0.898    -.0653792    .0574769
+             |
+       _cons |   .0239347   .0274587     0.87   0.386    -.0308439    .0787133
+------------------------------------------------------------------------------
+
+. reg ame  indiv1 indiv3    stats_i topic_i  i.degree    ,  cluster(id);
+
+Linear regression                               Number of obs     =      2,502
+                                                F(10, 1240)       =       3.66
+                                                Prob > F          =     0.0001
+                                                R-squared         =     0.0188
+                                                Root MSE          =     .15148
+
+                                 (Std. err. adjusted for 1,241 clusters in id)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0142726   .0097523    -1.46   0.144    -.0334055    .0048603
+      indiv3 |   .0161387   .0071797     2.25   0.025      .002053    .0302244
+     stats_i |   .0418287   .0132008     3.17   0.002     .0159304    .0677271
+     topic_i |  -.0682348   .0169382    -4.03   0.000    -.1014655   -.0350041
+             |
+      degree |
+          2  |  -.0342838   .0145652    -2.35   0.019     -.062859   -.0057086
+          3  |  -.0307864   .0113064    -2.72   0.007    -.0529681   -.0086047
+          4  |  -.0429342   .0130363    -3.29   0.001    -.0685099   -.0173585
+          5  |   -.025992   .0236392    -1.10   0.272    -.0723692    .0203852
+          6  |  -.0511131   .0126307    -4.05   0.000    -.0758929   -.0263332
+          7  |  -.0039511   .0367963    -0.11   0.915     -.076141    .0682387
+             |
+       _cons |   .0239347   .0108826     2.20   0.028     .0025844     .045285
+------------------------------------------------------------------------------
+
+. *NOTE THAT REGHDFE COMMAND CLUSTERING AT BOTH TEAM AND ID LEVEL IS SAME AS REG COMMAND CLUSTERIN
+> G AT TEAM LEVEL;
+. reghdfe ame  indiv1 indiv3   stats_i topic_i    , absorb(degree) cluster(teamid id);
+(MWFE estimator converged in 1 iterations)
+
+HDFE Linear regression                            Number of obs   =      2,502
+Absorbing 1 HDFE group                            F(   4,     69) =       2.03
+Statistics robust to heteroskedasticity           Prob > F        =     0.0994
+                                                  R-squared       =     0.0188
+                                                  Adj R-squared   =     0.0148
+Number of clusters (teamid)  =         70         Within R-sq.    =     0.0173
+Number of clusters (id)      =      1,241         Root MSE        =     0.1515
+
+                             (Std. err. adjusted for 70 clusters in teamid id)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0142726   .0161108    -0.89   0.379    -.0464127    .0178675
+      indiv3 |   .0161387   .0140532     1.15   0.255    -.0118966     .044174
+     stats_i |   .0418287   .0226315     1.85   0.069    -.0033198    .0869773
+     topic_i |  -.0682348   .0289283    -2.36   0.021    -.1259452   -.0105244
+       _cons |  -.0096628    .008119    -1.19   0.238    -.0258598    .0065343
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+      degree |         7           0           7     |
+-----------------------------------------------------+
+
+. *FILLING IN MISSING VALUES FOR INDIVIDUAL-LEVEL STATS & TOPIC INDEX;
+. destring stats_ipred, force replace;
+stats_ipred: contains nonnumeric characters; replaced as double
+(12 missing values generated)
+
+. destring topic_ipred, force replace;
+topic_ipred: contains nonnumeric characters; replaced as double
+(12 missing values generated)
+
+. destring belief_ipred, force replace;
+belief_ipred: contains nonnumeric characters; replaced as double
+(12 missing values generated)
+
+. *THE STATS_IPRED AND TOPIC_IPRED VARIABLES ARE MISSING FOR TEAM 27, WILL IMPUTE USING HOT DECK P
+> REDICTION;
+. replace stats_ipred=0.102538885683808 if teamid==27;
+(12 real changes made)
+
+. replace topic_ipred=-0.25372224552600 if teamid==27;
+(12 real changes made)
+
+. replace belief_hypothesis="Low" if teamid==27;
+(12 real changes made)
+
+. replace belief_ipred=-1.13508799270782 if teamid==27;
+(12 real changes made)
+
+. *CORRECT CODING ERROR IN BELIEF_IPRED;
+. replace belief_ipred=-belief_ipred;
+(2,712 real changes made)
+
+. generate stats_old=stats_i;
+(210 missing values generated)
+
+. generate topic_old=topic_i;
+(210 missing values generated)
+
+. generate belief_old=belief_i;
+(210 missing values generated)
+
+. *WILL NOW FILL IN MISSING INDIVIDUAL INFORMATION USING HOT DECK IMPUTATION BASED ON DEGREE;
+. *AND BASED ON TEAM'S STATISTICS_SKILL AND TOPIC_KNOWLEDGE;
+. summ stats_i stats_ipred topic_i topic_ipred  belief_i belief_ipred;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     stats_i |      2,502   -.0631242    .4771376   -1.37163    1.23466
+ stats_ipred |      2,712   -.0444458    .3884494  -1.352966   1.099596
+     topic_i |      2,502   -.0466147    .3003994  -.4239712   1.722296
+ topic_ipred |      2,712   -.0509557    .2504531  -.3396846   1.210172
+    belief_i |      2,502   -.0237575    .4472151  -1.135088   1.295966
+-------------+---------------------------------------------------------
+belief_ipred |      2,712     .033589    .3652957  -.7355577   1.135088
+
+. egen statimp=mean(stats_i), by(degree statistics_skill);
+(12 missing values generated)
+
+. egen topicimp=mean(topic_i), by(degree topic_knowledge);
+(12 missing values generated)
+
+. egen beliefimp=mean(belief_i), by(degree belief_hypothesis);
+
+. replace stats_i=statimp if stats_i==.;
+(198 real changes made)
+
+. replace topic_i=topicimp if topic_i==.;
+(198 real changes made)
+
+. replace belief_i=beliefimp if belief_i==.;
+(210 real changes made)
+
+. *INDIVIDUAL LEVEL INDICES WILL BE SET TO MISSING IF THEY ARE MISSING BASIC INFORMATION ON STATS 
+> & TOPIC;
+. *THIS AFFECTS TEAM 33, WHICH ALTHOUGH HAS TEAM_SIZE = 3, THERE IS ONLY ONE U_ID FOR THE TEAM;
+. replace stats_i=. if teamid==33;
+(20 real changes made, 20 to missing)
+
+. replace topic_i=. if teamid==33;
+(20 real changes made, 20 to missing)
+
+. replace belief_i=. if teamid==33;
+(20 real changes made, 20 to missing)
+
+. summ ame stats_i stats_ipred topic_i topic_ipred belief_i belief_ipred stats_old topic_old belie
+> f_old;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+         ame |      2,712    .0042955    .2003919  -1.353765       2.47
+     stats_i |      2,680   -.0473021    .4803591   -1.37163    1.23466
+ stats_ipred |      2,712   -.0444458    .3884494  -1.352966   1.099596
+     topic_i |      2,680   -.0499395    .2929632  -.4239712   1.722296
+ topic_ipred |      2,712   -.0509557    .2504531  -.3396846   1.210172
+-------------+---------------------------------------------------------
+    belief_i |      2,692    -.031085    .4398212  -1.135088   1.295966
+belief_ipred |      2,712     .033589    .3652957  -.7355577   1.135088
+   stats_old |      2,502   -.0631242    .4771376   -1.37163    1.23466
+   topic_old |      2,502   -.0466147    .3003994  -.4239712   1.722296
+  belief_old |      2,502   -.0237575    .4472151  -1.135088   1.295966
+
+. *************************************************;
+. *STANDARDIZING THE STATISTICS AND TOPIC VARIABLES;
+. generate stats_i_orig=stats_i;
+(32 missing values generated)
+
+. generate topic_i_orig=topic_i;
+(32 missing values generated)
+
+. center stats_i topic_i, standardize;
+(generated variables: c_stats_i c_topic_i)
+
+. drop stats_i topic_i;
+
+. rename c_stats_i stats_i;
+
+. rename c_topic_i topic_i;
+
+. summ stats_i topic_i;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+     stats_i |      2,680   -7.88e-09           1  -2.756954   2.668757
+     topic_i |      2,680    5.35e-09           1  -1.276719   6.049345
+
+. generate proindex=att;
+
+. reg ame  indiv1 indiv3  stats_i topic_i i.degree  [aw=1/team_size]  ,  cluster(teamid);
+(sum of wgt is 1,200.33333333333)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(9, 68)          =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0270
+                                                Root MSE          =     .17885
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0208794   .0132281    -1.58   0.119    -.0472758    .0055169
+      indiv3 |   .0178038   .0104292     1.71   0.092    -.0030073    .0386148
+     stats_i |   .0307837   .0185418     1.66   0.101    -.0062159    .0677834
+     topic_i |  -.0252193   .0129489    -1.95   0.056    -.0510583    .0006197
+             |
+      degree |
+          2  |  -.0743692   .0532587    -1.40   0.167    -.1806454     .031907
+          3  |  -.0608862    .047364    -1.29   0.203    -.1553996    .0336272
+          4  |  -.0874366   .0546116    -1.60   0.114    -.1964123    .0215391
+          5  |   -.025363   .0507607    -0.50   0.619    -.1266545    .0759284
+          6  |  -.0945904   .0518844    -1.82   0.073     -.198124    .0089432
+          7  |  -.0184329   .0469828    -0.39   0.696    -.1121856    .0753198
+             |
+       _cons |   .0650411   .0502457     1.29   0.200    -.0352226    .1653048
+------------------------------------------------------------------------------
+
+. summ ame indiv1 indiv3 pbelief stats_i topic_i;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+         ame |      2,712    .0042955    .2003919  -1.353765       2.47
+      indiv1 |      2,712    .0685841    .2527921          0          1
+      indiv3 |      2,712    .4952065    .5000692          0          1
+     pbelief |      2,712      .57559    .4943443          0          1
+     stats_i |      2,680   -7.88e-09           1  -2.756954   2.668757
+-------------+---------------------------------------------------------
+     topic_i |      2,680    5.35e-09           1  -1.276719   6.049345
+
+. *THE WEIGHT THAT WILL LEAD TO ABOUT 71 WEIGHTED OBSERVATIONS;
+. generate pweight=1/(team_size*nmodel);
+
+. reg ame   proindex  stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluster(teamid);
+(sum of wgt is 68.33333457633853)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(10, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0212
+                                                Root MSE          =     .19848
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+    proindex |   .0081789   .0038367     2.13   0.037     .0005229     .015835
+     stats_i |   .0251659   .0125094     2.01   0.048     .0002037     .050128
+     topic_i |  -.0221792   .0094061    -2.36   0.021    -.0409488   -.0034095
+             |
+   team_size |
+          2  |   .0013306   .0132897     0.10   0.921    -.0251886    .0278497
+          3  |   .0012581   .0159522     0.08   0.937    -.0305741    .0330903
+             |
+      degree |
+          2  |  -.0883213   .0420193    -2.10   0.039    -.1721695   -.0044732
+          3  |  -.0888968   .0406879    -2.18   0.032    -.1700883   -.0077052
+          4  |  -.0901074   .0407751    -2.21   0.030     -.171473   -.0087419
+          5  |  -.0480609   .0464853    -1.03   0.305    -.1408208    .0446991
+          6  |  -.0917797    .040906    -2.24   0.028    -.1734063    -.010153
+          7  |  -.0450477   .0354085    -1.27   0.208    -.1157042    .0256088
+             |
+       _cons |    .044609   .0369819     1.21   0.232    -.0291872    .1184052
+------------------------------------------------------------------------------
+
+. reg ame   proindex  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(teamid
+> );
+(sum of wgt is 287.2588233592143)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(10, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0208
+                                                Root MSE          =     .19994
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+    proindex |   .0085003   .0038824     2.19   0.032     .0007531    .0162475
+     stats_i |   .0249371   .0125392     1.99   0.051    -.0000844    .0499586
+     topic_i |  -.0213907   .0093362    -2.29   0.025    -.0400207   -.0027606
+             |
+   team_size |
+          2  |    .001143   .0130356     0.09   0.930    -.0248691     .027155
+          3  |  -.0001111   .0165171    -0.01   0.995    -.0330706    .0328483
+             |
+      degree |
+          2  |  -.0804555   .0417809    -1.93   0.058     -.163828    .0029171
+          3  |  -.0858421   .0426037    -2.01   0.048    -.1708564   -.0008278
+          4  |  -.0870182   .0412041    -2.11   0.038    -.1692397   -.0047968
+          5  |  -.0402017   .0471499    -0.85   0.397    -.1342879    .0538844
+          6  |  -.0860085     .04192    -2.05   0.044    -.1696586   -.0023584
+          7  |  -.0393662   .0365356    -1.08   0.285    -.1122719    .0335395
+             |
+       _cons |   .0378441   .0367647     1.03   0.307    -.0355186    .1112068
+------------------------------------------------------------------------------
+
+. reg ame   indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluster(teamid);
+(sum of wgt is 68.33333457633853)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(10, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0225
+                                                Root MSE          =     .19835
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv3 |   .0263705    .012966     2.03   0.046     .0004973    .0522437
+     stats_i |   .0259841   .0123928     2.10   0.040     .0012547    .0507136
+     topic_i |  -.0216593   .0091124    -2.38   0.020    -.0398427   -.0034758
+             |
+   team_size |
+          2  |   .0039989   .0134202     0.30   0.767    -.0227806    .0307785
+          3  |   .0048588   .0151273     0.32   0.749    -.0253273     .035045
+             |
+      degree |
+          2  |    -.08529   .0409755    -2.08   0.041    -.1670552   -.0035247
+          3  |  -.0913925    .040704    -2.25   0.028     -.172616    -.010169
+          4  |  -.0908935   .0408812    -2.22   0.030    -.1724707   -.0093163
+          5  |  -.0479397   .0454869    -1.05   0.296    -.1387074     .042828
+          6  |    -.08936   .0392388    -2.28   0.026    -.1676598   -.0110603
+          7  |  -.0326003   .0331564    -0.98   0.329    -.0987629    .0335623
+             |
+       _cons |   .0648904   .0360244     1.80   0.076    -.0069952    .1367759
+------------------------------------------------------------------------------
+
+. reg ame   indiv3  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(teamid);
+(sum of wgt is 287.2588233592143)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(10, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0225
+                                                Root MSE          =     .19978
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv3 |   .0283984   .0138427     2.05   0.044     .0007757     .056021
+     stats_i |   .0258205   .0124538     2.07   0.042     .0009694    .0506717
+     topic_i |  -.0208147   .0089958    -2.31   0.024    -.0387656   -.0028638
+             |
+   team_size |
+          2  |   .0035591    .013186     0.27   0.788    -.0227532    .0298713
+          3  |   .0036735   .0156255     0.24   0.815    -.0275068    .0348538
+             |
+      degree |
+          2  |  -.0774075   .0403316    -1.92   0.059    -.1578879    .0030729
+          3  |  -.0888733   .0425086    -2.09   0.040    -.1736979   -.0040487
+          4  |  -.0882678   .0410633    -2.15   0.035    -.1702084   -.0063273
+          5  |   -.040474   .0461016    -0.88   0.383    -.1324683    .0515202
+          6  |  -.0837936   .0399196    -2.10   0.040     -.163452   -.0041352
+          7  |  -.0261865   .0342409    -0.76   0.447    -.0945132    .0421402
+             |
+       _cons |   .0591564   .0364601     1.62   0.109    -.0135985    .1319114
+------------------------------------------------------------------------------
+
+. reg ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluster(teamid);
+(sum of wgt is 68.33333457633853)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(11, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0237
+                                                Root MSE          =     .19826
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0287004   .0141503    -2.03   0.046    -.0569369   -.0004639
+      indiv3 |   .0211497   .0130357     1.62   0.109    -.0048626    .0471621
+     stats_i |   .0254438   .0122193     2.08   0.041     .0010606    .0498269
+     topic_i |  -.0223082   .0092326    -2.42   0.018    -.0407315    -.003885
+             |
+   team_size |
+          2  |  -.0028107   .0138374    -0.20   0.840    -.0304229    .0248014
+          3  |  -.0004087   .0149026    -0.03   0.978    -.0301464     .029329
+             |
+      degree |
+          2  |  -.1049407   .0488557    -2.15   0.035    -.2024308   -.0074505
+          3  |  -.1041278   .0451684    -2.31   0.024    -.1942598   -.0139957
+          4  |  -.1045543   .0456032    -2.29   0.025    -.1955541   -.0135545
+          5  |  -.0609459   .0493716    -1.23   0.221    -.1594654    .0375736
+          6  |  -.1063781   .0451704    -2.36   0.021    -.1965142   -.0162421
+          7  |   -.051285   .0375595    -1.37   0.177    -.1262338    .0236638
+             |
+       _cons |    .088364   .0440951     2.00   0.049     .0003736    .1763543
+------------------------------------------------------------------------------
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+         ame | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0498501   .0170638     2.92   0.005     .0157999    .0839003
+------------------------------------------------------------------------------
+
+. reg ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(te
+> amid);
+(sum of wgt is 287.2588233592143)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(11, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0237
+                                                Root MSE          =     .19969
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0289791   .0142903    -2.03   0.046    -.0574951   -.0004632
+      indiv3 |   .0232732   .0136812     1.70   0.093    -.0040272    .0505735
+     stats_i |   .0251971   .0122552     2.06   0.044     .0007422    .0496521
+     topic_i |  -.0214411   .0091075    -2.35   0.021    -.0396147   -.0032674
+             |
+   team_size |
+          2  |  -.0033055   .0136465    -0.24   0.809    -.0305367    .0239258
+          3  |  -.0015941   .0154852    -0.10   0.918    -.0324942    .0293061
+             |
+      degree |
+          2  |   -.096978   .0480646    -2.02   0.048    -.1928894   -.0010665
+          3  |  -.1013198   .0468443    -2.16   0.034    -.1947962   -.0078434
+          4  |  -.1016477   .0457506    -2.22   0.030    -.1929417   -.0103537
+          5  |  -.0530518   .0496494    -1.07   0.289    -.1521257    .0460221
+          6  |  -.1005861   .0457326    -2.20   0.031     -.191844   -.0093281
+          7  |  -.0446724    .038486    -1.16   0.250    -.1214699    .0321251
+             |
+       _cons |   .0822756   .0442604     1.86   0.067    -.0060446    .1705958
+------------------------------------------------------------------------------
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+         ame | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0522523   .0184796     2.83   0.006     .0153769    .0891277
+------------------------------------------------------------------------------
+
+. *INCLUDING BELIEF VARIABLE;
+. reg ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluster(te
+> amid);
+(sum of wgt is 68.33333457633853)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(12, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0237
+                                                Root MSE          =      .1983
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0282658   .0139061    -2.03   0.046     -.056015   -.0005167
+      indiv3 |   .0211249   .0130702     1.62   0.111    -.0049563     .047206
+     pbelief |  -.0021143   .0103063    -0.21   0.838    -.0226803    .0184516
+     stats_i |   .0254575   .0122499     2.08   0.041     .0010131    .0499018
+     topic_i |   -.022357   .0093637    -2.39   0.020    -.0410419   -.0036721
+             |
+   team_size |
+          2  |  -.0022573   .0134464    -0.17   0.867    -.0290892    .0245746
+          3  |   .0001222   .0160139     0.01   0.994     -.031833    .0320774
+             |
+      degree |
+          2  |  -.1056498   .0500667    -2.11   0.039    -.2055563   -.0057433
+          3  |  -.1049434   .0462967    -2.27   0.027    -.1973269   -.0125599
+          4  |  -.1055822   .0473476    -2.23   0.029    -.2000629   -.0111015
+          5  |  -.0611648   .0497692    -1.23   0.223    -.1604776     .038148
+          6  |  -.1075308   .0467615    -2.30   0.025    -.2008418   -.0142198
+          7  |    -.05339   .0373068    -1.43   0.157    -.1278345    .0210544
+             |
+       _cons |   .0899134   .0467942     1.92   0.059    -.0034629    .1832897
+------------------------------------------------------------------------------
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+         ame | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0493907   .0168461     2.93   0.005     .0157748    .0830066
+------------------------------------------------------------------------------
+
+. reg ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  clu
+> ster(teamid);
+(sum of wgt is 287.2588233592143)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(12, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0237
+                                                Root MSE          =     .19972
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0284605   .0140435    -2.03   0.047     -.056484   -.0004371
+      indiv3 |   .0232672   .0137138     1.70   0.094    -.0040982    .0506326
+     pbelief |  -.0023624   .0102484    -0.23   0.818    -.0228129     .018088
+     stats_i |   .0252334   .0123393     2.04   0.045     .0006108    .0498561
+     topic_i |  -.0215135   .0092929    -2.32   0.024    -.0400573   -.0029697
+             |
+   team_size |
+          2  |  -.0026839   .0133608    -0.20   0.841    -.0293451    .0239773
+          3  |  -.0010012   .0166482    -0.06   0.952     -.034222    .0322197
+             |
+      degree |
+          2  |  -.0978022   .0493018    -1.98   0.051    -.1961823    .0005779
+          3  |  -.1022078   .0477914    -2.14   0.036     -.197574   -.0068415
+          4  |  -.1027693   .0473354    -2.17   0.033    -.1972256   -.0083131
+          5  |  -.0533093   .0500548    -1.07   0.291     -.153192    .0465735
+          6  |  -.1018782   .0472203    -2.16   0.035    -.1961049   -.0076515
+          7  |  -.0469582   .0379671    -1.24   0.220    -.1227205     .028804
+             |
+       _cons |   .0839808   .0466419     1.80   0.076    -.0090918    .1770533
+------------------------------------------------------------------------------
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+         ame | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0517278   .0181262     2.85   0.006     .0155574    .0878981
+------------------------------------------------------------------------------
+
+. *SAME REGRESSIONS BUT USING REGHDFE COMMAND AND CLUSTERING AT TEAM-MODEL-INDIVIDUAL LEVEL;
+. generate pweight2=pscore*pweight;
+
+. reghdfe ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight]    , 
+>         absorb(degree) cluster(u_id teamid id);
+(MWFE estimator converged in 1 iterations)
+note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+
+HDFE Linear regression                            Number of obs   =      2,680
+Absorbing 1 HDFE group                            F(   6,     68) =       2.71
+Statistics robust to heteroskedasticity           Prob > F        =     0.0203
+                                                  R-squared       =     0.0237
+Number of clusters (u_id)    =        152         Adj R-squared   =     0.0193
+Number of clusters (teamid)  =         69         Within R-sq.    =     0.0198
+Number of clusters (id)      =      1,221         Root MSE        =     0.1983
+
+                        (Std. err. adjusted for 69 clusters in u_id teamid id)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0287004   .0141503    -2.03   0.046    -.0569369   -.0004639
+      indiv3 |   .0211497   .0130357     1.62   0.109    -.0048626    .0471621
+     stats_i |   .0254438   .0122193     2.08   0.041     .0010606    .0498269
+     topic_i |  -.0223082   .0092326    -2.42   0.018    -.0407315    -.003885
+             |
+   team_size |
+          2  |  -.0028107   .0138374    -0.20   0.840    -.0304229    .0248014
+          3  |  -.0004087   .0149026    -0.03   0.978    -.0301464     .029329
+             |
+      degree |
+          2  |          0  (omitted)
+          3  |          0  (omitted)
+          4  |          0  (omitted)
+          5  |          0  (omitted)
+          6  |          0  (omitted)
+          7  |          0  (omitted)
+             |
+       _cons |  -.0100503    .012173    -0.83   0.412    -.0343411    .0142404
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+      degree |         7           0           7     |
+-----------------------------------------------------+
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+         ame | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0498501   .0170638     2.92   0.005     .0157999    .0839003
+------------------------------------------------------------------------------
+
+. reghdfe ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight2]    , 
+>         absorb(degree) cluster(u_id teamid id);
+(MWFE estimator converged in 1 iterations)
+note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+
+HDFE Linear regression                            Number of obs   =      2,680
+Absorbing 1 HDFE group                            F(   6,     68) =       2.56
+Statistics robust to heteroskedasticity           Prob > F        =     0.0268
+                                                  R-squared       =     0.0237
+Number of clusters (u_id)    =        152         Adj R-squared   =     0.0193
+Number of clusters (teamid)  =         69         Within R-sq.    =     0.0192
+Number of clusters (id)      =      1,221         Root MSE        =     0.1997
+
+                        (Std. err. adjusted for 69 clusters in u_id teamid id)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0289791   .0142903    -2.03   0.046    -.0574951   -.0004632
+      indiv3 |   .0232732   .0136812     1.70   0.093    -.0040272    .0505735
+     stats_i |   .0251971   .0122552     2.06   0.044     .0007422    .0496521
+     topic_i |  -.0214411   .0091075    -2.35   0.021    -.0396147   -.0032674
+             |
+   team_size |
+          2  |  -.0033055   .0136465    -0.24   0.809    -.0305367    .0239258
+          3  |  -.0015941   .0154852    -0.10   0.918    -.0324942    .0293061
+             |
+      degree |
+          2  |          0  (omitted)
+          3  |          0  (omitted)
+          4  |          0  (omitted)
+          5  |          0  (omitted)
+          6  |          0  (omitted)
+          7  |          0  (omitted)
+             |
+       _cons |  -.0128722   .0124111    -1.04   0.303    -.0376383    .0118938
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+      degree |         7           0           7     |
+-----------------------------------------------------+
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+         ame | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0522523   .0184796     2.83   0.006     .0153769    .0891277
+------------------------------------------------------------------------------
+
+. reghdfe ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pweight]    , 
+>         absorb(degree) cluster(u_id teamid id);
+(MWFE estimator converged in 1 iterations)
+note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+
+HDFE Linear regression                            Number of obs   =      2,680
+Absorbing 1 HDFE group                            F(   7,     68) =       2.47
+Statistics robust to heteroskedasticity           Prob > F        =     0.0254
+                                                  R-squared       =     0.0237
+Number of clusters (u_id)    =        152         Adj R-squared   =     0.0190
+Number of clusters (teamid)  =         69         Within R-sq.    =     0.0198
+Number of clusters (id)      =      1,221         Root MSE        =     0.1983
+
+                        (Std. err. adjusted for 69 clusters in u_id teamid id)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0282658   .0139061    -2.03   0.046     -.056015   -.0005167
+      indiv3 |   .0211249   .0130702     1.62   0.111    -.0049563     .047206
+     pbelief |  -.0021143   .0103063    -0.21   0.838    -.0226803    .0184516
+     stats_i |   .0254575   .0122499     2.08   0.041     .0010131    .0499018
+     topic_i |   -.022357   .0093637    -2.39   0.020    -.0410419   -.0036721
+             |
+   team_size |
+          2  |  -.0022573   .0134464    -0.17   0.867    -.0290892    .0245746
+          3  |   .0001222   .0160139     0.01   0.994     -.031833    .0320774
+             |
+      degree |
+          2  |          0  (omitted)
+          3  |          0  (omitted)
+          4  |          0  (omitted)
+          5  |          0  (omitted)
+          6  |          0  (omitted)
+          7  |          0  (omitted)
+             |
+       _cons |  -.0093386   .0129443    -0.72   0.473    -.0351685    .0164913
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+      degree |         7           0           7     |
+-----------------------------------------------------+
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+         ame | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0493907   .0168461     2.93   0.005     .0157748    .0830066
+------------------------------------------------------------------------------
+
+. reghdfe ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pweight2]    , 
+>         absorb(degree) cluster(u_id teamid id);
+(MWFE estimator converged in 1 iterations)
+note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are close
+>  to zero; tol = 1.0e-09)
+
+HDFE Linear regression                            Number of obs   =      2,680
+Absorbing 1 HDFE group                            F(   7,     68) =       2.46
+Statistics robust to heteroskedasticity           Prob > F        =     0.0263
+                                                  R-squared       =     0.0237
+Number of clusters (u_id)    =        152         Adj R-squared   =     0.0190
+Number of clusters (teamid)  =         69         Within R-sq.    =     0.0193
+Number of clusters (id)      =      1,221         Root MSE        =     0.1997
+
+                        (Std. err. adjusted for 69 clusters in u_id teamid id)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0284605   .0140435    -2.03   0.047     -.056484   -.0004371
+      indiv3 |   .0232672   .0137138     1.70   0.094    -.0040982    .0506326
+     pbelief |  -.0023624   .0102484    -0.23   0.818    -.0228129     .018088
+     stats_i |   .0252334   .0123393     2.04   0.045     .0006108    .0498561
+     topic_i |  -.0215135   .0092929    -2.32   0.024    -.0400573   -.0029697
+             |
+   team_size |
+          2  |  -.0026839   .0133608    -0.20   0.841    -.0293451    .0239773
+          3  |  -.0010012   .0166482    -0.06   0.952     -.034222    .0322197
+             |
+      degree |
+          2  |          0  (omitted)
+          3  |          0  (omitted)
+          4  |          0  (omitted)
+          5  |          0  (omitted)
+          6  |          0  (omitted)
+          7  |          0  (omitted)
+             |
+       _cons |  -.0120881   .0130159    -0.93   0.356    -.0380609    .0138848
+------------------------------------------------------------------------------
+
+Absorbed degrees of freedom:
+-----------------------------------------------------+
+ Absorbed FE | Categories  - Redundant  = Num. Coefs |
+-------------+---------------------------------------|
+      degree |         7           0           7     |
+-----------------------------------------------------+
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+         ame | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0517278   .0181262     2.85   0.006     .0155574    .0878981
+------------------------------------------------------------------------------
+
+. ***********************************************;
+. *GETTING PERCENTILE DIFFERENCE BETWEEN PRO AND ANTI IMMIGRATION TEAMS;
+. reg ame  indiv1 indiv3    stats_i topic_i t2 t3 i.degree   [aw=pweight] ,  cluster(teamid);
+(sum of wgt is 68.33333457633853)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(11, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0237
+                                                Root MSE          =     .19826
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0287004   .0141503    -2.03   0.046    -.0569369   -.0004639
+      indiv3 |   .0211497   .0130357     1.62   0.109    -.0048626    .0471621
+     stats_i |   .0254438   .0122193     2.08   0.041     .0010606    .0498269
+     topic_i |  -.0223082   .0092326    -2.42   0.018    -.0407315    -.003885
+          t2 |  -.0028107   .0138374    -0.20   0.840    -.0304229    .0248014
+          t3 |  -.0004087   .0149026    -0.03   0.978    -.0301464     .029329
+             |
+      degree |
+          2  |  -.1049407   .0488557    -2.15   0.035    -.2024308   -.0074505
+          3  |  -.1041278   .0451684    -2.31   0.024    -.1942598   -.0139957
+          4  |  -.1045543   .0456032    -2.29   0.025    -.1955541   -.0135545
+          5  |  -.0609459   .0493716    -1.23   0.221    -.1594654    .0375736
+          6  |  -.1063781   .0451704    -2.36   0.021    -.1965142   -.0162421
+          7  |   -.051285   .0375595    -1.37   0.177    -.1262338    .0236638
+             |
+       _cons |    .088364   .0440951     2.00   0.049     .0003736    .1763543
+------------------------------------------------------------------------------
+
+. predict rame, resid;
+(32 missing values generated)
+
+. xtile prame=rame [aw=pweight], n(100);
+
+. tabulate degree, gen(dum);
+
+     degree |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |         60        2.21        2.21
+          2 |        114        4.20        6.42
+          3 |      1,580       58.26       64.68
+          4 |        721       26.59       91.26
+          5 |        136        5.01       96.28
+          6 |         85        3.13       99.41
+          7 |         16        0.59      100.00
+------------+-----------------------------------
+      Total |      2,712      100.00
+
+. center stats_i topic_i t2 t3 dum* [aw=pweight];
+(generated variables: c_stats_i c_topic_i c_t2 c_t3 c_dum1 c_dum2 c_dum3 c_dum4 c_dum5 c_dum6 c_du
+> m7)
+
+. reg ame indiv1 indiv3 c_* [aw=pweight], cluster(teamid);
+(sum of wgt is 68.33333457633853)
+note: c_dum7 omitted because of collinearity.
+
+Linear regression                               Number of obs     =      2,680
+                                                F(11, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0237
+                                                Root MSE          =     .19826
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0287004   .0141503    -2.03   0.046    -.0569369   -.0004639
+      indiv3 |   .0211497   .0130357     1.62   0.109    -.0048626    .0471621
+   c_stats_i |   .0254438   .0122193     2.08   0.041     .0010606    .0498269
+   c_topic_i |  -.0223082   .0092326    -2.42   0.018    -.0407315    -.003885
+        c_t2 |  -.0028107   .0138374    -0.20   0.840    -.0304229    .0248014
+        c_t3 |  -.0004087   .0149026    -0.03   0.978    -.0301464     .029329
+      c_dum1 |    .051285   .0375595     1.37   0.177    -.0236638    .1262338
+      c_dum2 |  -.0536556   .0376106    -1.43   0.158    -.1287064    .0213951
+      c_dum3 |  -.0528428   .0342933    -1.54   0.128    -.1212739    .0155884
+      c_dum4 |  -.0532693   .0364471    -1.46   0.148    -.1259984    .0194598
+      c_dum5 |  -.0096609   .0426739    -0.23   0.822    -.0948153    .0754935
+      c_dum6 |  -.0550931   .0323456    -1.70   0.093    -.1196378    .0094515
+      c_dum7 |          0  (omitted)
+       _cons |  -.0126497   .0118082    -1.07   0.288    -.0362126    .0109133
+------------------------------------------------------------------------------
+
+. reg ame indiv1 indiv2 indiv3 c_* [aw=pweight], cluster(teamid) nocons;
+(sum of wgt is 68.33333457633853)
+note: c_dum7 omitted because of collinearity.
+
+Linear regression                               Number of obs     =      2,680
+                                                F(12, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0244
+                                                Root MSE          =     .19826
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+         ame | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |    -.04135   .0142292    -2.91   0.005     -.069744   -.0129561
+      indiv2 |  -.0126497   .0118082    -1.07   0.288    -.0362126    .0109133
+      indiv3 |   .0085001   .0092927     0.91   0.364    -.0100433    .0270434
+   c_stats_i |   .0254438   .0122193     2.08   0.041     .0010606    .0498269
+   c_topic_i |  -.0223082   .0092326    -2.42   0.018    -.0407315    -.003885
+        c_t2 |  -.0028107   .0138374    -0.20   0.840    -.0304229    .0248014
+        c_t3 |  -.0004087   .0149026    -0.03   0.978    -.0301464     .029329
+      c_dum1 |    .051285   .0375595     1.37   0.177    -.0236638    .1262338
+      c_dum2 |  -.0536556   .0376106    -1.43   0.158    -.1287064    .0213951
+      c_dum3 |  -.0528428   .0342933    -1.54   0.128    -.1212739    .0155884
+      c_dum4 |  -.0532693   .0364471    -1.46   0.148    -.1259984    .0194598
+      c_dum5 |  -.0096609   .0426739    -0.23   0.822    -.0948153    .0754935
+      c_dum6 |  -.0550931   .0323456    -1.70   0.093    -.1196378    .0094515
+      c_dum7 |          0  (omitted)
+------------------------------------------------------------------------------
+
+. tabulate prame, sum(rame);
+
+        100 |
+  quantiles |        Summary of Residuals
+   of rame  |        Mean   Std. dev.       Freq.
+------------+------------------------------------
+          1 |  -.74559218   .24654669          18
+          2 |  -.45766484   .07168912          27
+          3 |  -.33721102   .01376241          13
+          4 |  -.27434576   .02427669          20
+          5 |  -.21021283   .01834799          20
+          6 |  -.16555703   .00592627          10
+          7 |  -.13844001   .01128858          33
+          8 |  -.11623485    .0035131          20
+          9 |   -.1053122   .00245558          24
+         10 |  -.09750836   .00341072          41
+         11 |  -.08822871   .00240677          26
+         12 |  -.08109783    .0020427          15
+         13 |  -.07511277   .00161938          15
+         14 |  -.07050145   .00177197          27
+         15 |  -.06578101   .00126625          18
+         16 |  -.06094527   .00151799          22
+         17 |  -.05530125   .00160047          21
+         18 |  -.05192789   .00065958          15
+         19 |  -.04928627   .00069144          15
+         20 |  -.04709437   .00035064          19
+         21 |  -.04498048   .00078809          29
+         22 |  -.04227821   .00060355          21
+         23 |  -.04014368   .00080692          27
+         24 |  -.03785753   .00045506          16
+         25 |  -.03481605   .00133419          41
+         26 |  -.03183765   .00064868          28
+         27 |  -.02934425   .00071371          37
+         28 |   -.0276234   .00037179          23
+         29 |  -.02617508   .00053819          23
+         30 |  -.02459148   .00021498           9
+         31 |  -.02395142   .00018055           9
+         32 |  -.02285092   .00052223          31
+         33 |  -.02092004     .000563          31
+         34 |  -.01996684   .00010549          11
+         35 |  -.01899737   .00047188          40
+         36 |  -.01750575   .00039998          27
+         37 |  -.01625447   .00042213          36
+         38 |  -.01471918   .00026815          21
+         39 |  -.01354291   .00042555          34
+         40 |  -.01151102    .0007872          38
+         41 |  -.00915022   .00068254          46
+         42 |  -.00745391   .00031677          28
+         43 |  -.00618344   .00044453          37
+         44 |  -.00509135   .00028763          23
+         45 |   -.0041625   .00039988          39
+         46 |  -.00284313   .00028237          22
+         47 |  -.00203252   .00026672          28
+         48 |  -.00074249   .00049625          51
+         49 |   .00050546   .00024327          21
+         50 |    .0014083   .00024111          26
+         51 |    .0022759   .00021988          33
+         52 |   .00319482   .00018327          20
+         53 |   .00368396   .00011578          13
+         54 |   .00455661   .00037321          32
+         55 |   .00566686   .00028143          30
+         56 |   .00673052   .00029203          28
+         57 |   .00776338   .00035722          28
+         58 |   .00911515   .00047238          33
+         59 |   .00997767    .0001647           9
+         60 |   .01079836   .00025826          27
+         61 |   .01187625   .00044539          24
+         62 |   .01349619   .00038203          42
+         63 |   .01460585   .00027831          28
+         64 |   .01548743   .00024151          34
+         65 |   .01645983   .00027661          30
+         66 |   .01785119   .00055342          41
+         67 |   .01936478    .0002962          28
+         68 |   .02045109   .00022564          34
+         69 |   .02139383   .00038282          28
+         70 |   .02245509   .00015284          11
+         71 |   .02345985   .00043758          40
+         72 |   .02469962   .00032399          34
+         73 |   .02620713   .00049953          41
+         74 |   .02782467    .0004607          47
+         75 |   .02946935   .00050972          40
+         76 |    .0317129   .00068916          29
+         77 |   .03424096   .00067119          34
+         78 |   .03585165   .00046961          31
+         79 |   .03784602   .00080994          38
+         80 |   .04058024   .00068472          31
+         81 |   .04253108   .00063349          24
+         82 |   .04449019    .0006453          22
+         83 |   .04697483   .00083879          23
+         84 |   .04960667   .00086165          40
+         85 |   .05218833   .00062474          29
+         86 |    .0547841   .00101024          24
+         87 |   .05861899   .00110515          27
+         88 |   .06254225   .00155685          22
+         89 |   .06802446   .00161264          24
+         90 |   .07201188   .00131363          16
+         91 |   .08070209   .00378998          35
+         92 |    .0941926   .00466002          33
+         93 |   .11098784    .0055381          24
+         94 |   .13202214   .00963812          19
+         95 |   .16183944   .00529368          10
+         96 |   .18305968   .01211269          23
+         97 |   .23066512   .01012176          20
+         98 |   .27857909   .01812247          21
+         99 |   .37067624   .04650803          19
+        100 |   1.2664533   .63599885          35
+------------+------------------------------------
+      Total |   .01042667   .19529745       2,680
+
+. ********************************************************************;
+. *GETTING EFFECTS ON ESTIMATE BY LOOKING AT EXTREME SIGNIFICANT COEFFICIENTS, USING 10TH AND 90TH
+>  PERCENTILES;
+. destring z, force replace;
+z: contains nonnumeric characters; replaced as double
+(3 missing values generated)
+
+. replace z=abs(z);
+(1,486 real changes made)
+
+. generate negsig=(ame<0 & z>1.645);
+
+. generate possig=(ame>0 & z>1.645);
+
+. summ ame;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+         ame |      2,712    .0042955    .2003919  -1.353765       2.47
+
+. generate pos10=(ame>.052);
+
+. generate neg10=(ame<-.071);
+
+. generate pos10s=(ame>.052 & z>1.645);
+
+. generate neg10s=(ame<-.071 & z>1.645);
+
+. summ pos10-neg10s;
+
+    Variable |        Obs        Mean    Std. dev.       Min        Max
+-------------+---------------------------------------------------------
+       pos10 |      2,712    .1028761     .303853          0          1
+       neg10 |      2,712    .1036136    .3048148          0          1
+      pos10s |      2,712    .0542035    .2264607          0          1
+      neg10s |      2,712    .0693215     .254047          0          1
+
+. summ pos10-neg10s [aw=model_brw];
+
+    Variable |     Obs      Weight        Mean   Std. dev.       Min        Max
+-------------+-----------------------------------------------------------------
+       pos10 |   2,712  1256.69718    .1007453   .3010467          0          1
+       neg10 |   2,712  1256.69718    .1117014   .3150568          0          1
+      pos10s |   2,712  1256.69718     .048285   .2144074          0          1
+      neg10s |   2,712  1256.69718    .0742812   .2622763          0          1
+
+. *OLS REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
+. reg neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  cluster(teamid
+> );
+(sum of wgt is 68.33333457633853)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(11, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0688
+                                                Root MSE          =     .29698
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+      neg10s | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |   .0533822   .0682412     0.78   0.437     -.082791    .1895553
+      indiv3 |  -.1133494   .0415453    -2.73   0.008    -.1962518    -.030447
+     stats_i |  -.0461822   .0230024    -2.01   0.049    -.0920828   -.0002815
+     topic_i |   .0329501   .0148084     2.23   0.029     .0034004    .0624999
+             |
+   team_size |
+          2  |  -.0013119   .0543472    -0.02   0.981    -.1097602    .1071363
+          3  |    .006528   .0575304     0.11   0.910    -.1082722    .1213281
+             |
+      degree |
+          2  |   .1261136   .1004793     1.26   0.214    -.0743896    .3266168
+          3  |     .25356   .1128773     2.25   0.028     .0283167    .4788032
+          4  |   .2357883   .0955203     2.47   0.016     .0451806     .426396
+          5  |   .0973025    .083842     1.16   0.250    -.0700017    .2646067
+          6  |   .1833736   .1004258     1.83   0.072     -.017023    .3837701
+          7  |   .0961291   .0662786     1.45   0.152    -.0361279    .2283861
+             |
+       _cons |  -.0701773   .0832445    -0.84   0.402    -.2362891    .0959345
+------------------------------------------------------------------------------
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+      neg10s | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.1667316    .080271    -2.08   0.042    -.3269099   -.0065533
+------------------------------------------------------------------------------
+
+. reg pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  cluster(teamid
+> );
+(sum of wgt is 68.33333457633853)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(11, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0477
+                                                Root MSE          =     .25037
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+      pos10s | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0723729    .041326    -1.75   0.084    -.1548375    .0100918
+      indiv3 |  -.0048544     .02495    -0.19   0.846    -.0546413    .0449326
+     stats_i |   .0185525   .0117101     1.58   0.118    -.0048146    .0419197
+     topic_i |  -.0190724   .0093977    -2.03   0.046    -.0378253   -.0003196
+             |
+   team_size |
+          2  |    .003644     .03694     0.10   0.922    -.0700685    .0773566
+          3  |   -.003565   .0338211    -0.11   0.916    -.0710539    .0639239
+             |
+      degree |
+          2  |  -.2747778   .1302293    -2.11   0.039    -.5346463   -.0149094
+          3  |  -.2260918   .1267427    -1.78   0.079     -.479003    .0268194
+          4  |  -.2050483   .1256134    -1.63   0.107    -.4557059    .0456094
+          5  |  -.0698335   .1451914    -0.48   0.632    -.3595585    .2198915
+          6  |  -.2295217   .1337639    -1.72   0.091    -.4964434       .0374
+          7  |  -.0034503   .1267399    -0.03   0.978    -.2563559    .2494552
+             |
+       _cons |   .2853485   .1324136     2.15   0.035     .0211213    .5495756
+------------------------------------------------------------------------------
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+      pos10s | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0675185   .0351747     1.92   0.059    -.0026716    .1377086
+------------------------------------------------------------------------------
+
+. *OLS REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
+. reg neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,  cluster
+> (teamid);
+(sum of wgt is 287.2588233592143)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(11, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0732
+                                                Root MSE          =     .30657
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+      neg10s | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |   .0555564   .0687472     0.81   0.422    -.0816265    .1927394
+      indiv3 |  -.1243989   .0447542    -2.78   0.007    -.2137044   -.0350933
+     stats_i |  -.0443798   .0247674    -1.79   0.078    -.0938024    .0050429
+     topic_i |   .0317989   .0150748     2.11   0.039     .0017175    .0618802
+             |
+   team_size |
+          2  |   .0055211   .0535909     0.10   0.918     -.101418    .1124602
+          3  |   .0193907   .0589699     0.33   0.743    -.0982819    .1370632
+             |
+      degree |
+          2  |   .1199711   .1003156     1.20   0.236    -.0802057    .3201478
+          3  |   .2599735   .1205011     2.16   0.035     .0195173    .5004297
+          4  |   .2480033   .0985122     2.52   0.014     .0514252    .4445814
+          5  |   .0957338   .0866375     1.10   0.273    -.0771486    .2686162
+          6  |   .1905025   .1052282     1.81   0.075    -.0194771    .4004821
+          7  |   .0978264   .0660194     1.48   0.143    -.0339132     .229566
+             |
+       _cons |  -.0746805   .0887614    -0.84   0.403    -.2518011    .1024401
+------------------------------------------------------------------------------
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+      neg10s | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |  -.1799553   .0835555    -2.15   0.035    -.3466877   -.0132229
+------------------------------------------------------------------------------
+
+. reg pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,  cluster
+> (teamid);
+(sum of wgt is 287.2588233592143)
+
+Linear regression                               Number of obs     =      2,680
+                                                F(11, 68)         =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.0496
+                                                Root MSE          =     .24595
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+      pos10s | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0718718   .0394742    -1.82   0.073    -.1506413    .0068977
+      indiv3 |  -.0063643   .0243108    -0.26   0.794    -.0548756    .0421471
+     stats_i |   .0206004   .0114642     1.80   0.077     -.002276    .0434768
+     topic_i |   -.020506   .0089637    -2.29   0.025    -.0383928   -.0026192
+             |
+   team_size |
+          2  |   .0088657   .0360904     0.25   0.807    -.0631515     .080883
+          3  |  -.0007073   .0323881    -0.02   0.983    -.0653368    .0639222
+             |
+      degree |
+          2  |  -.2523804   .1336841    -1.89   0.063    -.5191429    .0143822
+          3  |  -.2032426   .1303464    -1.56   0.124    -.4633447    .0568596
+          4  |  -.1869447   .1292046    -1.45   0.153    -.4447684     .070879
+          5  |  -.0462301   .1485243    -0.31   0.757    -.3426057    .2501455
+          6  |  -.2027941   .1379128    -1.47   0.146    -.4779948    .0724067
+          7  |   .0215858   .1312071     0.16   0.870    -.2402339    .2834055
+             |
+       _cons |   .2595635   .1361235     1.91   0.061    -.0120667    .5311936
+------------------------------------------------------------------------------
+
+. lincom indiv3-indiv1;
+
+ ( 1)  - indiv1 + indiv3 = 0
+
+------------------------------------------------------------------------------
+      pos10s | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |   .0655075   .0338617     1.93   0.057    -.0020623    .1330774
+------------------------------------------------------------------------------
+
+. *LOGIT REGRESSIONS ON OUTLYING NEGATIVE & SIGNIFICANT COEFFICIENTS;
+. quietly logit neg10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  clust
+> er(teamid);
+
+. margins, dydx(indiv1-topic_i);
+
+Average marginal effects                                 Number of obs = 2,680
+Model VCE: Robust
+
+Expression: Pr(neg10), predict()
+dy/dx wrt:  indiv1 indiv3 stats_i topic_i
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |   .0563812   .0502071     1.12   0.261    -.0420229    .1547853
+      indiv3 |  -.0799715   .0410914    -1.95   0.052    -.1605091    .0005662
+     stats_i |  -.0425993   .0223013    -1.91   0.056     -.086309    .0011105
+     topic_i |   .0399542   .0135286     2.95   0.003     .0134385    .0664698
+------------------------------------------------------------------------------
+
+. quietly logit neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  clus
+> ter(teamid);
+
+. margins, dydx(indiv1-topic_i);
+
+Average marginal effects                                 Number of obs = 2,564
+Model VCE: Robust
+
+Expression: Pr(neg10s), predict()
+dy/dx wrt:  indiv1 indiv3 stats_i topic_i
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |    .045091   .0429167     1.05   0.293    -.0390243    .1292062
+      indiv3 |  -.1177673   .0420984    -2.80   0.005    -.2002787   -.0352559
+     stats_i |  -.0501928   .0217969    -2.30   0.021     -.092914   -.0074716
+     topic_i |     .03507   .0132301     2.65   0.008     .0091395    .0610004
+------------------------------------------------------------------------------
+
+. *LOGIT REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
+. quietly logit pos10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  clust
+> er(teamid);
+
+. margins, dydx(indiv1-topic_i);
+
+Average marginal effects                                 Number of obs = 2,680
+Model VCE: Robust
+
+Expression: Pr(pos10), predict()
+dy/dx wrt:  indiv1 indiv3 stats_i topic_i
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0767794    .057008    -1.35   0.178     -.188513    .0349542
+      indiv3 |   .0210727    .025864     0.81   0.415    -.0296197    .0717652
+     stats_i |   .0377617   .0162964     2.32   0.020     .0058214    .0697021
+     topic_i |  -.0291165   .0154326    -1.89   0.059    -.0593639    .0011309
+------------------------------------------------------------------------------
+
+. quietly logit pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  clus
+> ter(teamid);
+
+. margins, dydx(indiv1-topic_i);
+
+Average marginal effects                                 Number of obs = 2,680
+Model VCE: Robust
+
+Expression: Pr(pos10s), predict()
+dy/dx wrt:  indiv1 indiv3 stats_i topic_i
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0682788    .045702    -1.49   0.135    -.1578531    .0212954
+      indiv3 |  -.0030132   .0263236    -0.11   0.909    -.0546065    .0485801
+     stats_i |   .0154362   .0115416     1.34   0.181    -.0071851    .0380574
+     topic_i |  -.0232847   .0155296    -1.50   0.134    -.0537222    .0071527
+------------------------------------------------------------------------------
+
+. *LOGIT WEIGHTED REGRESSIONS ON OUTLYING NEGATIVE & SIGNIFICANT COEFFICIENTS;
+. quietly logit neg10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,
+>   cluster(teamid);
+
+. margins, dydx(indiv1-topic_i);
+
+Average marginal effects                                 Number of obs = 2,680
+Model VCE: Robust
+
+Expression: Pr(neg10), predict()
+dy/dx wrt:  indiv1 indiv3 stats_i topic_i
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |   .0589636   .0504533     1.17   0.243     -.039923    .1578502
+      indiv3 |  -.0902781   .0444396    -2.03   0.042     -.177378   -.0031781
+     stats_i |  -.0415374   .0235532    -1.76   0.078    -.0877008    .0046259
+     topic_i |   .0395593    .013782     2.87   0.004     .0125472    .0665714
+------------------------------------------------------------------------------
+
+. quietly logit neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] 
+> ,  cluster(teamid);
+
+. margins, dydx(indiv1-topic_i);
+
+Average marginal effects                                 Number of obs = 2,564
+Model VCE: Robust
+
+Expression: Pr(neg10s), predict()
+dy/dx wrt:  indiv1 indiv3 stats_i topic_i
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |   .0455711   .0443764     1.03   0.304     -.041405    .1325471
+      indiv3 |  -.1318358   .0464631    -2.84   0.005    -.2229018   -.0407699
+     stats_i |  -.0489435   .0236561    -2.07   0.039    -.0953085   -.0025785
+     topic_i |   .0350122   .0142056     2.46   0.014     .0071698    .0628546
+------------------------------------------------------------------------------
+
+. *LOGIT WEIGHTED REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
+. quietly logit pos10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,
+>   cluster(teamid);
+
+. margins, dydx(indiv1-topic_i);
+
+Average marginal effects                                 Number of obs = 2,680
+Model VCE: Robust
+
+Expression: Pr(pos10), predict()
+dy/dx wrt:  indiv1 indiv3 stats_i topic_i
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |   -.076814   .0541955    -1.42   0.156    -.1830352    .0294071
+      indiv3 |   .0204002   .0245757     0.83   0.406    -.0277672    .0685676
+     stats_i |   .0377303   .0153791     2.45   0.014     .0075878    .0678728
+     topic_i |  -.0294508    .014395    -2.05   0.041    -.0576645   -.0012371
+------------------------------------------------------------------------------
+
+. quietly logit pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] 
+> ,  cluster(teamid);
+
+. margins, dydx(indiv1-topic_i);
+
+Average marginal effects                                 Number of obs = 2,680
+Model VCE: Robust
+
+Expression: Pr(pos10s), predict()
+dy/dx wrt:  indiv1 indiv3 stats_i topic_i
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.0698174   .0440929    -1.58   0.113    -.1562379    .0166031
+      indiv3 |  -.0054996   .0252247    -0.22   0.827    -.0549392    .0439399
+     stats_i |   .0178739   .0114522     1.56   0.119     -.004572    .0403199
+     topic_i |  -.0251201   .0145937    -1.72   0.085    -.0537233     .003483
+------------------------------------------------------------------------------
+
+. *REFEREE SCORE REGRESSIONS;
+. generate quality2=(peer_mean>4.5);
+
+. replace quality2=. if peer_mean==.;
+(114 real changes made, 114 to missing)
+
+. reg peer_mean  indiv1 indiv3  stats_i topic_i i.degree  [aw=pweight]  ,  cluster(teamid);
+(sum of wgt is 66.95833454653621)
+
+Linear regression                               Number of obs     =      2,566
+                                                F(9, 68)          =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.1566
+                                                Root MSE          =     .57354
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+   peer_mean | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.1905614    .123352    -1.54   0.127    -.4367065    .0555837
+      indiv3 |  -.4426685   .1157261    -3.83   0.000    -.6735963   -.2117407
+     stats_i |  -.0925244   .0624159    -1.48   0.143    -.2170734    .0320246
+     topic_i |   .0616335    .061385     1.00   0.319    -.0608583    .1841253
+             |
+      degree |
+          2  |   .9786934    .422848     2.31   0.024     .1349133    1.822474
+          3  |   .9667627    .392973     2.46   0.016     .1825972    1.750928
+          4  |   .9972901    .400686     2.49   0.015     .1977337    1.796847
+          5  |   1.022444   .3997179     2.56   0.013     .2248195    1.820069
+          6  |   .8661233     .42494     2.04   0.045     .0181686    1.714078
+          7  |   .9393364   .3662714     2.56   0.013     .2084532     1.67022
+             |
+       _cons |   3.492374   .3979557     8.78   0.000     2.698266    4.286483
+------------------------------------------------------------------------------
+
+. reg quality2  indiv1 indiv3  stats_i topic_i i.degree  [aw=pweight]  ,  cluster(teamid);
+(sum of wgt is 66.95833454653621)
+
+Linear regression                               Number of obs     =      2,566
+                                                F(9, 68)          =          .
+                                                Prob > F          =          .
+                                                R-squared         =     0.1304
+                                                Root MSE          =      .4232
+
+                                (Std. err. adjusted for 69 clusters in teamid)
+------------------------------------------------------------------------------
+             |               Robust
+    quality2 | Coefficient  std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.2352938   .1441281    -1.63   0.107     -.522897    .0523094
+      indiv3 |  -.3196457   .0916291    -3.49   0.001    -.5024887   -.1368027
+     stats_i |   -.024212   .0417358    -0.58   0.564    -.1074944    .0590705
+     topic_i |  -.0196349   .0316153    -0.62   0.537    -.0827223    .0434524
+             |
+      degree |
+          2  |   .1910836   .3481566     0.55   0.585    -.5036521    .8858194
+          3  |    .194807   .2440599     0.80   0.428    -.2922069    .6818209
+          4  |   .1484141   .2297742     0.65   0.521    -.3100931    .6069213
+          5  |    .115475   .2418961     0.48   0.635    -.3672212    .5981713
+          6  |  -.0695316    .243656    -0.29   0.776    -.5557397    .4166765
+          7  |   .6030636   .1967592     3.06   0.003     .2104368    .9956904
+             |
+       _cons |   .3141185   .2306843     1.36   0.178    -.1462049    .7744418
+------------------------------------------------------------------------------
+
+. quietly logit quality2 indiv1 indiv3   stats_i topic_i  i.degree  [iw=pweight] ,  cluster(teamid
+> );
+
+. margins, dydx(indiv1-topic_i);
+
+Average marginal effects                                 Number of obs = 2,550
+Model VCE: Robust
+
+Expression: Pr(quality2), predict()
+dy/dx wrt:  indiv1 indiv3 stats_i topic_i
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   std. err.      z    P>|z|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+      indiv1 |  -.1960524   .1305668    -1.50   0.133    -.4519586    .0598539
+      indiv3 |  -.2913369   .0761199    -3.83   0.000    -.4405292   -.1421446
+     stats_i |  -.0222862   .0399316    -0.56   0.577    -.1005506    .0559782
+     topic_i |  -.0195162   .0325522    -0.60   0.549    -.0833174     .044285
+------------------------------------------------------------------------------
+
+. *twoway (kdensity peer_mean if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medi
+> um) bwidth(.2) )
+>         (kdensity peer_mean if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(
+> medium) bwidth(.2) ) 
+>         (kdensity peer_mean if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(me
+> dium) bwidth(.2)) ,
+>         legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant Researchers" 2 "Moderate Researche
+> rs" 3 "Pro-immigrant Researchers"));
+. log close;
+      name:  <unnamed>
+       log:  C:/GitHub/ideology_specification/code/Log Files/04_Table_4.log
+  log type:  text
+ closed on:  19 Dec 2024, 07:25:00
+--------------------------------------------------------------------------------------------------

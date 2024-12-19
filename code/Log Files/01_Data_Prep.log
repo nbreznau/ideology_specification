@@ -2,7 +2,7 @@
       name:  <unnamed>
        log:  C:/GitHub/ideology_specification/code/Log Files/01_Data_Prep.log
   log type:  text
- opened on:  11 Dec 2024, 10:35:23
+ opened on:  19 Dec 2024, 06:54:53
 
 . clear matrix;
 
@@ -1143,7 +1143,7 @@ BELIEF_HYP |            belief_cat
 -----------+---------------------------------+----------
      Total |       230        837        186 |     1,253 
 
-. *THERE IS PROBABLY A MISCODING OF WHAT "HIGH BELIEF" MEANS IN DATA SET;
+. *THERE IS A MISCODING OF WHAT "HIGH BELIEF" MEANS IN DATA SET;
 . *USING TEAM LEVEL DATA AND RESHAPING IT LEADS TO 159 PARTICIPANTS;
 . *DOING TABULATION OF THE BELIEF_H1_Hx VARIABLES LEADS TO DISTRIBUTION OF BELIEF;
 . *SIMILAR TO THAT IN APPENDIX QUESTIONNAIRE, P. 84, WHERE 1 MEANS BELIEF IMM STRONGLY REDUCES SOC
@@ -1393,5 +1393,5 @@ file /GitHub/ideology_specification/data/df.dta saved
       name:  <unnamed>
        log:  C:/GitHub/ideology_specification/code/Log Files/01_Data_Prep.log
   log type:  text
- closed on:  11 Dec 2024, 10:35:24
+ closed on:  19 Dec 2024, 06:54:54
 --------------------------------------------------------------------------------------------------

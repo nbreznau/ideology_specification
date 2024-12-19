@@ -1,15 +1,15 @@
 #delimit ;
-log using /users/ddisk/mi/researcher/reg_predict.log, replace;
+* DEFINE WORKING DIRECTORY;
+global workd "/GitHub/ideology_specification";
+log using "$workd/code/Log Files/05_Table_7_9.log", replace;
 clear matrix;
 clear mata;
 
 
+*USES THE MODEL LEVEL DATA CREATED IN 02_Table_1_2_5_6.DO;
 
 
-*USES THE MODEL LEVEL DATA CREATED IN REG_MODEL.DO;
-
-
-use "/users/Ddisk/MI/Researcher/model.dta", clear;
+use "$workd/data/newmodel.dta", clear;
 encode dv, gen(dvv);
 
 drop if ame==.;
@@ -34,13 +34,13 @@ collapse (mean) mame=ame pame meanscore=model_brw meanpeer=pscore,
 *THE VARIABLE SPEC GIVES THE NUMBER OF THE SPECIFICATION, THERE ARE 58;
 generate spec=_n;
 summ mame spec;
-save /users/ddisk/data/junkame.dta, replace;
+save "$workd/data/junkame.dta", replace;
 
 
 
 
 *MERGE MAME WITH THE DATA SET;
-use "/users/Ddisk/MI/Researcher/model.dta";
+use "$workd/data/newmodel.dta";
 
 encode dv, gen(dvv);
 
@@ -48,7 +48,7 @@ global set scale stock flow  level_cyear allavailable w1996 w2006 w2016;
 
 	
 sort $set;
-merge $set using /users/ddisk/data/junkame.dta;
+merge $set using "$workd//data/junkame.dta";
 
 
 *NOTE THAT MODEL_BRW IS THE WRONG SCORE FOR THE 58 MIXED SPECIFICATION;
@@ -86,27 +86,19 @@ tabulate index, sum(w2016);
 
 
 reg mame proindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=1/nmodel],  cluster(teamid);
-reg mame dindex     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
+reg mame p12 p56     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
+lincom p56-p12;
+reg mame group3     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
 reg mame group1 group3     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
+lincom group3-group1; 
 
 reg mame proindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
-reg mame dindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
+reg mame p12 p56     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
+lincom p56-p12;
+reg mame group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
 reg mame group1 group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
+lincom group3-group1;
 
-
-
-
-*REGRESSIONS ON "RESIDUAL" OF AME AFTER TAKING ACCOUNT OF ENDOGENOUS SPECIFICATION SELECTION;
-
-gen residual=ame-mame;
-
-reg residual proindex     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
-reg residual dindex     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
-reg residual group1 group3     stats_brw topic_brw   t2 t3 i.mdegree   [aw=1/nmodel],  cluster(teamid);
-
-reg residual proindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
-reg residual dindex     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
-reg residual group1 group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpeer/nmodel],  cluster(teamid);
 
 
 
@@ -117,7 +109,8 @@ reg residual group1 group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpe
 	(kdensity mame if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(medium) bwidth(.03) ) 
 	(kdensity mame if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(.03)) ,
 	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams"))
-	saving(/users/ddisk/mi/researcher/hist_pred_ame.gph, replace);
+	saving(/volumes/ddisk/mi/researcher/hist_pred_ame.gph, replace);
+
 
 
 
@@ -126,9 +119,20 @@ reg residual group1 group3     stats_brw topic_brw   t2 t3 i.mdegree  [aw=meanpe
 	(kdensity mame if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(medium) bwidth(.03) ) 
 	(kdensity mame if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(.03)) ,
 	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams"))
-	saving(/users/ddisk/mi/researcher/hist_pred_ame.gph, replace);
+	saving(/volumes/ddisk/mi/researcher/hist_pred_ame.gph, replace);
 
 
-collapse (mean) ame mame meanpeer meanscore, by(spec);
+
+sort mame;
+generate newmame=int(mame*1000000);
+unique newmame;
+egen newspec=group(newmame);
+list newmame spec newspec;
+
+
+twoway (kdensity newspec if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) bwidth(2.5) ) 
+	(kdensity newspec if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(medium) bwidth(2.5) ) 
+	(kdensity newspec if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(2.5)) , 
+	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams")) ;
 
 log close;
