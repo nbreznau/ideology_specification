@@ -1,0 +1,134 @@
+--------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  C:/GitHub/ideology_specification/code/Log Files/06_Fig_AME_Funnel.log
+  log type:  text
+ opened on:   3 Jan 2025, 17:24:15
+
+. clear matrix;
+
+. clear mata;
+
+. use "$workd/data/df.dta", clear;
+
+. * generate standard error;
+. generate se = abs(ame) / abs(z);
+(3 missing values generated)
+
+. * three cases missing on se;
+. preserve;
+
+. drop if se == .;
+(3 observations deleted)
+
+. * set data as meta analysis data;
+. meta set ame se;
+
+Meta-analysis setting information
+
+ Study information
+    No. of studies: 1250
+       Study label: Generic
+        Study size: N/A
+
+       Effect size
+              Type: <generic>
+             Label: Effect size
+          Variable: ame
+
+         Precision
+         Std. err.: se
+                CI: [_meta_cil, _meta_ciu]
+          CI level: 95%
+
+  Model and method
+             Model: Random effects
+            Method: REML
+
+. * funnelplot;
+. meta funnelplot;
+
+  Effect-size label: Effect size
+        Effect size: ame
+          Std. err.: se
+              Model: Common effect
+             Method: Inverse-variance
+
+. * funnelplot by peer review quality;
+. meta funnelplot, by(quality2);
+
+  Effect-size label: Effect size
+        Effect size: ame
+          Std. err.: se
+              Model: Common effect
+             Method: Inverse-variance
+
+. generate group = .;
+(1,250 missing values generated)
+
+. replace group = 1 if group1 == 1;
+(133 real changes made)
+
+. replace group = 2 if group2 == 1;
+(544 real changes made)
+
+. replace group = 3 if group3 == 1;
+(573 real changes made)
+
+. * funnelplot by ideology;
+. meta funnelplot, by(group);
+
+  Effect-size label: Effect size
+        Effect size: ame
+          Std. err.: se
+              Model: Common effect
+             Method: Inverse-variance
+
+. gen se_trim = se;
+
+. * trim huge se to 1 (7 cases);
+. replace se_trim = 1 if se > 1;
+(7 real changes made)
+
+. meta set ame se_trim;
+
+Meta-analysis setting information
+
+ Study information
+    No. of studies: 1250
+       Study label: Generic
+        Study size: N/A
+
+       Effect size
+              Type: <generic>
+             Label: Effect size
+          Variable: ame
+
+         Precision
+         Std. err.: se_trim
+                CI: [_meta_cil, _meta_ciu]
+          CI level: 95%
+
+  Model and method
+             Model: Random effects
+            Method: REML
+
+. meta funnelplot, by(group) msize(tiny);
+
+  Effect-size label: Effect size
+        Effect size: ame
+          Std. err.: se_trim
+              Model: Common effect
+             Method: Inverse-variance
+
+. graph export "C:\GitHub\ideology_specification\code\Stata Main Results\Funnel_Plot.png", as(png) name("Graph
+> ") replace;
+file C:\GitHub\ideology_specification\code\Stata Main Results\Funnel_Plot.png saved as PNG format
+
+. restore;
+
+. log close;
+      name:  <unnamed>
+       log:  C:/GitHub/ideology_specification/code/Log Files/06_Fig_AME_Funnel.log
+  log type:  text
+ closed on:   3 Jan 2025, 17:24:21
+--------------------------------------------------------------------------------------------------------------

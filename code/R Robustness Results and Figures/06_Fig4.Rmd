@@ -167,7 +167,7 @@ df_long <- df %>%
 f5a2 <- ggplot(df_long, aes(x = unique_combo_numeric, y = y)) +
   geom_tile(width = 0.8, height = 0.8, fill = "grey50") +  # Adjust width and height to control bar appearance
   scale_x_continuous(breaks = 1:58) +  
-  scale_y_continuous(breaks = 1:8, labels = c("A", "B", "C", "D", "E", "F", "G", "H")) +  # Label y-axis with variable names
+  scale_y_reverse(breaks = 1:8, labels = c("A", "B", "C", "D", "E", "F", "G", "H")) +  # Label y-axis with variable names
   labs(x = "Unique model specifications\nordered by expected AME", y = "Components") +
   theme_classic()  +
   theme(axis.text.x = element_blank(),
@@ -245,7 +245,7 @@ df_long <- df %>%
 f5a2r <- ggplot(df_long, aes(x = unique_combo_numeric, y = y)) +
   geom_tile(width = 0.8, height = 0.8, fill = "grey50") +  # Adjust width and height to control bar appearance
   scale_x_continuous(breaks = 1:58) +  
-  scale_y_continuous(breaks = 1:8, labels = c("A", "B", "C", "D", "E", "F", "G", "H")) +  # Label y-axis with variable names
+  scale_y_reverse(breaks = 1:8, labels = c("A", "B", "C", "D", "E", "F", "G", "H")) +  # Label y-axis with variable names
   labs(x = "Unique model specifications\nordered by expected AME", y = "Components") +
   theme_classic()  +
   theme(axis.text.x = element_blank(),

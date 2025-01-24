@@ -113,7 +113,14 @@ p_3dlm <- lm(formula=AME ~ indiv1 + indiv3 + stats_i + topic_i + t2 + t3 + facto
 
 ## Fig2A
 
+
+
+
 ```{r fig2a}
+### Calculate 10th/90
+percentiles <- quantile(df$AME, probs = c(0.1, 0.9), na.rm = TRUE)
+
+
 agg_png(here("results", "Fig2A.png"), res = 144, width = 600, height = 500)
 
 # create scaling axis
@@ -143,9 +150,9 @@ f2a <- df %>%
   annotate("text", x = -0.093, y = 4, label = "10th Percentile", hjust = 1, color = "red", size = 3) +
   annotate("text", x = 0.076, y = 4, label = "90th Percentile", hjust = 0, color = "red", size = 3) +
   geom_hline(yintercept = 0, size = 0.25, linetype = "dashed", color = "grey30") +
-  geom_segment(aes(x = -0.073, xend = -0.073, y = 0, yend = 4), 
+  geom_segment(aes(x = round(percentiles[1],3), xend = round(percentiles[1],3), y = 0, yend = 4), 
                size = 0.25, linetype = "dashed", color = "red") +
-  geom_segment(aes(x = 0.056, xend = 0.056, y = 0, yend = 4), 
+  geom_segment(aes(x = round(percentiles[2],3), xend = round(percentiles[2],3), y = 0, yend = 4), 
                size = 0.25, linetype = "dashed", color = "red") +
   
   theme_classic() +
@@ -155,8 +162,8 @@ f2a <- df %>%
         axis.title = element_text(size = 8)) +
   #scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
     scale_x_continuous(
-    breaks = c(-0.25, -0.073, 0, 0.056, 0.25),  # Add the vertical line values
-    labels = c("-0.25", "-0.073", "0", "0.056", "0.25") # Custom labels for the breaks
+    breaks = c(-0.25, round(percentiles[1],3), 0, round(percentiles[2],3), 0.25),  # Add the vertical line values
+    labels = c("-0.25", paste0(round(percentiles[1],3)), "0", paste0(round(percentiles[2],3)), "0.25") # Custom labels for the breaks
   ) +
   coord_cartesian(ylim = c(0.01, NA), xlim = c(-0.45, 0.45))
 f2a
@@ -171,6 +178,11 @@ knitr::include_graphics(here("results", "Fig2A.png"))
 ### Color Blind
 
 ```{r fig1b}
+### Calculate 10th/90
+percentiles <- quantile(df$AME, probs = c(0.1, 0.9), na.rm = TRUE)
+
+
+
 agg_png(here("results", "Fig2B.png"), res = 144, width = 600, height = 500)
 
 # create scaling axis
