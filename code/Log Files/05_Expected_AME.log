@@ -1,12 +1,8 @@
 --------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:/GitHub/ideology_specification/code/Log Files/05_Table_7_9.log
+       log:  C:/GitHub/ideology_specification/code/Log Files/05_Expected_AME.log
   log type:  text
- opened on:  19 Dec 2024, 07:35:38
-
-. clear matrix;
-
-. clear mata;
+ opened on:  12 Feb 2025, 15:36:17
 
 . *USES THE MODEL LEVEL DATA CREATED IN 02_Table_1_2_5_6.DO;
 . use "$workd/data/newmodel.dta", clear;
@@ -65,7 +61,6 @@ allavailable |  -.0144867    .012632    -1.15   0.252     -.039269    .0102957
         spec |         58        29.5    16.88688          1         58
 
 . save "$workd/data/junkame.dta", replace;
-(file /GitHub/ideology_specification/data/junkame.dta not found)
 file /GitHub/ideology_specification/data/junkame.dta saved
 
 . *MERGE MAME WITH THE DATA SET;
@@ -2113,7 +2108,7 @@ Number of records is  1253
 
 . log close;
       name:  <unnamed>
-       log:  C:/GitHub/ideology_specification/code/Log Files/05_Table_7_9.log
+       log:  C:/GitHub/ideology_specification/code/Log Files/05_Expected_AME.log
   log type:  text
- closed on:  19 Dec 2024, 07:35:41
+ closed on:  12 Feb 2025, 15:36:21
 --------------------------------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 #delimit ;
 * DEFINE WORKING DIRECTORY;
 global workd "/GitHub/ideology_specification";
-log using "$workd/code/Log Files/03_Table_3.log", replace;
+log using "$workd/code/Log Files/03_Robustness.log", replace;
 clear matrix;
 clear mata;
 

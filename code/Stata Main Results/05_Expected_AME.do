@@ -1,9 +1,11 @@
 #delimit ;
 * DEFINE WORKING DIRECTORY;
-global workd "/GitHub/ideology_specification";
-log using "$workd/code/Log Files/05_Table_7_9.log", replace;
+
 clear matrix;
 clear mata;
+
+global workd "/GitHub/ideology_specification";
+log using "$workd/code/Log Files/05_Expected_AME.log", replace;
 
 
 *USES THE MODEL LEVEL DATA CREATED IN 02_Table_1_2_5_6.DO;

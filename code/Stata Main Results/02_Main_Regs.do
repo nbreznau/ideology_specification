@@ -2,7 +2,7 @@
 #delimit ;
 * DEFINE WORKING DIRECTORY;
 global workd "/GitHub/ideology_specification";
-log using "$workd/code/Log Files/02_Table_1_2_5_6.log", replace;
+log using "$workd/code/Log Files/02_Main_Regs.log", replace;
 clear matrix;
 clear mata;
 
@@ -66,6 +66,9 @@ reg ame  p12 p56    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  clust
 lincom p56-p12;
 reg ame  group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
 reg ame  group1 group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+* as Stata is our main software for analysis, we save these results as the file stata_adj_means.csv for Fig1
+margins, dydx(group1 group3) level(90)
+margins, at(group1 == 0 group3 == 0) level(90)
 lincom group3-group1;
 
 
@@ -135,39 +138,58 @@ tabulate prame, sum(rame);
 summ pos10-neg10s;
 summ pos10-neg10s [aw=model_brw];
 
-
+reg neg10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 reg neg10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom p56-p12;
+reg neg10s group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 reg neg10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
+lincom group3-group1;
+reg neg10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
+lincom p56-p12;
+reg neg10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom group3-group1;
 
 
 
 *REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
+reg pos10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 reg pos10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom p56-p12;
+reg pos10s group1   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 reg pos10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom group3-group1;
-
-
-
-
-*WEIGHTED REGRESSIONS ON OUTLYING NEGATIVE & SIGNIFICANT COEFFICIENTS;
-reg neg10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=pscore/nmodel] ,  cluster(teamid);
+reg pos10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom p56-p12;
-reg neg10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=pscore/nmodel] ,  cluster(teamid);
+reg pos10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom group3-group1;
 
+*make a pscore that averages 1 for balanced weighting;
+gen pscore_1 = pscore - 3.190467;
 
-
-
-*WEIGHTED REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
-reg pos10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=pscore/nmodel] ,  cluster(teamid);
+*WEIGHTED BY PEER REFEREE SCORES;
+reg neg10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
+reg neg10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
 lincom p56-p12;
-reg pos10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=pscore/nmodel] ,  cluster(teamid);
+reg neg10s group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
+reg neg10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
+lincom group3-group1;
+reg neg10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
+lincom p56-p12;
+reg neg10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
 lincom group3-group1;
 
-	
+*REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
+reg pos10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
+reg pos10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
+lincom p56-p12;
+reg pos10s group1   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
+reg pos10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
+lincom group3-group1;
+reg pos10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
+lincom p56-p12;
+reg pos10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);
+lincom group3-group1;
+
 
 
 *RELATIONSHIP BETWEEN NEW MEASURE OF QUALITY OF RESEARCH AND PRO-IMMIGRATION INDEX;

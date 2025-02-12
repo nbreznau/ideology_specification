@@ -1,11 +1,12 @@
 #delimit ;
 *ssc install reghdfe
 *ssc install ftools
-
-global workd "/GitHub/ideology_specification";
-log using "$workd/code/Log Files/04_Table_4.log", replace;
 clear matrix;
 clear mata;
+
+global workd "/GitHub/ideology_specification";
+log using "$workd/code/Log Files/04_Dyads.log", replace;
+
 
 use "$workd/data/df.dta", clear;
 

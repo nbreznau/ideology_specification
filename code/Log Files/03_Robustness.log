@@ -1,8 +1,8 @@
 --------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  C:/GitHub/ideology_specification/code/Log Files/03_Table_3.log
+       log:  C:/GitHub/ideology_specification/code/Log Files/03_Robustness.log
   log type:  text
- opened on:  19 Dec 2024, 07:32:11
+ opened on:  12 Feb 2025, 15:30:40
 
 . clear matrix;
 
@@ -1195,7 +1195,7 @@ Linear regression                               Number of obs     =      1,253
 
 . log close;
       name:  <unnamed>
-       log:  C:/GitHub/ideology_specification/code/Log Files/03_Table_3.log
+       log:  C:/GitHub/ideology_specification/code/Log Files/03_Robustness.log
   log type:  text
- closed on:  19 Dec 2024, 07:32:12
+ closed on:  12 Feb 2025, 15:30:42
 --------------------------------------------------------------------------------------------------
