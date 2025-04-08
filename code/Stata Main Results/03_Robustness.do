@@ -51,7 +51,27 @@ reg ame  group1 group3    stats_brw topic_brw t2 t3 i.counter2   [aw=1/nmodel] ,
 lincom group3-group1;
 reg ame  group3    stats_brw topic_brw t2 t3 i.counter2   [aw=1/nmodel] ,  cluster(teamid);
 
+*REGRESSION WITHOUT CONTROLS;
+reg ame  proindex  i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+reg ame  p12 p56 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+lincom p56-p12;
+reg ame  group1 group3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+lincom group3-group1;
+reg ame  group3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
 
+reg ame  proindex  i.degree1   [aw=1/nmodel] ,  cluster(teamid);
+reg ame  p12 p56 i.degree1   [aw=1/nmodel] ,  cluster(teamid);
+lincom p56-p12;
+reg ame  group1 group3 i.degree1   [aw=1/nmodel] ,  cluster(teamid);
+lincom group3-group1;
+reg ame  group3 i.degree1   [aw=1/nmodel] ,  cluster(teamid);
+
+reg ame  proindex  i.counter2   [aw=1/nmodel] ,  cluster(teamid);
+reg ame  p12 p56 i.counter2   [aw=1/nmodel] ,  cluster(teamid);
+lincom p56-p12;
+reg ame  group1 group3 i.counter2   [aw=1/nmodel] ,  cluster(teamid);
+lincom group3-group1;
+reg ame  group3 i.counter2   [aw=1/nmodel] ,  cluster(teamid);
 
 
 *WEIGHTED BY PSCORE/NMODEL;
@@ -81,5 +101,26 @@ reg ame  group1 group3    stats_brw topic_brw t2 t3 i.counter2   [aw=pscore/nmod
 lincom group3-group1;
 reg ame  group3    stats_brw topic_brw t2 t3 i.counter2   [aw=pscore/nmodel] ,  cluster(teamid);
 
+*REGRESSION WITHOUT CONTROLS;
+reg ame  proindex  i.mdegree   [aw=pscore/nmodel] ,  cluster(teamid);
+reg ame  p12 p56 i.mdegree   [aw=pscore/nmodel] ,  cluster(teamid);
+lincom p56-p12;
+reg ame  group1 group3 i.mdegree   [aw=pscore/nmodel] ,  cluster(teamid);
+lincom group3-group1;
+reg ame  group3 i.mdegree   [aw=pscore/nmodel] ,  cluster(teamid);
+
+reg ame  proindex  i.degree1   [aw=pscore/nmodel] ,  cluster(teamid);
+reg ame  p12 p56 i.degree1   [aw=pscore/nmodel] ,  cluster(teamid);
+lincom p56-p12;
+reg ame  group1 group3 i.degree1   [aw=pscore/nmodel] ,  cluster(teamid);
+lincom group3-group1;
+reg ame  group3 i.degree1   [aw=pscore/nmodel] ,  cluster(teamid);
+
+reg ame  proindex  i.counter2   [aw=pscore/nmodel] ,  cluster(teamid);
+reg ame  p12 p56 i.counter2   [aw=pscore/nmodel] ,  cluster(teamid);
+lincom p56-p12;
+reg ame  group1 group3 i.counter2   [aw=pscore/nmodel] ,  cluster(teamid);
+lincom group3-group1;
+reg ame  group3 i.counter2   [aw=pscore/nmodel] ,  cluster(teamid);
 
 log close;

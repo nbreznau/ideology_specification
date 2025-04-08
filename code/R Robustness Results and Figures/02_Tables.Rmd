@@ -241,7 +241,7 @@ Table_1_model <- Table_1_model[2:20,]
 
 ```
 
-##### T1 Model Level - Weighted
+### T1 Model Level - Weighted
 
 ```{r tbl1_model_w, warning = F}
 mean1 <- tbl1_model_w %>%
@@ -281,7 +281,78 @@ Table_1_model_w[1, 1:5] <- c("Num of teams",
 saveRDS(Table_1_model_w, here("results", "Table_1_model_w.rds"))
 ```
 
-##### T1 Team Level
+##### Correlations
+
+Its easiest to get the significance values from weighted lm's as the cov.wt command doesn't get them
+
+```{r}
+
+df_corr <- df %>%
+  mutate(aw = round((1/nmodel)*112),0) %>%
+  subset(!is.na(AME) & !is.na(neg10s) & !is.na(proindex), select = c(AME, neg10s, pos10s, proindex, group1, group3, p12, pindex, aw)) %>%
+  as.data.frame()
+
+cor_matrix <- cov.wt(df_corr, cor = T, wt = df_corr$aw)
+
+sig1 <- abs(summary(lm(AME ~ proindex, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig2 <- abs(summary(lm(AME ~ group1 + group3, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig3 <- abs(summary(lm(AME ~ group1 + group3, weights = 1/nmodel, data = df))$coefficients[3,3])
+
+sig4 <- abs(summary(lm(AME ~ pindex, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig5 <- abs(summary(lm(AME ~ p12, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig1n <- abs(summary(lm(neg10s ~ proindex, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig2n <- abs(summary(lm(neg10s ~ group1 + group3, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig3n <- abs(summary(lm(neg10s ~ group1 + group3, weights = 1/nmodel, data = df))$coefficients[3,3])
+
+sig4n <- abs(summary(lm(neg10s ~ pindex, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig5n <- abs(summary(lm(neg10s ~ p12, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig1p <- abs(summary(lm(pos10s ~ proindex, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig2p <- abs(summary(lm(pos10s ~ group1 + group3, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig3p <- abs(summary(lm(pos10s ~ group1 + group3, weights = 1/nmodel, data = df))$coefficients[3,3])
+
+sig4p <- abs(summary(lm(pos10s ~ pindex, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig5p <- abs(summary(lm(pos10s ~ p12, weights = 1/nmodel, data = df))$coefficients[2,3])
+
+sig1d <- abs(summary(lm(AME ~ proindex, weights = 1/nmodel, data = df_dyad))$coefficients[2,3])
+
+sig2d <- abs(summary(lm(AME ~ indiv1 + indiv3, weights = 1/nmodel, data = df_dyad))$coefficients[2,3])
+
+sig3d <- abs(summary(lm(AME ~ indiv1 + indiv3, weights = 1/nmodel, data = df_dyad))$coefficients[3,3])
+
+sig1nd <- abs(summary(lm(neg10s ~ proindex, weights = 1/nmodel, data = df_dyad))$coefficients[2,3])
+
+sig2nd <- abs(summary(lm(neg10s ~ indiv1 + indiv3, weights = 1/nmodel, data = df_dyad))$coefficients[2,3])
+
+sig3nd <- abs(summary(lm(neg10s ~ indiv1 + indiv3, weights = 1/nmodel, data = df_dyad))$coefficients[3,3])
+
+sig1pd <- abs(summary(lm(pos10s ~ proindex, weights = 1/nmodel, data = df_dyad))$coefficients[2,3])
+
+sig2pd <- abs(summary(lm(pos10s ~ indiv1 + indiv3, weights = 1/nmodel, data = df_dyad))$coefficients[2,3])
+
+sig3pd <- abs(summary(lm(pos10s ~ indiv1 + indiv3, weights = 1/nmodel, data = df_dyad))$coefficients[3,3])
+
+
+
+
+
+r_df <- as.data.frame(r_formatted)
+print(r_df, quote = FALSE)
+
+
+```
+
+### T1 Team Level
 
 ```{r tbl1_team}
 nm1 <- length(tbl1_team$index)
