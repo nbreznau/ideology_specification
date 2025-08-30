@@ -17,8 +17,9 @@ tabulate topic_knowledge, sum(topic_brw);
 tabulate statistics_skill, sum(stats_brw);
 tabulate model_score, sum(model_brw);
 
-generate hmodel=(model_score=="High");
 
+
+* TABLE S1 * 
 
 summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbelief  nmodel team_size
 	stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  ;
@@ -56,35 +57,43 @@ restore;
 
 
 ***************************************************************************;
+********************* Table 1 & Table S2 **********************************;
+***************************************************************************;
 
 *ALL REGRESSIONS WILL BE WEIGHTED BY 1/NMODEL SO THEY ARE NUMERICALLY EQUIVALENT TO TEAM LEVEL REGRESSIONS;
 *WILL LEAVE OUT PMALE FROM ALL REGRESSIONS;
 *WILL INCLUDE TEAM_SIZE IN THE REFEREE SCORE, QUALITY REGRESSIONS;
 
-reg ame  proindex    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
-reg ame  p12 p56    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+*Table 1, Model 1 & Table S2, Model 1;
+reg ame  proindex    	stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+*Table 1, Model 2 & Table S2, Model 2;
+reg ame  p12 p56    	stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
 lincom p56-p12;
-reg ame  group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
-reg ame  group1 group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
-* as Stata is our main software for analysis, we save these results as the file stata_adj_means.csv for Fig1
-margins, dydx(group1 group3) level(90)
-margins, at(group1 == 0 group3 == 0) level(90)
+*Table S2, Model 3;
+reg ame  group3    		stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+*Table 1, Model 3 & Table S2, Model 4;
+reg ame  group1 group3 	stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+* as Stata is our main software for analysis, we save these results as the file stata_adj_means.csv for Fig1;
+margins, dydx(group1 group3) level(90);
+margins, at(group1 == 0 group3 == 0) level(90);
 lincom group3-group1;
 
 
-
-
 *ADDING BELIEF;
+*Not shown in Table S2;
 reg ame  proindex pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(teamid);
+*Table S2, Model 5;
 reg ame  p12 p56  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(teamid);
 lincom p56-p12;
+*Not shown in Table S2;
 reg ame  group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(teamid);
+*Table S2, Model 6;
 reg ame  group1 group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(teamid);
 lincom group3-group1;
 
 
 
-
+***************** Lower portion of Table S2 *******************************;
 ***************************************************************************;
 
 
@@ -96,9 +105,6 @@ lincom p56-p12;
 reg ame  group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=pscore/nmodel] ,  cluster(teamid);
 reg ame  group1 group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=pscore/nmodel] ,  cluster(teamid);
 lincom group3-group1;
-
-
-
 
 
 *ADDING BELIEF;
@@ -129,42 +135,59 @@ reg ame group1 group2 group3 c_* [aw=1/nmodel], cluster(teamid) nocons;
 tabulate prame, sum(rame);
 
 
-
-
 ********************************************************************;
+***************** Table 1 & Tables S3-S4 ***************************;
+********************************************************************;
+
 *OLS REGRESSIONS ON OUTLYING NEGATIVE & SIGNIFICANT OUTCOMES;
 
 
 summ pos10-neg10s;
 summ pos10-neg10s [aw=model_brw];
 
+*Table 1, Model 4 & Table S3, Model 1;
 reg neg10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
+*Table 1, Model 5 & Table S3, Model 2;
 reg neg10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom p56-p12;
+*Table S3, Model 3;
 reg neg10s group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
+*Table 1, Model 6 & Table S3, Model 4;
 reg neg10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom group3-group1;
+*Table S3, Model 5;
 reg neg10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom p56-p12;
+*Table S3, Model 6;
 reg neg10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom group3-group1;
 
 
 
 *REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
+*Table 1, Model 7 & Table S4, Model 1;
 reg pos10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
+*Table 1, Model 8 & Table S4, Model 2;
 reg pos10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom p56-p12;
+*Table S4, Model 3;
 reg pos10s group1   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
+*Table 1, Model 9 & Table S4, Model 4;
 reg pos10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom group3-group1;
+*Table S4, Model 5;
 reg pos10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom p56-p12;
+*Table S4, Model 6;
 reg pos10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 lincom group3-group1;
 
 *make a pscore that averages 1 for balanced weighting;
 gen pscore_1 = pscore - 3.190467;
+
+
+************************** Lower Portion of Tables S3 & S4 **************************************;
+
 
 *WEIGHTED BY PEER REFEREE SCORES;
 reg neg10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(teamid);

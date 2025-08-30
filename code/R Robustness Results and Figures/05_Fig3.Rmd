@@ -87,9 +87,6 @@ y_var3 <- round(coeff_group3 + weighted_mean_ame_group2m,3)
 ### Color Blind
 
 ```{r f4}
-
-agg_png(here("results", "Fig3.png"), res = 144, height = 600, width = 800)
-
 f4a <- ggplot() +
   stat_density(data = df,
                aes(x = peer_mean_Z, group = index, color = factor(index)), 
@@ -113,16 +110,14 @@ geom_vline(xintercept = mean(df$peer_mean_Z[df$group3 == 1], na.rm = TRUE), colo
 
 f4a
 
-dev.off()
 
-knitr::include_graphics(here("results", "Fig3.png"))
 ```
 
 ### RGB
 
 ```{r f4rgb}
 
-agg_png(here("results", "Fig3_RGB.png"), res = 144, height = 600, width = 800)
+agg_png(here("results", "Fig3.png"), res = 144, height = 600, width = 800)
 
 f4a <- ggplot() +
   stat_density(data = df,
@@ -149,7 +144,7 @@ f4a
 
 dev.off()
 
-knitr::include_graphics(here("results", "Fig3_RGB.png"))
+knitr::include_graphics(here("results", "Fig3.png"))
 ```
 
 ## Marginal Effects
@@ -157,8 +152,6 @@ knitr::include_graphics(here("results", "Fig3_RGB.png"))
 ### Color Blind
 
 ```{r f4coeff}
-agg_png(here("results", "Fig_Margins_Ref_Scores.png"), res = 144, height = 400, width = 800)
-
 
 
 f4b <- df_coeff %>%
@@ -190,16 +183,14 @@ f4b <- df_coeff %>%
         legend.position = "none")
 f4b
 
-dev.off()
 
-knitr::include_graphics(here("results", "Fig_Margins_Ref_Scores.png"))
 
 ```
 
 ### RGB
 
 ```{r f4coeffrgb}
-agg_png(here("results", "Fig_Margins_Ref_Scores_RGB.png"), res = 144, height = 400, width = 800)
+
 
 f4b <- df_coeff %>%
   ggplot(aes(x = factor(group, levels = rev(unique(group))), y = mean, color = group)) +
@@ -229,9 +220,6 @@ f4b <- df_coeff %>%
         legend.position = "none")
 f4b
 
-dev.off()
-
-knitr::include_graphics(here("results", "Fig_Margins_Ref_Scores_RGB.png"))
 
 ```
 

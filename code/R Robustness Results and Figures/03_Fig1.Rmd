@@ -161,7 +161,7 @@ knitr::include_graphics(here("results", "FigS1.png"))
 ## FIG1B
 
 
-```{r fig2a}
+```{r fig2ab}
 ### Calculate 10th/90
 percentiles <- quantile(df$AME, probs = c(0.1, 0.9), na.rm = TRUE)
 
@@ -228,7 +228,7 @@ percentiles <- quantile(df$AME, probs = c(0.1, 0.9), na.rm = TRUE)
 
 
 
-agg_png(here("results", "Fig1C.png"), res = 144, width = 600, height = 500)
+#agg_png(here("results", "Fig1C.png"), res = 144, width = 600, height = 500)
 
 # create scaling axis
 custom_y_trans <- trans_new(
@@ -271,16 +271,16 @@ f1c <- df %>%
   scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
   coord_cartesian(xlim = c(-0.45, 0.45))
 f1c
-dev.off()
+#dev.off()
 
-knitr::include_graphics(here("results", "Fig1C.png"))
+#knitr::include_graphics(here("results", "Fig1C.png"))
 
 ```
 
 ### RGB
 
 ```{r fig1brgb}
-agg_png(here("results", "Fig1C_RGB.png"), res = 144, width = 600, height = 500)
+agg_png(here("results", "Fig1C.png"), res = 144, width = 600, height = 500)
 
 # create scaling axis
 custom_y_trans <- trans_new(
@@ -325,7 +325,7 @@ f1c <- df %>%
 f1c
 dev.off()
 
-knitr::include_graphics(here("results", "Fig1C_RGB.png"))
+knitr::include_graphics(here("results", "Fig1C.png"))
 
 ```
 
@@ -333,7 +333,7 @@ knitr::include_graphics(here("results", "Fig1C_RGB.png"))
 
 ### Color Blind
 
-```{r figs1}
+```{r figs1a}
 
 agg_png(here("results", "FigS2.png"), res = 144, width = 600, height = 500)
 
@@ -367,6 +367,56 @@ fs2 <- df_dyad %>%
   annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nresearchers", hjust = 0, color = colors[1], size = 3) +
   annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nresearchers", hjust = 1, color = colors[3], size = 3) +
     annotate("text", x = -0.01, y = 0.25, label = "Moderate\nresearchers", color = colors[2], size = 3) +
+  geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
+  theme_classic() +
+  theme(legend.position = "none",
+        axis.text.x = element_text(size = 6),
+        axis.text.y = element_text(size = 6),
+        axis.title = element_text(size = 8)) +
+  scale_y_continuous(trans = custom_y_trans, breaks = c(0, 0.25, 0.5, 0.75, 1, 3, 5, 7, 9)) +
+  coord_cartesian(xlim = c(-0.45, 0.45))
+fs2
+dev.off()
+
+knitr::include_graphics(here("results", "FigS2.png"))
+```
+
+### RGB
+
+```{r figs1b}
+
+agg_png(here("results", "FigS2.png"), res = 144, width = 600, height = 500)
+
+# create scaling axis
+custom_y_trans <- trans_new(
+  name = "split_scale",
+  transform = function(x) ifelse(x <= 1, x / 2, (x - 1) / (35 - 1) * 0.5 + 0.5),  # Compress 0-1 to lower half, >1 to upper half
+  inverse = function(x) ifelse(x <= 0.5, x * 2, (x - 0.5) * (35 - 1) / 0.5 + 1)  # Inverse of the transform
+)
+
+
+fs2 <- df_dyad %>%
+  #subset(indiv != 2) %>%
+  ggplot() +
+  
+  # First density for indiv2, excluding NA values
+  stat_density(data = df_dyad %>% filter(!is.na(indiv2) & indiv2 == 1),
+               aes(x = AME), color = NA, fill = colors_classic[2], 
+               alpha = 0.3, adjust = 5.5, position = "identity", trim = T) +
+  
+  # Second density for indiv1, excluding NA values
+  stat_density(data = df_dyad %>% filter(!is.na(indiv1) & indiv2 != 1),
+               aes(x = AME, group = indiv, color = factor(indiv)), 
+               alpha = 1, adjust = 5, position = "identity", geom = "line", 
+               #trim = T
+               ) +  
+  # Labels
+  labs(x = "AME", y = "Density", title = "", fill = "indiv Group", color = "indiv Group") +
+  scale_color_manual(values = colors_classic[c(3,1)]) +   
+  scale_fill_manual(values = c("white", colors_classic[2])) +  
+  annotate("text", x = -0.45, y = 0.6, label = "Anti-immigration\nresearchers", hjust = 0, color = colors_classic[1], size = 3) +
+  annotate("text", x = 0.42, y = 0.6, label = "Pro-immigration\nresearchers", hjust = 1, color = colors_classic[3], size = 3) +
+    annotate("text", x = -0.01, y = 0.25, label = "Moderate\nresearchers", color = colors_classic[2], size = 3) +
   geom_hline(yintercept = 1, size = 0.25, linetype = "dashed", color = "grey30") +
   theme_classic() +
   theme(legend.position = "none",
@@ -465,7 +515,7 @@ plot_data_ame <- read_csv(here("data", "stata_adj_means.csv"))
 
 #### Color blind
 
-```{r fig2a}
+```{r fig2ac}
 #agg_png(here("results", "Fig2A.png"), res = 144, height = 300, width = 650)
 
 f1d <- ggplot(data = plot_data_ame, aes(x = factor(ame), y = coef, color = ame)) +
@@ -589,14 +639,7 @@ dev.off()
 knitr::include_graphics(here("results", "Fig1D.png"))
 
 ```
-## SEs for plot
 
-
-```{r ses}
-se_group1
-weighted_se_ame_group2m
-se_group3
-```
 
 ## Citations
 

@@ -533,6 +533,12 @@ counter2==3344; replace mdegree=40 if counter2==3244 |
 counter2==3654;</p>
 <ol start="4" style="list-style-type: decimal">
 <li>Generate pro-immigration and team-index</li>
+</ol>
+<p>where p12 is % of team that is anti, and p56 is % of team that is
+pro.</p>
+<p>generate group1=(p12&gt;0); generate group3=(p56&gt;.5 &amp;
+group1==0); generate group2=1-group1-group3;</p>
+<ol start="5" style="list-style-type: decimal">
 <li>Generate topic_knowledge and stat_skill (impute one missing team,
 see Stata)</li>
 <li>Generate belief in hypothesis variables</li>
@@ -618,14 +624,13 @@ see Stata)</li>
          p12 = p1+p2,
          p34 = p3+p4,
          p56 = p5+p6,
-         group1 = ifelse(p12&gt;0, 1, 0),
-         group3 = ifelse(pindex&gt;=.5, 1, 0),
-         group3 = ifelse(group1==1 &amp; group3==1, 1, group3),
-         group1 = ifelse(group1==1 &amp; group3==1, 0, group1),
-         group2 = ifelse(group1==0 &amp; group3==0, 1, 0),
-         group1 = ifelse(is.na(group1), 0, group1),
-         group2 = ifelse(is.na(group2), 0, group2),
+         group1 = ifelse(p12 &gt; 0, 1, 0),
+         group3 = ifelse(p56 &gt; .5, 1, 0),
          group3 = ifelse(is.na(group3), 0, group3),
+         group1 = ifelse(is.na(group1), 0, group1),
+         group1 = ifelse(group3 == 1, 0, group1),
+         group2 = 1 - group1 - group3,
+         group2 = ifelse(is.na(group2), 0, group2),
          index = 1*group1 + 2*group2 + 3*group3,
          topic_knowledge = ifelse(u_teamid==27, &quot;Low&quot;, TOPIC_KNOWLEDGE),
          topic_ipred = ifelse(u_teamid == 27, -0.253722245526001, topic_ipred),
@@ -898,7 +903,7 @@ write.csv(df3, here(&quot;data&quot;, &quot;df_dyad.csv&quot;), row.names = F)</
 <pre class="r"><code>sessionInfo()</code></pre>
 <pre><code>## R version 4.4.1 (2024-06-14 ucrt)
 ## Platform: x86_64-w64-mingw32/x64
-## Running under: Windows 11 x64 (build 22631)
+## Running under: Windows 11 x64 (build 26100)
 ## 
 ## Matrix products: default
 ## 
@@ -917,23 +922,22 @@ write.csv(df3, here(&quot;data&quot;, &quot;df_dyad.csv&quot;), row.names = F)</
 ## [1] stats     graphics  grDevices utils     datasets  methods   base     
 ## 
 ## other attached packages:
-##  [1] here_1.0.1      pacman_0.5.1    lubridate_1.9.3 forcats_1.0.0  
-##  [5] stringr_1.5.1   dplyr_1.1.4     purrr_1.0.2     readr_2.1.5    
+##  [1] here_1.0.1      pacman_0.5.1    lubridate_1.9.4 forcats_1.0.0  
+##  [5] stringr_1.5.1   dplyr_1.1.4     purrr_1.0.4     readr_2.1.5    
 ##  [9] tidyr_1.3.1     tibble_3.2.1    ggplot2_3.5.1   tidyverse_2.0.0
 ## 
 ## loaded via a namespace (and not attached):
-##  [1] sass_0.4.9        utf8_1.2.4        generics_0.1.3    stringi_1.8.4    
-##  [5] hms_1.1.3         digest_0.6.37     magrittr_2.0.3    evaluate_0.24.0  
-##  [9] grid_4.4.1        timechange_0.3.0  fastmap_1.2.0     rprojroot_2.0.4  
-## [13] jsonlite_1.8.8    fansi_1.0.6       scales_1.3.0      jquerylib_0.1.4  
-## [17] cli_3.6.3         rlang_1.1.4       crayon_1.5.3      bit64_4.0.5      
-## [21] munsell_0.5.1     withr_3.0.1       cachem_1.1.0      yaml_2.3.10      
-## [25] tools_4.4.1       parallel_4.4.1    tzdb_0.4.0        colorspace_2.1-1 
-## [29] vctrs_0.6.5       R6_2.5.1          lifecycle_1.0.4   bit_4.0.5        
-## [33] vroom_1.6.5       pkgconfig_2.0.3   pillar_1.9.0      bslib_0.8.0      
-## [37] gtable_0.3.5      glue_1.7.0        xfun_0.47         tidyselect_1.2.1 
-## [41] rstudioapi_0.16.0 knitr_1.48        htmltools_0.5.8.1 rmarkdown_2.28   
-## [45] compiler_4.4.1</code></pre>
+##  [1] bit_4.6.0         gtable_0.3.6      jsonlite_2.0.0    crayon_1.5.3     
+##  [5] compiler_4.4.1    tidyselect_1.2.1  parallel_4.4.1    jquerylib_0.1.4  
+##  [9] scales_1.3.0      yaml_2.3.10       fastmap_1.2.0     R6_2.6.1         
+## [13] generics_0.1.3    knitr_1.50        rprojroot_2.0.4   munsell_0.5.1    
+## [17] bslib_0.9.0       pillar_1.10.1     tzdb_0.5.0        rlang_1.1.5      
+## [21] stringi_1.8.4     cachem_1.1.0      xfun_0.51         sass_0.4.9       
+## [25] bit64_4.6.0-1     timechange_0.3.0  cli_3.6.4         withr_3.0.2      
+## [29] magrittr_2.0.3    digest_0.6.37     grid_4.4.1        vroom_1.6.5      
+## [33] rstudioapi_0.17.1 hms_1.1.3         lifecycle_1.0.4   vctrs_0.6.5      
+## [37] evaluate_1.0.3    glue_1.8.0        colorspace_2.1-1  rmarkdown_2.29   
+## [41] tools_4.4.1       pkgconfig_2.0.3   htmltools_0.5.8.1</code></pre>
 </div>
 
 

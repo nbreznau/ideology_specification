@@ -392,5 +392,7 @@ margins, dydx(indiv1-topic_i);
 	(kdensity peer_mean if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(.2)) ,
 	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant Researchers" 2 "Moderate Researchers" 3 "Pro-immigrant Researchers"));
 
+* For later loading;
+save "$workd/data/newmodel_d.dta", replace;
 
 log close;

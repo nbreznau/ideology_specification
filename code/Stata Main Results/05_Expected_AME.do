@@ -103,38 +103,20 @@ lincom group3-group1;
 
 
 
-
-
+************* Figure 2 *****************************;
+* This is generated in R ***************************;
+	
 
 *THIS PRODUCES THE GRAPH SHOWING DISTRIBUTION DIFFERENCES IN PREDICTED AME ACROSS TEAMS;
-*twoway (kdensity mame if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) bwidth(.03) )
+twoway (kdensity mame if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) bwidth(.03) )
 	(kdensity mame if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(medium) bwidth(.03) ) 
 	(kdensity mame if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(.03)) ,
-	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams"))
-	saving(/volumes/ddisk/mi/researcher/hist_pred_ame.gph, replace);
+	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams"));
 
 
 
 
-*THIS SAVES THE GRAPH;
-*twoway (kdensity mame if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) bwidth(.03) )
-	(kdensity mame if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(medium) bwidth(.03) ) 
-	(kdensity mame if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(.03)) ,
-	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams"))
-	saving(/volumes/ddisk/mi/researcher/hist_pred_ame.gph, replace);
-
-
-
-sort mame;
-generate newmame=int(mame*1000000);
-unique newmame;
-egen newspec=group(newmame);
-list newmame spec newspec;
-
-
-twoway (kdensity newspec if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) bwidth(2.5) ) 
-	(kdensity newspec if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(medium) bwidth(2.5) ) 
-	(kdensity newspec if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium) bwidth(2.5)) , 
-	legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant teams" 2 "Moderate teams" 3 "Pro-immigrant teams")) ;
 
 log close;
+
+

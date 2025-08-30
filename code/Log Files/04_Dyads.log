@@ -1,8 +1,8 @@
---------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
       name:  <unnamed>
        log:  C:/GitHub/ideology_specification/code/Log Files/04_Dyads.log
   log type:  text
- opened on:  12 Feb 2025, 15:33:29
+ opened on:  30 Aug 2025, 10:56:49
 
 . use "$workd/data/df.dta", clear;
 
@@ -25,8 +25,8 @@
 file /GitHub/ideology_specification/data/index_p.dta saved
 
 . *GETTING INDIVIDUAL-MODEL LEVEL DATA;
-. import delimited "$workd/data/cri_long_participant_ame_dyad.csv", clear bindquote(strict) varnam
-> es(1) maxquotedrows(1000);
+. import delimited "$workd/data/cri_long_participant_ame_dyad.csv", clear bindquote(strict) va
+> rnames(1) maxquotedrows(1000);
 (encoding automatically selected: ISO-8859-1)
 (653 vars, 2,838 obs)
 
@@ -115,14 +115,14 @@ att: contains nonnumeric characters; replaced as byte
 . replace ame2=.35 if ame>.35;
 (50 real changes made)
 
-.  *twoway (kdensity ame2 if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medium) 
-> bwidth(.03) )
->         (kdensity ame2 if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(mediu
-> m) bwidth(.03) ) 
->         (kdensity ame2 if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(medium)
->  bwidth(.03)) ,
->         legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant Researchers" 2 "Moderate Researche
-> rs" 3 "Pro-immigrant Researchers"))
+.  *twoway (kdensity ame2 if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medi
+> um) bwidth(.03) )
+>         (kdensity ame2 if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(m
+> edium) bwidth(.03) ) 
+>         (kdensity ame2 if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(med
+> ium) bwidth(.03)) ,
+>         legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant Researchers" 2 "Moderate Resea
+> rchers" 3 "Pro-immigrant Researchers"))
 >         saving(/volumes/ddisk/mi/researcher/hist_ame_indiv.gph, replace);
 . *TEAM SIZE;
 . *TEAMS 93 AND 94 HAVE TEAM SIZE MISCODED;
@@ -197,8 +197,8 @@ variable id does not uniquely identify observations in the master data
 (8 observations deleted)
 
 . *IMPUTING MISSING VALUES OF PEER_MEAN USING MODEL_SCORE AND SPECIFICATION CHARATERISTICS;
-. global design jobs-health logit ols stock flow changeflow w1985-w2016 orig13 eeurope allavailabl
-> e 
+. global design jobs-health logit ols stock flow changeflow w1985-w2016 orig13 eeurope allavai
+> lable 
 >         twowayfe level_cyear mlm_fe mlm_re anynonlin;
 
 . generate model_brw=total_score;
@@ -336,8 +336,8 @@ Linear regression                               Number of obs     =      2,502
        _cons |   .0239347   .0108826     2.20   0.028     .0025844     .045285
 ------------------------------------------------------------------------------
 
-. *NOTE THAT REGHDFE COMMAND CLUSTERING AT BOTH TEAM AND ID LEVEL IS SAME AS REG COMMAND CLUSTERIN
-> G AT TEAM LEVEL;
+. *NOTE THAT REGHDFE COMMAND CLUSTERING AT BOTH TEAM AND ID LEVEL IS SAME AS REG COMMAND CLUST
+> ERING AT TEAM LEVEL;
 . reghdfe ame  indiv1 indiv3   stats_i topic_i    , absorb(degree) cluster(teamid id);
 (MWFE estimator converged in 1 iterations)
 
@@ -381,8 +381,8 @@ topic_ipred: contains nonnumeric characters; replaced as double
 belief_ipred: contains nonnumeric characters; replaced as double
 (12 missing values generated)
 
-. *THE STATS_IPRED AND TOPIC_IPRED VARIABLES ARE MISSING FOR TEAM 27, WILL IMPUTE USING HOT DECK P
-> REDICTION;
+. *THE STATS_IPRED AND TOPIC_IPRED VARIABLES ARE MISSING FOR TEAM 27, WILL IMPUTE USING HOT DE
+> CK PREDICTION;
 . replace stats_ipred=0.102538885683808 if teamid==27;
 (12 real changes made)
 
@@ -439,9 +439,10 @@ belief_ipred |      2,712     .033589    .3652957  -.7355577   1.135088
 . replace belief_i=beliefimp if belief_i==.;
 (210 real changes made)
 
-. *INDIVIDUAL LEVEL INDICES WILL BE SET TO MISSING IF THEY ARE MISSING BASIC INFORMATION ON STATS 
-> & TOPIC;
-. *THIS AFFECTS TEAM 33, WHICH ALTHOUGH HAS TEAM_SIZE = 3, THERE IS ONLY ONE U_ID FOR THE TEAM;
+. *INDIVIDUAL LEVEL INDICES WILL BE SET TO MISSING IF THEY ARE MISSING BASIC INFORMATION ON ST
+> ATS & TOPIC;
+. *THIS AFFECTS TEAM 33, WHICH ALTHOUGH HAS TEAM_SIZE = 3, THERE IS ONLY ONE U_ID FOR THE TEAM
+> ;
 . replace stats_i=. if teamid==33;
 (20 real changes made, 20 to missing)
 
@@ -451,8 +452,8 @@ belief_ipred |      2,712     .033589    .3652957  -.7355577   1.135088
 . replace belief_i=. if teamid==33;
 (20 real changes made, 20 to missing)
 
-. summ ame stats_i stats_ipred topic_i topic_ipred belief_i belief_ipred stats_old topic_old belie
-> f_old;
+. summ ame stats_i stats_ipred topic_i topic_ipred belief_i belief_ipred stats_old topic_old b
+> elief_old;
 
     Variable |        Obs        Mean    Std. dev.       Min        Max
 -------------+---------------------------------------------------------
@@ -572,8 +573,8 @@ Linear regression                               Number of obs     =      2,680
        _cons |    .044609   .0369819     1.21   0.232    -.0291872    .1184052
 ------------------------------------------------------------------------------
 
-. reg ame   proindex  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(teamid
-> );
+. reg ame   proindex  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(te
+> amid);
 (sum of wgt is 287.2588233592143)
 
 Linear regression                               Number of obs     =      2,680
@@ -639,7 +640,8 @@ Linear regression                               Number of obs     =      2,680
        _cons |   .0648904   .0360244     1.80   0.076    -.0069952    .1367759
 ------------------------------------------------------------------------------
 
-. reg ame   indiv3  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(teamid);
+. reg ame   indiv3  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(team
+> id);
 (sum of wgt is 287.2588233592143)
 
 Linear regression                               Number of obs     =      2,680
@@ -672,7 +674,8 @@ Linear regression                               Number of obs     =      2,680
        _cons |   .0591564   .0364601     1.62   0.109    -.0135985    .1319114
 ------------------------------------------------------------------------------
 
-. reg ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluster(teamid);
+. reg ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluster(teami
+> d);
 (sum of wgt is 68.33333457633853)
 
 Linear regression                               Number of obs     =      2,680
@@ -716,8 +719,8 @@ Linear regression                               Number of obs     =      2,680
          (1) |   .0498501   .0170638     2.92   0.005     .0157999    .0839003
 ------------------------------------------------------------------------------
 
-. reg ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluster(te
-> amid);
+. reg ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  cluste
+> r(teamid);
 (sum of wgt is 287.2588233592143)
 
 Linear regression                               Number of obs     =      2,680
@@ -762,8 +765,8 @@ Linear regression                               Number of obs     =      2,680
 ------------------------------------------------------------------------------
 
 . *INCLUDING BELIEF VARIABLE;
-. reg ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluster(te
-> amid);
+. reg ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pweight]  ,  cluste
+> r(teamid);
 (sum of wgt is 68.33333457633853)
 
 Linear regression                               Number of obs     =      2,680
@@ -808,8 +811,8 @@ Linear regression                               Number of obs     =      2,680
          (1) |   .0493907   .0168461     2.93   0.005     .0157748    .0830066
 ------------------------------------------------------------------------------
 
-. reg ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  ,  clu
-> ster(teamid);
+. reg ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pscore*pweight]  , 
+>  cluster(teamid);
 (sum of wgt is 287.2588233592143)
 
 Linear regression                               Number of obs     =      2,680
@@ -860,18 +863,18 @@ Linear regression                               Number of obs     =      2,680
 . reghdfe ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight]    , 
 >         absorb(degree) cluster(u_id teamid id);
 (MWFE estimator converged in 1 iterations)
-note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
+note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
 
 HDFE Linear regression                            Number of obs   =      2,680
 Absorbing 1 HDFE group                            F(   6,     68) =       2.71
@@ -926,18 +929,18 @@ Absorbed degrees of freedom:
 . reghdfe ame  indiv1 indiv3  stats_i topic_i i.team_size i.degree  [aw=pweight2]    , 
 >         absorb(degree) cluster(u_id teamid id);
 (MWFE estimator converged in 1 iterations)
-note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
+note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
 
 HDFE Linear regression                            Number of obs   =      2,680
 Absorbing 1 HDFE group                            F(   6,     68) =       2.56
@@ -992,18 +995,18 @@ Absorbed degrees of freedom:
 . reghdfe ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pweight]    , 
 >         absorb(degree) cluster(u_id teamid id);
 (MWFE estimator converged in 1 iterations)
-note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
+note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
 
 HDFE Linear regression                            Number of obs   =      2,680
 Absorbing 1 HDFE group                            F(   7,     68) =       2.47
@@ -1059,18 +1062,18 @@ Absorbed degrees of freedom:
 . reghdfe ame  indiv1 indiv3 pbelief stats_i topic_i i.team_size i.degree  [aw=pweight2]    , 
 >         absorb(degree) cluster(u_id teamid id);
 (MWFE estimator converged in 1 iterations)
-note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
-note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are close
->  to zero; tol = 1.0e-09)
+note: 2bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 3bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 4bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 5bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 6bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
+note: 7bn.degree is probably collinear with the fixed effects (all partialled-out values are c
+> lose to zero; tol = 1.0e-09)
 
 HDFE Linear regression                            Number of obs   =      2,680
 Absorbing 1 HDFE group                            F(   7,     68) =       2.46
@@ -1177,8 +1180,8 @@ Linear regression                               Number of obs     =      2,680
       Total |      2,712      100.00
 
 . center stats_i topic_i t2 t3 dum* [aw=pweight];
-(generated variables: c_stats_i c_topic_i c_t2 c_t3 c_dum1 c_dum2 c_dum3 c_dum4 c_dum5 c_dum6 c_du
-> m7)
+(generated variables: c_stats_i c_topic_i c_t2 c_t3 c_dum1 c_dum2 c_dum3 c_dum4 c_dum5 c_dum6 
+> c_dum7)
 
 . reg ame indiv1 indiv3 c_* [aw=pweight], cluster(teamid);
 (sum of wgt is 68.33333457633853)
@@ -1352,8 +1355,8 @@ Linear regression                               Number of obs     =      2,680
       Total |   .01042667   .19529745       2,680
 
 . ********************************************************************;
-. *GETTING EFFECTS ON ESTIMATE BY LOOKING AT EXTREME SIGNIFICANT COEFFICIENTS, USING 10TH AND 90TH
->  PERCENTILES;
+. *GETTING EFFECTS ON ESTIMATE BY LOOKING AT EXTREME SIGNIFICANT COEFFICIENTS, USING 10TH AND 
+> 90TH PERCENTILES;
 . destring z, force replace;
 z: contains nonnumeric characters; replaced as double
 (3 missing values generated)
@@ -1398,8 +1401,8 @@ z: contains nonnumeric characters; replaced as double
       neg10s |   2,712  1256.69718    .0742812   .2622763          0          1
 
 . *OLS REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
-. reg neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  cluster(teamid
-> );
+. reg neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  cluster(te
+> amid);
 (sum of wgt is 68.33333457633853)
 
 Linear regression                               Number of obs     =      2,680
@@ -1443,8 +1446,8 @@ Linear regression                               Number of obs     =      2,680
          (1) |  -.1667316    .080271    -2.08   0.042    -.3269099   -.0065533
 ------------------------------------------------------------------------------
 
-. reg pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  cluster(teamid
-> );
+. reg pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  cluster(te
+> amid);
 (sum of wgt is 68.33333457633853)
 
 Linear regression                               Number of obs     =      2,680
@@ -1489,8 +1492,8 @@ Linear regression                               Number of obs     =      2,680
 ------------------------------------------------------------------------------
 
 . *OLS REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
-. reg neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,  cluster
-> (teamid);
+. reg neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,  clu
+> ster(teamid);
 (sum of wgt is 287.2588233592143)
 
 Linear regression                               Number of obs     =      2,680
@@ -1534,8 +1537,8 @@ Linear regression                               Number of obs     =      2,680
          (1) |  -.1799553   .0835555    -2.15   0.035    -.3466877   -.0132229
 ------------------------------------------------------------------------------
 
-. reg pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,  cluster
-> (teamid);
+. reg pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,  clu
+> ster(teamid);
 (sum of wgt is 287.2588233592143)
 
 Linear regression                               Number of obs     =      2,680
@@ -1580,8 +1583,8 @@ Linear regression                               Number of obs     =      2,680
 ------------------------------------------------------------------------------
 
 . *LOGIT REGRESSIONS ON OUTLYING NEGATIVE & SIGNIFICANT COEFFICIENTS;
-. quietly logit neg10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  clust
-> er(teamid);
+. quietly logit neg10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  c
+> luster(teamid);
 
 . margins, dydx(indiv1-topic_i);
 
@@ -1601,8 +1604,8 @@ dy/dx wrt:  indiv1 indiv3 stats_i topic_i
      topic_i |   .0399542   .0135286     2.95   0.003     .0134385    .0664698
 ------------------------------------------------------------------------------
 
-. quietly logit neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  clus
-> ter(teamid);
+. quietly logit neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  
+> cluster(teamid);
 
 . margins, dydx(indiv1-topic_i);
 
@@ -1623,8 +1626,8 @@ dy/dx wrt:  indiv1 indiv3 stats_i topic_i
 ------------------------------------------------------------------------------
 
 . *LOGIT REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
-. quietly logit pos10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  clust
-> er(teamid);
+. quietly logit pos10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  c
+> luster(teamid);
 
 . margins, dydx(indiv1-topic_i);
 
@@ -1644,8 +1647,8 @@ dy/dx wrt:  indiv1 indiv3 stats_i topic_i
      topic_i |  -.0291165   .0154326    -1.89   0.059    -.0593639    .0011309
 ------------------------------------------------------------------------------
 
-. quietly logit pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  clus
-> ter(teamid);
+. quietly logit pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pweight] ,  
+> cluster(teamid);
 
 . margins, dydx(indiv1-topic_i);
 
@@ -1666,8 +1669,8 @@ dy/dx wrt:  indiv1 indiv3 stats_i topic_i
 ------------------------------------------------------------------------------
 
 . *LOGIT WEIGHTED REGRESSIONS ON OUTLYING NEGATIVE & SIGNIFICANT COEFFICIENTS;
-. quietly logit neg10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,
->   cluster(teamid);
+. quietly logit neg10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweigh
+> t] ,  cluster(teamid);
 
 . margins, dydx(indiv1-topic_i);
 
@@ -1687,8 +1690,8 @@ dy/dx wrt:  indiv1 indiv3 stats_i topic_i
      topic_i |   .0395593    .013782     2.87   0.004     .0125472    .0665714
 ------------------------------------------------------------------------------
 
-. quietly logit neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] 
-> ,  cluster(teamid);
+. quietly logit neg10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweig
+> ht] ,  cluster(teamid);
 
 . margins, dydx(indiv1-topic_i);
 
@@ -1709,8 +1712,8 @@ dy/dx wrt:  indiv1 indiv3 stats_i topic_i
 ------------------------------------------------------------------------------
 
 . *LOGIT WEIGHTED REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
-. quietly logit pos10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] ,
->   cluster(teamid);
+. quietly logit pos10 indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweigh
+> t] ,  cluster(teamid);
 
 . margins, dydx(indiv1-topic_i);
 
@@ -1730,8 +1733,8 @@ dy/dx wrt:  indiv1 indiv3 stats_i topic_i
      topic_i |  -.0294508    .014395    -2.05   0.041    -.0576645   -.0012371
 ------------------------------------------------------------------------------
 
-. quietly logit pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweight] 
-> ,  cluster(teamid);
+. quietly logit pos10s indiv1 indiv3   stats_i topic_i  i.team_size i.degree  [iw=pscore*pweig
+> ht] ,  cluster(teamid);
 
 . margins, dydx(indiv1-topic_i);
 
@@ -1817,8 +1820,8 @@ Linear regression                               Number of obs     =      2,566
        _cons |   .3141185   .2306843     1.36   0.178    -.1462049    .7744418
 ------------------------------------------------------------------------------
 
-. quietly logit quality2 indiv1 indiv3   stats_i topic_i  i.degree  [iw=pweight] ,  cluster(teamid
-> );
+. quietly logit quality2 indiv1 indiv3   stats_i topic_i  i.degree  [iw=pweight] ,  cluster(te
+> amid);
 
 . margins, dydx(indiv1-topic_i);
 
@@ -1838,17 +1841,21 @@ dy/dx wrt:  indiv1 indiv3 stats_i topic_i
      topic_i |  -.0195162   .0325522    -0.60   0.549    -.0833174     .044285
 ------------------------------------------------------------------------------
 
-. *twoway (kdensity peer_mean if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(medi
-> um) bwidth(.2) )
->         (kdensity peer_mean if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwidth(
-> medium) bwidth(.2) ) 
->         (kdensity peer_mean if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidth(me
-> dium) bwidth(.2)) ,
->         legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant Researchers" 2 "Moderate Researche
-> rs" 3 "Pro-immigrant Researchers"));
+. *twoway (kdensity peer_mean if index==1 [fw=1], kernel(ep) lcolor(red) fcolor(red%2) lwidth(
+> medium) bwidth(.2) )
+>         (kdensity peer_mean if index==2 [fw=1],kernel(ep) lcolor(green) fcolor(green%20) lwi
+> dth(medium) bwidth(.2) ) 
+>         (kdensity peer_mean if index==3 [fw=1], kernel(ep) lcolor(blue) fcolor(blue%2) lwidt
+> h(medium) bwidth(.2)) ,
+>         legend(pos(6) rows(1)) legend(order(1 "Anti-immigrant Researchers" 2 "Moderate Resea
+> rchers" 3 "Pro-immigrant Researchers"));
+. * For later loading;
+. save "$workd/data/newmodel_d.dta", replace;
+file /GitHub/ideology_specification/data/newmodel_d.dta saved
+
 . log close;
       name:  <unnamed>
        log:  C:/GitHub/ideology_specification/code/Log Files/04_Dyads.log
   log type:  text
- closed on:  12 Feb 2025, 15:33:37
---------------------------------------------------------------------------------------------------
+ closed on:  30 Aug 2025, 10:56:52
+----------------------------------------------------------------------------------------------

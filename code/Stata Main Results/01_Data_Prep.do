@@ -430,15 +430,33 @@ summ pos10-neg10s;
 summ pos10-neg10s [aw=model_brw];
 
 
-*SAVE MODEL LEVEL DATA FOR GRAPHS;
+generate hmodel=(model_score=="High");
+
+* Generate most 'senior' scholar's immigration ideology per team;
+* This takes the most statistically experienced member as the 'senior';
+
+preserve;
+import delimited "$workd/data/sem_p.csv", clear varnames(1);
+* in order to make sure teams are accounted for in stats;
+gen stats_m = stats;
+replace stats_m = 0 if stats == .;
+egen maxstats=max(stats), by(u_teamid);
+generate good=.;
+replace good=1 if maxstats==stats;
+tabulate good;
+keep if good==1;
+keep u_teamid pro_immigrant ;
+rename pro_immigrant oldimm;
+sort u_teamid;
+save "$workd/data/sem_p_merge.dta", replace;
+restore;
+
+sort u_teamid;
+merge u_teamid using "$workd/data/sem_p_merge.dta";
+
+*SAVE MODEL LEVEL DATA;
 
 save "$workd/data/df.dta", replace;
-
-
-
-
-
-
 
 
 log close;

@@ -1,8 +1,8 @@
---------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
       name:  <unnamed>
        log:  C:/GitHub/ideology_specification/code/Log Files/01_Data_Prep.log
   log type:  text
- opened on:  19 Dec 2024, 06:54:53
+ opened on:  30 Aug 2025, 11:35:57
 
 . clear matrix;
 
@@ -34,7 +34,8 @@ peer_n: contains nonnumeric characters; replaced as byte
 . save "$workd/data/cri_new_peer_scores.dta", replace;
 file /GitHub/ideology_specification/data/cri_new_peer_scores.dta saved
 
-. import delimited "$workd/data/cri.csv", clear bindquote(strict) varnames(1) maxquotedrows(1000);
+. import delimited "$workd/data/cri.csv", clear bindquote(strict) varnames(1) maxquotedrows(10
+> 00);
 (encoding automatically selected: ISO-8859-2)
 (479 vars, 1,309 obs)
 
@@ -479,28 +480,43 @@ backgr_deg |  degree1
 ------------+------------------------------------
       Total |   11.002394   12.972353       1,253
 
-. *PRO-IMMIGRATION INDEX USES THE VARIABLE MEASURING THE GENERAL ATTITUDE TOWARDS IMMIGRATION, ATT
-> ITUDE_IMMIGRATION_11;
+. *PRO-IMMIGRATION INDEX USES THE VARIABLE MEASURING THE GENERAL ATTITUDE TOWARDS IMMIGRATION,
+>  ATTITUDE_IMMIGRATION_11;
 . *A VARIABLE COLLECTED IN THE FIRST WAVE QUESTIONNAIRE;
 . *THE VARIABLE pro_immigrant in lower case IS THE MEAN OF THE INDEX WITHIN A TEAM;
-. *THE PRO_IMMIGRANT VARIABLE IN UPPER CASE ONLY HAS 3 VALUES AS COMPARED TO MORE THAN 6 FOR THE p
-> ro_immigrant VARIABLE;
-. *HIGHER VALUES OF PRO_IMMIGRANT INDICATE THAT IMMIGRATION LAWS SHOULD BE RELAXED, MORE IMMIGRATI
-> ON;
+. *THE PRO_IMMIGRANT VARIABLE IN UPPER CASE ONLY HAS 3 VALUES AS COMPARED TO MORE THAN 6 FOR T
+> HE pro_immigrant VARIABLE;
+. *HIGHER VALUES OF PRO_IMMIGRANT INDICATE THAT IMMIGRATION LAWS SHOULD BE RELAXED, MORE IMMIG
+> RATION;
 . *NOTE THAT ATTITUDE_IMMIGRATION_11 IS IN REVERSE ORDER;
 . tabulate pro_immigrant attitude_immigration_11 if team_size==1;
 
-                 |                      attitude_immigration_11
-   pro_immigrant |         1          2          3          4          5          6 |     Total
------------------+------------------------------------------------------------------+----------
-               1 |         0          0          0          0          0         30 |        30 
-               2 |         0          0          0          0         24          0 |        24 
-               3 |         0          0          0         36          0          0 |        36 
-               4 |         0          0         14          0          0          0 |        14 
-               5 |         0         62          0          0          0          0 |        62 
-               6 |       123          0          0          0          0          0 |       123 
------------------+------------------------------------------------------------------+----------
-           Total |       123         62         14         36         24         30 |       289 
+                 |                attitude_immigration_11
+   pro_immigrant |         1          2          3          4          5 |     Total
+-----------------+-------------------------------------------------------+----------
+               1 |         0          0          0          0          0 |        30 
+               2 |         0          0          0          0         24 |        24 
+               3 |         0          0          0         36          0 |        36 
+               4 |         0          0         14          0          0 |        14 
+               5 |         0         62          0          0          0 |        62 
+               6 |       123          0          0          0          0 |       123 
+-----------------+-------------------------------------------------------+----------
+           Total |       123         62         14         36         24 |       289 
+
+
+                 | attitude_i
+                 | mmigration
+                 |    _11
+   pro_immigrant |         6 |     Total
+-----------------+-----------+----------
+               1 |        30 |        30 
+               2 |         0 |        24 
+               3 |         0 |        36 
+               4 |         0 |        14 
+               5 |         0 |        62 
+               6 |         0 |       123 
+-----------------+-----------+----------
+           Total |        30 |       289 
 
 . generate proindex=pro_immigrant;
 
@@ -644,8 +660,8 @@ attitude_immigration_13: contains nonnumeric characters; att3 generated as byte
 . *GROUP 1, AT LEAST 1 PERSON IN TEAM IS ANTI-IMMIGRATION;
 . *GROUP 3, MORE THAN HALF OF TEAM IS PRO-IMMIGRATION;
 . *GROUP 2, THE MODERATE MIDDLE;
-. *BUT THERE IS AN OVERLAP OF 2 TEAMS, #61 and #64, BETWEEN GROUPS 1 AND 3, BOTH TEAMS HAVE 3 PERS
-> ONS;
+. *BUT THERE IS AN OVERLAP OF 2 TEAMS, #61 and #64, BETWEEN GROUPS 1 AND 3, BOTH TEAMS HAVE 3 
+> PERSONS;
 . *IN THESE TEAMS, 1 PERSON IS A 2 BUT BOTH OF THE OTHER PEOPLE ARE 5 OR 6;
 . *WILL CLASSIFY THEM AS PRO-IMMIGRATION GROUP SINCE MORE THAN HALF ARE PRO-IMMIGRATION;
 . generate group1=(p12>0);
@@ -1007,8 +1023,8 @@ MODEL_SCOR |            team_size
 (38 real changes made, 38 to missing)
 
 . *IMPUTING MISSING VALUES OF PEER_MEAN USING MODEL_SCORE AND SPECIFICATION CHARATERISTICS;
-. global design jobs-health logit ols stock flow changeflow w1985-w2016 orig13 eeurope allavailabl
-> e 
+. global design jobs-health logit ols stock flow changeflow w1985-w2016 orig13 eeurope allavai
+> lable 
 >         twowayfe level_cyear mlm_fe mlm_re anynonlin;
 
 .         summ peer_mean model_score;
@@ -1146,10 +1162,10 @@ BELIEF_HYP |            belief_cat
 . *THERE IS A MISCODING OF WHAT "HIGH BELIEF" MEANS IN DATA SET;
 . *USING TEAM LEVEL DATA AND RESHAPING IT LEADS TO 159 PARTICIPANTS;
 . *DOING TABULATION OF THE BELIEF_H1_Hx VARIABLES LEADS TO DISTRIBUTION OF BELIEF;
-. *SIMILAR TO THAT IN APPENDIX QUESTIONNAIRE, P. 84, WHERE 1 MEANS BELIEF IMM STRONGLY REDUCES SOC
-> IAL POLICY SUPPORT;
-. *NOTE HIGH VALUE OF BELIEF_1_AVG MEANS *WEAKER* BELIEF IN HYPOTHESIS IMMIGRATION REDUCES SOCIAL 
-> SUPPORT;
+. *SIMILAR TO THAT IN APPENDIX QUESTIONNAIRE, P. 84, WHERE 1 MEANS BELIEF IMM STRONGLY REDUCES
+>  SOCIAL POLICY SUPPORT;
+. *NOTE HIGH VALUE OF BELIEF_1_AVG MEANS *WEAKER* BELIEF IN HYPOTHESIS IMMIGRATION REDUCES SOC
+> IAL SUPPORT;
 . *NOTE THAT BELIEF_1_AVG AND BELIEF_H1_11 ARE THE SAME FOR SINGLE PERSON TEAMS;
 . tabulate belief_1_avg belief_hypothesis;
 
@@ -1347,8 +1363,8 @@ Scale_Desrv |         0         18 |        18
 > summ proindex c_proindex;
 > */
 > 
-> *GETTING EFFECTS ON ESTIMATE BY LOOKING AT EXTREME SIGNIFICANT COEFFICIENTS, USING 10TH AND 90TH
->  PERCENTILES;
+> *GETTING EFFECTS ON ESTIMATE BY LOOKING AT EXTREME SIGNIFICANT COEFFICIENTS, USING 10TH AND 
+> 90TH PERCENTILES;
 . generate negsig=(ame<0 & z>1.645);
 
 . generate possig=(ame>0 & z>1.645);
@@ -1385,7 +1401,59 @@ Scale_Desrv |         0         18 |        18
       pos10s |   1,253  560.242243    .0478909   .2136206          0          1
       neg10s |   1,253  560.242243    .0661285   .2486058          0          1
 
-. *SAVE MODEL LEVEL DATA FOR GRAPHS;
+. generate hmodel=(model_score=="High");
+
+. * Generate most 'senior' scholar's immigration ideology per team;
+. * This takes the most statistically experienced member as the 'senior';
+. preserve;
+
+. import delimited "$workd/data/sem_p.csv", clear varnames(1);
+(encoding automatically selected: ISO-8859-1)
+(33 vars, 147 obs)
+
+. * in order to make sure teams are accounted for in stats;
+. gen stats_m = stats;
+
+. replace stats_m = 0 if stats == .;
+(0 real changes made)
+
+. egen maxstats=max(stats), by(u_teamid);
+
+. generate good=.;
+(147 missing values generated)
+
+. replace good=1 if maxstats==stats;
+(71 real changes made)
+
+. tabulate good;
+
+       good |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |         71      100.00      100.00
+------------+-----------------------------------
+      Total |         71      100.00
+
+. keep if good==1;
+(76 observations deleted)
+
+. keep u_teamid pro_immigrant ;
+
+. rename pro_immigrant oldimm;
+
+. sort u_teamid;
+
+. save "$workd/data/sem_p_merge.dta", replace;
+file /GitHub/ideology_specification/data/sem_p_merge.dta saved
+
+. restore;
+
+. sort u_teamid;
+
+. merge u_teamid using "$workd/data/sem_p_merge.dta";
+(you are using old merge syntax; see [D] merge for new syntax)
+variable u_teamid does not uniquely identify observations in the master data
+
+. *SAVE MODEL LEVEL DATA;
 . save "$workd/data/df.dta", replace;
 file /GitHub/ideology_specification/data/df.dta saved
 
@@ -1393,5 +1461,5 @@ file /GitHub/ideology_specification/data/df.dta saved
       name:  <unnamed>
        log:  C:/GitHub/ideology_specification/code/Log Files/01_Data_Prep.log
   log type:  text
- closed on:  19 Dec 2024, 06:54:54
---------------------------------------------------------------------------------------------------
+ closed on:  30 Aug 2025, 11:35:58
+----------------------------------------------------------------------------------------------

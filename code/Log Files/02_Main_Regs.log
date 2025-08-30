@@ -1,8 +1,8 @@
---------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
       name:  <unnamed>
        log:  C:/GitHub/ideology_specification/code/Log Files/02_Main_Regs.log
   log type:  text
- opened on:  12 Feb 2025, 15:30:17
+ opened on:  30 Aug 2025, 11:36:04
 
 . clear matrix;
 
@@ -44,45 +44,13 @@ MODEL_SCORE |        Mean   Std. dev.       Freq.
 ------------+------------------------------------
       Total |   .44712071   .11429906       1,253
 
-. generate hmodel=(model_score=="High");
-
-. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbel
-> ief  nmodel team_size
+. * TABLE S1 * 
+> 
+> summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 
+> pbelief  nmodel team_size
 >         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  ;
-
-    Variable |        Obs        Mean    Std. dev.       Min        Max
--------------+---------------------------------------------------------
-         ame |      1,253    .0007771    .1865197  -1.353765       2.47
-       neg10 |      1,253    .1005587    .3008635          0          1
-       pos10 |      1,253    .1005587    .3008635          0          1
-      negsig |      1,253    .2466081    .4312087          0          1
-      possig |      1,253    .1859537    .3892247          0          1
--------------+---------------------------------------------------------
-      neg10s |      1,253    .0630487    .2431475          0          1
-      pos10s |      1,253    .0526736    .2234702          0          1
-    proindex |      1,253    4.462357    1.135022          1          6
-         p12 |      1,253    .0782123    .2255071          0          1
-         p34 |      1,253    .3812184    .3933172          0          1
--------------+---------------------------------------------------------
-         p56 |      1,253    .5405693    .4084319          0          1
-      group1 |      1,253    .1069433    .3091646          0          1
-      group2 |      1,253     .434158    .4958438          0          1
-      group3 |      1,253    .4588986    .4985068          0          1
-     pbelief |      1,253    .5810056    .4018672          0          1
--------------+---------------------------------------------------------
-      nmodel |      1,253    39.14525    32.66706          1        112
-   team_size |      1,253     2.24581    .8044855          1          3
-   stats_brw |      1,253   -2.47e-09           1  -3.135104   2.681392
-   topic_brw |      1,253    4.82e-09           1  -.9688011   3.983361
-   model_brw |      1,253    .4471207    .1142991   .1488998   .7288508
--------------+---------------------------------------------------------
-   peer_mean |      1,215    4.203944    .5266504          2   5.666667
-  zpeer_mean |      1,215   -8.28e-09    .9999999  -4.184832   2.777408
-     quality |      1,253    .2346369    .4239409          0          1
-    quality2 |      1,215    .2271605    .4191697          0          1
-
-. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbel
-> ief  nmodel team_size
+. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 
+> pbelief  nmodel team_size
 >         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==1 ;
 
     Variable |        Obs        Mean    Std. dev.       Min        Max
@@ -116,8 +84,8 @@ MODEL_SCORE |        Mean   Std. dev.       Freq.
      quality |        134    .1940299    .3969359          0          1
     quality2 |        134    .1641791     .371828          0          1
 
-. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbel
-> ief  nmodel team_size
+. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 
+> pbelief  nmodel team_size
 >         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==2;
 
     Variable |        Obs        Mean    Std. dev.       Min        Max
@@ -151,8 +119,8 @@ MODEL_SCORE |        Mean   Std. dev.       Freq.
      quality |        544    .3860294    .4872855          0          1
     quality2 |        520    .3134615    .4643469          0          1
 
-. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbel
-> ief  nmodel team_size
+. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 
+> pbelief  nmodel team_size
 >         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==3;
 
     Variable |        Obs        Mean    Std. dev.       Min        Max
@@ -187,8 +155,8 @@ MODEL_SCORE |        Mean   Std. dev.       Freq.
     quality2 |        561    .1622103    .3689727          0          1
 
 . *SUMMARY STATS WEIGHTED BY THE INVERSE OF THE NUMBER OF MODELS;
-. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbel
-> ief  nmodel team_size
+. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 
+> pbelief  nmodel team_size
 >         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2   [aw=1/nmodel];
 
     Variable |     Obs      Weight        Mean   Std. dev.       Min        Max
@@ -222,10 +190,10 @@ MODEL_SCORE |        Mean   Std. dev.       Freq.
      quality |   1,253          71    .2042254   .4032954          0          1
     quality2 |   1,215      69.625    .3105326   .4629022          0          1
 
-. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbel
-> ief  nmodel team_size
->         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==1  [aw=1/
-> nmodel];
+. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 
+> pbelief  nmodel team_size
+>         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==1  [a
+> w=1/nmodel];
 
     Variable |     Obs      Weight        Mean   Std. dev.       Min        Max
 -------------+-----------------------------------------------------------------
@@ -258,10 +226,10 @@ MODEL_SCORE |        Mean   Std. dev.       Freq.
      quality |     134           9    .2222222   .4172997          0          1
     quality2 |     134           9    .2592593   .4398725          0          1
 
-. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbel
-> ief  nmodel team_size
->         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==2 [aw=1/n
-> model];
+. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 
+> pbelief  nmodel team_size
+>         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==2 [aw
+> =1/nmodel];
 
     Variable |     Obs      Weight        Mean   Std. dev.       Min        Max
 -------------+-----------------------------------------------------------------
@@ -294,10 +262,10 @@ MODEL_SCORE |        Mean   Std. dev.       Freq.
      quality |     544          31    .2419355   .4286496          0          1
     quality2 |     520       30.25    .4165289   .4934581          0          1
 
-. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 pbel
-> ief  nmodel team_size
->         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==3 [aw=1/n
-> model];
+. summ ame neg10 pos10 negsig possig neg10s pos10s proindex  p12 p34 p56 group1 group2 group3 
+> pbelief  nmodel team_size
+>         stats_brw topic_brw model_brw peer_mean zpeer_mean quality quality2  if index==3 [aw
+> =1/nmodel];
 
     Variable |     Obs      Weight        Mean   Std. dev.       Min        Max
 -------------+-----------------------------------------------------------------
@@ -361,11 +329,15 @@ MODEL_SCORE |        Mean   Std. dev.       Freq.
 . restore;
 
 . ***************************************************************************;
-. *ALL REGRESSIONS WILL BE WEIGHTED BY 1/NMODEL SO THEY ARE NUMERICALLY EQUIVALENT TO TEAM LEVEL R
-> EGRESSIONS;
+. ********************* Table 1 & Table S2 **********************************;
+. ***************************************************************************;
+. *ALL REGRESSIONS WILL BE WEIGHTED BY 1/NMODEL SO THEY ARE NUMERICALLY EQUIVALENT TO TEAM LEV
+> EL REGRESSIONS;
 . *WILL LEAVE OUT PMALE FROM ALL REGRESSIONS;
 . *WILL INCLUDE TEAM_SIZE IN THE REFEREE SCORE, QUALITY REGRESSIONS;
-. reg ame  proindex    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+. *Table 1, Model 1 & Table S2, Model 1;
+. reg ame  proindex       stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teami
+> d);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -402,7 +374,9 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.3348635    .027718   -12.08   0.000    -.3901454   -.2795817
 ------------------------------------------------------------------------------
 
-. reg ame  p12 p56    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+. *Table 1, Model 2 & Table S2, Model 2;
+. reg ame  p12 p56        stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teami
+> d);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -450,7 +424,9 @@ Linear regression                               Number of obs     =      1,253
          (1) |   .0738574   .0242554     3.04   0.003     .0254815    .1222334
 ------------------------------------------------------------------------------
 
-. reg ame  group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid);
+. *Table S2, Model 3;
+. reg ame  group3                 stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  clust
+> er(teamid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -487,8 +463,9 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.3123935   .0230896   -13.53   0.000    -.3584442   -.2663428
 ------------------------------------------------------------------------------
 
-. reg ame  group1 group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid)
-> ;
+. *Table 1, Model 3 & Table S2, Model 4;
+. reg ame  group1 group3  stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teami
+> d);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -526,14 +503,54 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.2928377   .0268678   -10.90   0.000    -.3464238   -.2392515
 ------------------------------------------------------------------------------
 
-. * as Stata is our main software for analysis, we save these results as the file stata_adj_means.
-> csv for Fig1
-> margins, dydx(group1 group3) level(90)
-> margins, at(group1 == 0 group3 == 0) level(90)
-> lincom group3-group1;
+. * as Stata is our main software for analysis, we save these results as the file stata_adj_me
+> ans.csv for Fig1;
+. margins, dydx(group1 group3) level(90);
+
+Average marginal effects                                 Number of obs = 1,253
+Model VCE: Robust
+
+Expression: Linear prediction, predict()
+dy/dx wrt:  group1 group3
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |      dy/dx   std. err.      t    P>|t|     [90% conf. interval]
+-------------+----------------------------------------------------------------
+      group1 |  -.0572476   .0306365    -1.87   0.066    -.1083161   -.0061792
+      group3 |   .0272754   .0147459     1.85   0.069     .0026953    .0518555
+------------------------------------------------------------------------------
+
+. margins, at(group1 == 0 group3 == 0) level(90);
+
+Predictive margins                                       Number of obs = 1,253
+Model VCE: Robust
+
+Expression: Linear prediction, predict()
+At: group1 = 0
+    group3 = 0
+
+------------------------------------------------------------------------------
+             |            Delta-method
+             |     Margin   std. err.      t    P>|t|     [90% conf. interval]
+-------------+----------------------------------------------------------------
+       _cons |  -.0131605   .0101858    -1.29   0.201    -.0301393    .0038183
+------------------------------------------------------------------------------
+
+. lincom group3-group1;
+
+ ( 1)  - group1 + group3 = 0
+
+------------------------------------------------------------------------------
+         ame | Coefficient  Std. err.      t    P>|t|     [95% conf. interval]
+-------------+----------------------------------------------------------------
+         (1) |    .084523    .031027     2.72   0.008     .0226417    .1464043
+------------------------------------------------------------------------------
+
 . *ADDING BELIEF;
-. reg ame  proindex pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(teami
-> d);
+. *Not shown in Table S2;
+. reg ame  proindex pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(t
+> eamid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -571,8 +588,9 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.3398345   .0270176   -12.58   0.000    -.3937195   -.2859496
 ------------------------------------------------------------------------------
 
-. reg ame  p12 p56  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(teami
-> d);
+. *Table S2, Model 5;
+. reg ame  p12 p56  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(t
+> eamid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -621,8 +639,9 @@ Linear regression                               Number of obs     =      1,253
          (1) |   .0727919   .0239089     3.04   0.003      .025107    .1204768
 ------------------------------------------------------------------------------
 
-. reg ame  group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(teamid
-> );
+. *Not shown in Table S2;
+. reg ame  group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster(te
+> amid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -660,8 +679,9 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.3154865   .0235283   -13.41   0.000    -.3624122   -.2685609
 ------------------------------------------------------------------------------
 
-. reg ame  group1 group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  cluster
-> (teamid);
+. *Table S2, Model 6;
+. reg ame  group1 group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=1/nmodel] ,  clu
+> ster(teamid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -710,11 +730,12 @@ Linear regression                               Number of obs     =      1,253
          (1) |   .0836781   .0313824     2.67   0.010     .0210879    .1462683
 ------------------------------------------------------------------------------
 
+. ***************** Lower portion of Table S2 *******************************;
 . ***************************************************************************;
 . *WEIGHTED REGRESSIONS USING PSCORE/NMODEL;
 . *WEIGHTING BY QUALITY HELPS ADDRESS PUBLICATION BIAS PROBLEM;
-. reg ame  proindex    stats_brw topic_brw t2 t3 i.mdegree   [aw=pscore/nmodel] ,  cluster(teamid)
-> ;
+. reg ame  proindex    stats_brw topic_brw t2 t3 i.mdegree   [aw=pscore/nmodel] ,  cluster(tea
+> mid);
 (sum of wgt is 299.8024025072654)
 
 Linear regression                               Number of obs     =      1,253
@@ -751,7 +772,8 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.3367484    .026792   -12.57   0.000    -.3901834   -.2833134
 ------------------------------------------------------------------------------
 
-. reg ame  p12 p56    stats_brw topic_brw t2 t3 i.mdegree   [aw=pscore/nmodel] ,  cluster(teamid);
+. reg ame  p12 p56    stats_brw topic_brw t2 t3 i.mdegree   [aw=pscore/nmodel] ,  cluster(team
+> id);
 (sum of wgt is 299.8024025072654)
 
 Linear regression                               Number of obs     =      1,253
@@ -799,7 +821,8 @@ Linear regression                               Number of obs     =      1,253
          (1) |   .0775911    .026312     2.95   0.004     .0251135    .1300687
 ------------------------------------------------------------------------------
 
-. reg ame  group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=pscore/nmodel] ,  cluster(teamid);
+. reg ame  group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=pscore/nmodel] ,  cluster(teami
+> d);
 (sum of wgt is 299.8024025072654)
 
 Linear regression                               Number of obs     =      1,253
@@ -836,8 +859,8 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.3140019   .0234006   -13.42   0.000     -.360673   -.2673308
 ------------------------------------------------------------------------------
 
-. reg ame  group1 group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=pscore/nmodel] ,  cluster(te
-> amid);
+. reg ame  group1 group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=pscore/nmodel] ,  cluste
+> r(teamid);
 (sum of wgt is 299.8024025072654)
 
 Linear regression                               Number of obs     =      1,253
@@ -886,8 +909,8 @@ Linear regression                               Number of obs     =      1,253
 ------------------------------------------------------------------------------
 
 . *ADDING BELIEF;
-. reg ame  proindex  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=pscore/nmodel] ,  cluster
-> (teamid);
+. reg ame  proindex  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=pscore/nmodel] ,  clu
+> ster(teamid);
 (sum of wgt is 299.8024025072654)
 
 Linear regression                               Number of obs     =      1,253
@@ -925,8 +948,8 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.3428605     .02611   -13.13   0.000    -.3949351   -.2907858
 ------------------------------------------------------------------------------
 
-. reg ame  p12 p56  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=pscore/nmodel] ,  cluster(
-> teamid);
+. reg ame  p12 p56  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=pscore/nmodel] ,  clus
+> ter(teamid);
 (sum of wgt is 299.8024025072654)
 
 Linear regression                               Number of obs     =      1,253
@@ -975,8 +998,8 @@ Linear regression                               Number of obs     =      1,253
          (1) |   .0767155   .0258925     2.96   0.004     .0250744    .1283565
 ------------------------------------------------------------------------------
 
-. reg ame  group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=pscore/nmodel] ,  cluster(t
-> eamid);
+. reg ame  group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=pscore/nmodel] ,  clust
+> er(teamid);
 (sum of wgt is 299.8024025072654)
 
 Linear regression                               Number of obs     =      1,253
@@ -1014,8 +1037,8 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.3173531   .0238121   -13.33   0.000    -.3648448   -.2698613
 ------------------------------------------------------------------------------
 
-. reg ame  group1 group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=pscore/nmodel] ,  cl
-> uster(teamid);
+. reg ame  group1 group3  pbelief  stats_brw topic_brw t2 t3 i.mdegree    [aw=pscore/nmodel] ,
+>   cluster(teamid);
 (sum of wgt is 299.8024025072654)
 
 Linear regression                               Number of obs     =      1,253
@@ -1065,8 +1088,8 @@ Linear regression                               Number of obs     =      1,253
 ------------------------------------------------------------------------------
 
 . *GETTING PERCENTILE DIFFERENCE BETWEEN PRO AND ANTI IMMIGRATION TEAMS;
-. reg ame  group1 group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(teamid)
-> ;
+. reg ame  group1 group3    stats_brw topic_brw t2 t3 i.mdegree   [aw=1/nmodel] ,  cluster(tea
+> mid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -1105,6 +1128,7 @@ Linear regression                               Number of obs     =      1,253
 ------------------------------------------------------------------------------
 
 . predict rame, resid;
+(1 missing value generated)
 
 . xtile prame=rame [aw=1/nmodel], n(100);
 
@@ -1129,12 +1153,12 @@ Linear regression                               Number of obs     =      1,253
       Total |      1,253      100.00
 
 . center stats_brw topic_brw t2 t3 dum* [aw=1/nmodel];
-(generated variables: c_stats_brw c_topic_brw c_t2 c_t3 c_dum1 c_dum2 c_dum3 c_dum4 c_dum5 c_dum6 
-> c_dum7 c_dum8 c_dum9 c_dum10 c_dum11 c_dum12 c_dum13)
+(generated variables: c_stats_brw c_topic_brw c_t2 c_t3 c_dum1 c_dum2 c_dum3 c_dum4 c_dum5 c_d
+> um6 c_dum7 c_dum8 c_dum9 c_dum10 c_dum11 c_dum12 c_dum13)
 
 . reg ame group1 group3 c_* [aw=1/nmodel], cluster(teamid);
 (sum of wgt is 71)
-note: c_dum12 omitted because of collinearity.
+note: c_dum3 omitted because of collinearity.
 
 Linear regression                               Number of obs     =      1,253
                                                 F(14, 70)         =          .
@@ -1153,19 +1177,19 @@ Linear regression                               Number of obs     =      1,253
  c_topic_brw |  -.0406176   .0155892    -2.61   0.011    -.0717092    -.009526
         c_t2 |   .0063886   .0160686     0.40   0.692    -.0256592    .0384365
         c_t3 |   .0079756   .0229581     0.35   0.729    -.0378128     .053764
-      c_dum1 |  -.3356711   .0298616   -11.24   0.000    -.3952282    -.276114
-      c_dum2 |   .1425111   .0597364     2.39   0.020     .0233707    .2616516
-      c_dum3 |   -.072441   .0458547    -1.58   0.119    -.1638952    .0190133
-      c_dum4 |   -.059556   .0413175    -1.44   0.154    -.1419611    .0228492
-      c_dum5 |  -.0627662   .0395258    -1.59   0.117    -.1415979    .0160655
-      c_dum6 |  -.0048214   .0390471    -0.12   0.902    -.0826983    .0730556
-      c_dum7 |  -.0754571   .0441115    -1.71   0.092    -.1634347    .0125206
-      c_dum8 |  -.0609956   .0488391    -1.25   0.216    -.1584021     .036411
-      c_dum9 |  -.0479653   .0347715    -1.38   0.172    -.1173149    .0213842
-     c_dum10 |  -.0593409   .0324739    -1.83   0.072    -.1241081    .0054263
-     c_dum11 |  -.1516843   .0729891    -2.08   0.041    -.2972564   -.0061122
-     c_dum12 |          0  (omitted)
-     c_dum13 |   -.053195   .0229214    -2.32   0.023    -.0989103   -.0074797
+      c_dum1 |  -.2632302   .0264194    -9.96   0.000     -.315922   -.2105383
+      c_dum2 |   .2149521   .0617087     3.48   0.001     .0918779    .3380262
+      c_dum3 |          0  (omitted)
+      c_dum4 |    .012885   .0224519     0.57   0.568    -.0318939    .0576639
+      c_dum5 |   .0096747   .0213332     0.45   0.652     -.032873    .0522224
+      c_dum6 |   .0676196   .0309487     2.18   0.032     .0058944    .1293448
+      c_dum7 |  -.0030161   .0168554    -0.18   0.859    -.0366332     .030601
+      c_dum8 |   .0114454   .0311726     0.37   0.715    -.0507265    .0736172
+      c_dum9 |   .0244756    .032433     0.75   0.453    -.0402099    .0891612
+     c_dum10 |      .0131   .0264967     0.49   0.623     -.039746    .0659461
+     c_dum11 |  -.0792433   .0709248    -1.12   0.268    -.2206983    .0622117
+     c_dum12 |    .072441   .0458547     1.58   0.119    -.0190133    .1638952
+     c_dum13 |   .0192459   .0359402     0.54   0.594    -.0524344    .0909263
        _cons |  -.0131605   .0101858    -1.29   0.201    -.0334754    .0071544
 ------------------------------------------------------------------------------
 
@@ -1315,6 +1339,8 @@ Linear regression                               Number of obs     =      1,253
       Total |   .00596487   .17962077       1,253
 
 . ********************************************************************;
+. ***************** Table 1 & Tables S3-S4 ***************************;
+. ********************************************************************;
 . *OLS REGRESSIONS ON OUTLYING NEGATIVE & SIGNIFICANT OUTCOMES;
 . summ pos10-neg10s;
 
@@ -1334,7 +1360,9 @@ Linear regression                               Number of obs     =      1,253
       pos10s |   1,253  560.242243    .0478909   .2136206          0          1
       neg10s |   1,253  560.242243    .0661285   .2486058          0          1
 
-. reg neg10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
+. *Table 1, Model 4 & Table S3, Model 1;
+. reg neg10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid)
+> ;
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -1371,6 +1399,7 @@ Linear regression                               Number of obs     =      1,253
        _cons |   .2988547   .1269035     2.35   0.021     .0457535    .5519558
 ------------------------------------------------------------------------------
 
+. *Table 1, Model 5 & Table S3, Model 2;
 . reg neg10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 (sum of wgt is 71)
 
@@ -1419,6 +1448,7 @@ Linear regression                               Number of obs     =      1,253
          (1) |  -.2415889   .1074294    -2.25   0.028    -.4558501   -.0273277
 ------------------------------------------------------------------------------
 
+. *Table S3, Model 3;
 . reg neg10s group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 (sum of wgt is 71)
 
@@ -1456,8 +1486,9 @@ Linear regression                               Number of obs     =      1,253
        _cons |   .1588316   .0654604     2.43   0.018      .028275    .2893882
 ------------------------------------------------------------------------------
 
-. reg neg10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid
-> );
+. *Table 1, Model 6 & Table S3, Model 4;
+. reg neg10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(te
+> amid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -1505,8 +1536,9 @@ Linear regression                               Number of obs     =      1,253
          (1) |  -.2738734   .1252005    -2.19   0.032    -.5235778    -.024169
 ------------------------------------------------------------------------------
 
-. reg neg10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teami
-> d);
+. *Table S3, Model 5;
+. reg neg10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(t
+> eamid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -1555,8 +1587,9 @@ Linear regression                               Number of obs     =      1,253
          (1) |  -.2487306    .096823    -2.57   0.012    -.4418381   -.0556232
 ------------------------------------------------------------------------------
 
-. reg neg10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(
-> teamid);
+. *Table S3, Model 6;
+. reg neg10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  clus
+> ter(teamid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -1606,7 +1639,9 @@ Linear regression                               Number of obs     =      1,253
 ------------------------------------------------------------------------------
 
 . *REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
-. reg pos10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
+. *Table 1, Model 7 & Table S4, Model 1;
+. reg pos10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid)
+> ;
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -1643,6 +1678,7 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.1313411   .0771212    -1.70   0.093    -.2851545    .0224723
 ------------------------------------------------------------------------------
 
+. *Table 1, Model 8 & Table S4, Model 2;
 . reg pos10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 (sum of wgt is 71)
 
@@ -1691,6 +1727,7 @@ Linear regression                               Number of obs     =      1,253
          (1) |   .1142454   .0458145     2.49   0.015     .0228713    .2056195
 ------------------------------------------------------------------------------
 
+. *Table S4, Model 3;
 . reg pos10s group1   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid);
 (sum of wgt is 71)
 
@@ -1728,8 +1765,9 @@ Linear regression                               Number of obs     =      1,253
        _cons |  -.0082247   .0314766    -0.26   0.795    -.0710029    .0545535
 ------------------------------------------------------------------------------
 
-. reg pos10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teamid
-> );
+. *Table 1, Model 9 & Table S4, Model 4;
+. reg pos10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(te
+> amid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -1777,8 +1815,9 @@ Linear regression                               Number of obs     =      1,253
          (1) |   .0868448   .0346823     2.50   0.015     .0176731    .1560166
 ------------------------------------------------------------------------------
 
-. reg pos10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(teami
-> d);
+. *Table S4, Model 5;
+. reg pos10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(t
+> eamid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -1827,8 +1866,9 @@ Linear regression                               Number of obs     =      1,253
          (1) |   .1128459   .0467086     2.42   0.018     .0196885    .2060034
 ------------------------------------------------------------------------------
 
-. reg pos10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  cluster(
-> teamid);
+. *Table S4, Model 6;
+. reg pos10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/nmodel] ,  clus
+> ter(teamid);
 (sum of wgt is 71)
 
 Linear regression                               Number of obs     =      1,253
@@ -1879,10 +1919,13 @@ Linear regression                               Number of obs     =      1,253
 
 . *make a pscore that averages 1 for balanced weighting;
 . gen pscore_1 = pscore - 3.190467;
+(1 missing value generated)
 
+. ************************** Lower Portion of Tables S3 & S4 *********************************
+> *****;
 . *WEIGHTED BY PEER REFEREE SCORES;
-. reg neg10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(
-> teamid);
+. reg neg10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  clus
+> ter(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -1918,8 +1961,8 @@ Linear regression                               Number of obs     =      1,178
        _cons |   .3108095   .1256457     2.47   0.016     .0599497    .5616693
 ------------------------------------------------------------------------------
 
-. reg neg10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(t
-> eamid);
+. reg neg10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  clust
+> er(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -1966,8 +2009,8 @@ Linear regression                               Number of obs     =      1,178
          (1) |  -.1871602   .1012407    -1.85   0.069    -.3892938    .0149734
 ------------------------------------------------------------------------------
 
-. reg neg10s group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(te
-> amid);
+. reg neg10s group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluste
+> r(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -2003,8 +2046,8 @@ Linear regression                               Number of obs     =      1,178
        _cons |   .1636221   .0644708     2.54   0.014     .0349019    .2923423
 ------------------------------------------------------------------------------
 
-. reg neg10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  clu
-> ster(teamid);
+. reg neg10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] , 
+>  cluster(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -2051,8 +2094,8 @@ Linear regression                               Number of obs     =      1,178
          (1) |  -.2044342   .0965348    -2.12   0.038    -.3971721   -.0116962
 ------------------------------------------------------------------------------
 
-. reg neg10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cl
-> uster(teamid);
+. reg neg10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,
+>   cluster(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -2100,8 +2143,8 @@ Linear regression                               Number of obs     =      1,178
          (1) |  -.2112717   .0863378    -2.45   0.017    -.3836506   -.0388927
 ------------------------------------------------------------------------------
 
-. reg neg10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] 
-> ,  cluster(teamid);
+. reg neg10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmode
+> l)] ,  cluster(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -2150,8 +2193,8 @@ Linear regression                               Number of obs     =      1,178
 ------------------------------------------------------------------------------
 
 . *REGRESSIONS ON OUTLYING POSITIVE & SIGNIFICANT COEFFICIENTS;
-. reg pos10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(
-> teamid);
+. reg pos10s proindex   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  clus
+> ter(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -2187,8 +2230,8 @@ Linear regression                               Number of obs     =      1,178
        _cons |  -.2524659   .1141022    -2.21   0.030    -.4802782   -.0246535
 ------------------------------------------------------------------------------
 
-. reg pos10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(t
-> eamid);
+. reg pos10s p12 p56   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  clust
+> er(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -2235,8 +2278,8 @@ Linear regression                               Number of obs     =      1,178
          (1) |   .1242041    .063034     1.97   0.053    -.0016474    .2500555
 ------------------------------------------------------------------------------
 
-. reg pos10s group1   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluster(te
-> amid);
+. reg pos10s group1   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cluste
+> r(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -2272,8 +2315,8 @@ Linear regression                               Number of obs     =      1,178
        _cons |  -.0390903   .0535244    -0.73   0.468    -.1459553    .0677747
 ------------------------------------------------------------------------------
 
-. reg pos10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  clu
-> ster(teamid);
+. reg pos10s group1 group3   stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] , 
+>  cluster(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -2320,8 +2363,8 @@ Linear regression                               Number of obs     =      1,178
          (1) |   .1054949   .0540269     1.95   0.055    -.0023733     .213363
 ------------------------------------------------------------------------------
 
-. reg pos10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,  cl
-> uster(teamid);
+. reg pos10s p12 p56 pbelief  stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] ,
+>   cluster(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -2369,8 +2412,8 @@ Linear regression                               Number of obs     =      1,178
          (1) |   .1253002    .063962     1.96   0.054    -.0024041    .2530045
 ------------------------------------------------------------------------------
 
-. reg pos10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmodel)] 
-> ,  cluster(teamid);
+. reg pos10s group1 group3 pbelief stats_brw topic_brw  t2 t3 i.mdegree  [iw=1/(pscore_1*nmode
+> l)] ,  cluster(teamid);
 (sum of wgt is 93.49361655574957)
 
 Linear regression                               Number of obs     =      1,178
@@ -2419,8 +2462,8 @@ Linear regression                               Number of obs     =      1,178
 ------------------------------------------------------------------------------
 
 . *RELATIONSHIP BETWEEN NEW MEASURE OF QUALITY OF RESEARCH AND PRO-IMMIGRATION INDEX;
-. *NOTE THESE REGRESSIONS LOSE A FEW OBSERVATIONS BECAUSE PEER_MEAN IS NOT AVAILABLE FOR 38 OBSERV
-> ATIONS;
+. *NOTE THESE REGRESSIONS LOSE A FEW OBSERVATIONS BECAUSE PEER_MEAN IS NOT AVAILABLE FOR 38 OB
+> SERVATIONS;
 . summ quality2;
 
     Variable |        Obs        Mean    Std. dev.       Min        Max
@@ -2429,8 +2472,8 @@ Linear regression                               Number of obs     =      1,178
 
 . *WEIGHT ALSO BY PEER_N, NUMBER OF REVIEWERS THAT MODEL HAD;
 . *NEW REFEREE SCORE MEASURE AS DEPENDENT VARIABLE;
-. reg zpeer_mean p12 p56     stats_brw topic_brw t2 t3 i.mdegree  [aw=peer_n/nmodel] ,  cluster(te
-> amid);
+. reg zpeer_mean p12 p56     stats_brw topic_brw t2 t3 i.mdegree  [aw=peer_n/nmodel] ,  cluste
+> r(teamid);
 (sum of wgt is 647.0125)
 
 Linear regression                               Number of obs     =      1,215
@@ -2468,8 +2511,8 @@ Linear regression                               Number of obs     =      1,215
        _cons |   1.952328   .5573289     3.50   0.001     .8407709    3.063886
 ------------------------------------------------------------------------------
 
-. reg zpeer_mean group1 group3     stats_brw topic_brw t2 t3 i.mdegree   [aw=peer_n/nmodel] ,  clu
-> ster(teamid);
+. reg zpeer_mean group1 group3     stats_brw topic_brw t2 t3 i.mdegree   [aw=peer_n/nmodel] , 
+>  cluster(teamid);
 (sum of wgt is 647.0125)
 
 Linear regression                               Number of obs     =      1,215
@@ -2510,8 +2553,8 @@ Linear regression                               Number of obs     =      1,215
 . *QUALITY MODELS LOSE A LOT OF SINGLETON OBSERVATIONS IF WE USE LOGIT;
 . *SO WILL DO LINEAR PROBABILITY MODEL INSTEAD;
 . *OLS MODELS ON HIGH quality2;
-. reg quality2 p12 p56     stats_brw topic_brw t2 t3 i.mdegree   [aw=peer_n/nmodel] , cluster(team
-> id);
+. reg quality2 p12 p56     stats_brw topic_brw t2 t3 i.mdegree   [aw=peer_n/nmodel] , cluster(
+> teamid);
 (sum of wgt is 647.0125)
 
 Linear regression                               Number of obs     =      1,215
@@ -2549,8 +2592,8 @@ Linear regression                               Number of obs     =      1,215
        _cons |   1.404628   .3049102     4.61   0.000     .7965039    2.012752
 ------------------------------------------------------------------------------
 
-. reg quality2 group1 group3     stats_brw topic_brw t2 t3 i.mdegree   [aw=peer_n/nmodel] , cluste
-> r(teamid);
+. reg quality2 group1 group3     stats_brw topic_brw t2 t3 i.mdegree   [aw=peer_n/nmodel] , cl
+> uster(teamid);
 (sum of wgt is 647.0125)
 
 Linear regression                               Number of obs     =      1,215
@@ -2590,16 +2633,16 @@ Linear regression                               Number of obs     =      1,215
 
 . *USING MEDIAN;
 . generate y1=att1;
-(74 missing values generated)
+(75 missing values generated)
 
 . generate y2=att2;
-(684 missing values generated)
+(685 missing values generated)
 
 . generate y3=att3;
-(289 missing values generated)
+(290 missing values generated)
 
 . gen median = y1 + y2 + y3 - min(y1, y2, y3) - max(y1, y2, y3);
-(738 missing values generated)
+(739 missing values generated)
 
 . replace median = max(y1, y2, y3) if 
 >         (missing(y1) + missing(y2) + missing(y3)) == 2 ;
@@ -2619,5 +2662,5 @@ file /GitHub/ideology_specification/data/newmodel.dta saved
       name:  <unnamed>
        log:  C:/GitHub/ideology_specification/code/Log Files/02_Main_Regs.log
   log type:  text
- closed on:  12 Feb 2025, 15:30:19
---------------------------------------------------------------------------------------------------
+ closed on:  30 Aug 2025, 11:36:05
+----------------------------------------------------------------------------------------------

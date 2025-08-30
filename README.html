@@ -356,7 +356,13 @@ display: none;
 <h3>Ideological bias in the production of research findings</h3>
 <p><a href="https://www.hks.harvard.edu/faculty/george-borjas">George J.
 Borjas</a> <br> Harvard University <br> <a href="https://sites.google.com/site/nbreznau/">Nate Brezau</a> <br>
-German Institute for Adult Education</p>
+German Institute for Adult Education - Leibniz Institute for Lifelong
+Learning</p>
+</div>
+<div id="working-nber-paper" class="section level3">
+<h3>Working NBER Paper</h3>
+<p>Borjas, George J., and Nate Breznau. 2024. “Ideological Bias in
+Estimates of the Impact of Immigration.” <a href="https://www.nber.org/papers/w33274">https://www.nber.org/papers/w33274</a></p>
 <p><br> <br></p>
 <div id="abstract" class="section level4">
 <h4>Abstract</h4>
@@ -364,7 +370,7 @@ German Institute for Adult Education</p>
 ideology impacts research findings. It uses experimental data from the
 Crowdsourced Replication Initiative of <a href="https://www.pnas.org/doi/10.1073/pnas.2203150119">Breznau, Rinke
 and Wuttke et al</a> involving 71 teams of 158 researchers who produced
-1,253 estimates resulting from their various models testing the impace
+1,253 estimates resulting from their various models testing the impact
 of immigration on public opinion using International Social Survey
 Program and various macro-indicator data.</p>
 <p><br> <br></p>
@@ -430,13 +436,104 @@ and Wuttke et al. 2022</a></p>
 </div>
 <div id="notes-for-users" class="section level4">
 <h4>Notes for users</h4>
-<p>The main R code is in separate files in the folder <a href="https://github.com/nbreznau/ideology_specification/tree/main/code">code</a>,
-numbered from 01-08.</p>
-<p>Code knitted with results and figures are available in the folder <a href="https://github.com/nbreznau/ideology_specification/tree/main/code/Knitted_HTML_code">code/Knitted
-HTML Code</a>. This includes both RGB and Colorblind palette
-figures.</p>
-<p>Users can also find all RGB and colorblind figures as .png, as well
-as all Tables as .csv and .xlsx in the folder <a href="https://github.com/nbreznau/ideology_specification/tree/main/results">results</a></p>
+<p>Stata and R code runs in separate named files starting with numbers
+indicating the order in which they must be run (01_, 02_, etc.).</p>
+<p>The main results were produced using Stata and can be found under <a href="https://github.com/nbreznau/ideology_specification/tree/main/code/Stata_Main_Results">code/Stata
+Main Results</a>. The log files are knitted into the folder
+<code>code/Log Files</code>. Note that users must install some ado’s
+using ‘ssc install’, these commands are at the top of the .do files but
+commented out.</p>
+<p>We used R to check the results and to produce the figures and this
+code is found in <a href="https://github.com/nbreznau/ideology_specification/tree/main/code/R_Robustness_Results_and_Figures">code/R
+Robustness Results and Figures</a>. The knitted files are also in the
+folder <code>code/Log Files</code></p>
+</div>
+</div>
+<div id="source-code-for-all-tables-and-figures" class="section level2">
+<h2>Source Code For All Tables and Figures</h2>
+<div id="figure-1" class="section level3">
+<h3>Figure 1</h3>
+<p>Code:
+/code/<code>R Robustness Results and Figures</code>/03_Fig1.Rmd</p>
+<p>Results: /results/Fig1A.png, /results/Fig1B.png, /results/Fig1C.png,
+/results/Fig1B.png</p>
+</div>
+<div id="figure-2" class="section level3">
+<h3>Figure 2</h3>
+<p>Code: /code/<code>R Robustness Results and Figures</code>/03_Fig2.Rmd
+Fig2B only in Stata:
+/code/<code>Stata Main Results</code>/05_Expected_AME.do</p>
+<p>Results: /results/Fig2A.png /results/Fig2B.png</p>
+</div>
+<div id="figure-3" class="section level3">
+<h3>Figure 3</h3>
+<p>Code:
+/code/<code>R Robustness Results and Figures</code>/03_Fig3.Rmd</p>
+<p>Results: /results/Fig3.png</p>
+</div>
+<div id="table-1" class="section level3">
+<h3>Table 1</h3>
+<p>Code: /code/<code>Stata Main Results</code>/02_Main_Regs.do</p>
+<p>Results: /code/<code>Log Files</code>/02_Main_Regs.log</p>
+<p><strong>Note that Table 1 draws the coefficients or linear
+combinations only, from the full models in Tables S2-S4</strong></p>
+</div>
+<div id="table-2" class="section level3">
+<h3>Table 2</h3>
+<p>Code: /code/<code>Stata Main Results</code>/05_Expected_AME.do</p>
+<p>Results: /code/<code>Log Files</code>/05_Expected_AME.log</p>
+</div>
+<div id="table-s1" class="section level3">
+<h3>Table S1</h3>
+<p>Code: /code/<code>Stata Main Results</code>/02_Main_Regs.do, or
+/code/<code>R Robustness Results and Figures</code>/02_Tables.Rmd</p>
+<p>Results: /results/TableS1.csv, or
+/code/<code>Log Files</code>/02_Main_Regs.log</p>
+</div>
+<div id="table-s2" class="section level3">
+<h3>Table S2</h3>
+<p>Code:</p>
+</div>
+<div id="table-s3-s4" class="section level3">
+<h3>Table S3 &amp; S4</h3>
+<p>Code: /code/<code>Stata Main Results</code>/02_Main_Regs.do</p>
+<p>Results: /code/<code>Log Files</code>/02_Main_Regs.log</p>
+</div>
+<div id="table-s5" class="section level3">
+<h3>Table S5</h3>
+<p>Code: /code/<code>Stata Main Results</code>/03_Robustness.do</p>
+<p>Results: /code/<code>Log Files</code>/03_Robustness.log</p>
+</div>
+<div id="tables-s6-s9" class="section level3">
+<h3>Tables S6-S9</h3>
+<p>Code: /code/<code>Stata Main Results</code>/03_Robustness.do</p>
+<p>Results: /code/<code>Log Files</code>/03_Robustness.log</p>
+</div>
+<div id="table-s10" class="section level3">
+<h3>Table S10</h3>
+<p>Code: /code/<code>Stata Main Results</code>/04_Dyads.do</p>
+<p>Results: /code/<code>Log Files</code>/04_Dyads.log</p>
+</div>
+<div id="table-s11-s12" class="section level3">
+<h3>Table S11 &amp; S12</h3>
+<p>Code: /code/<code>Stata Main Results</code>/05_Expected_AME.do</p>
+<p>Results: /code/<code>Log Files</code>/05_Expected_AME.log</p>
+<p>Results:</p>
+</div>
+<div id="figure-s1-s2" class="section level3">
+<h3>Figure S1 &amp; S2</h3>
+<p>Code:
+/code/<code>R Robustness Results and Figures</code>/03_Fig1.Rmd</p>
+<p>Results: /results/FigS1.png /results/FigS2.png</p>
+</div>
+<div id="figure-s3" class="section level3">
+<h3>Figure S3</h3>
+<p>Code: /code/<code>Stata Main Results</code>/03_Robustness.do
+/code/<code>Stata Main Results</code>/03.1_Robustness_Dyad.do</p>
+<p>Results: /code/<code>Stata Main Results</code>/ideology_results.xlsx
+/code/<code>Stata Main Results</code>/ideology_resultsd.xlsx
+/code/<code>Log Files</code>/03_Robustness.log
+/code/<code>Log Files</code>/03.1_Robustness_Dyad.log</p>
 </div>
 </div>
 

@@ -1,0 +1,145 @@
+---
+title: "06. Specification Curve"
+output: html_document
+---
+Replication workflow for:
+
+"Ideological Bias in Estimates of the Impact of Immigration"
+
+[George J. Borjas](https://www.hks.harvard.edu/faculty/george-borjas) <br>
+[Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
+
+The file `df.rds` and `df_dyad.rds` (also available as csv) were generated in the file `01_Data_Prep.Rmd`.
+
+## Setup
+
+```{r setup}
+
+packages <- c("tidyverse",
+              "ggpubr",
+              "knitr",
+              "pacman",
+              "here",
+              "ragg",
+              "ggplot2",
+              "readxl",
+              "forcats",
+              "patchwork")
+
+pacman::p_load(packages, character.only = T)
+
+
+```
+
+
+## Data
+
+Taken from main Stata results compiled
+Main plus Dyad
+
+```{r data}
+
+
+df <- read_xlsx(here("code", "Stata Main Results", "ideology_results.xlsx"))
+df_dyad <- read_xlsx(here("code", "Stata Main Results", "ideology_resultsd.xlsx"))
+
+df <- bind_rows(df, df_dyad)
+
+```
+
+## Prep Spec Curve
+
+
+```{r extract}
+df_parsed <- df %>%
+  fill(model, .direction = "down") %>%
+  mutate(
+    row_type = if_else(str_detect(coeff, "\\("), "se", "coef"),
+    sig = if_else(row_type == "coef" & str_detect(coeff, "\\*"), 1L, 0L),
+    effect_tmp = if_else(row_type == "coef",
+                         parse_number(str_remove_all(coeff, "\\*")),
+                         NA_real_),
+    se_tmp = if_else(row_type == "se",
+                     parse_number(str_remove_all(coeff, "[\\(\\)]")),
+                     NA_real_)
+  ) %>%
+  group_by(model) %>%
+  summarise(
+    effect = mean(abs(effect_tmp), na.rm = T),
+    se     = mean(se_tmp, na.rm = T),
+    ideology = first(na.omit(ideology)),
+    sig = first(na.omit(sig))) %>%
+  subset(!is.na(model)) %>%
+  arrange(effect) %>%
+  mutate(model_ord = row_number(),
+         ideo = case_when(ideology == "proindex" ~ "Index",
+                          ideology == "group3-group1" ~ "Categorical",
+                          ideology == "indiv3-indiv1" ~ "Categorical",
+                          ideology == "p56-p12" ~ "Percentage",
+                          ideology == "group3" ~ "Categorical",
+                          ideology == "group1" ~ "Categorical",
+                          ideology == "p56" ~ "Percentage",
+                          ideology == "p12" ~ "Percentage",
+                          ideology == "oldimm" ~ "Senior",
+                          ideology == "oldanti-oldpro" ~ "Senior"),
+         confound = if_else(str_detect(model, "_00_"), 1, 0))
+```
+
+
+```{r setcurve}
+p_curve <- ggplot(df_parsed, aes(x = model_ord, y = effect)) +
+  geom_errorbar(aes(ymin = effect - 1.96 * se,
+                    ymax = effect + 1.96 * se),
+                width = 0, color = "grey50") +
+  geom_point(aes(color = factor(sig)), size = 0.9) +   # map sig to color
+  scale_color_manual(values = c("0" = "grey70", "1" = "blue")) +
+  scale_y_continuous(limits = c(-0.1, NA)) +
+  geom_hline(yintercept = 0, linetype = "dotted", color = "grey50") +
+  labs(
+    title = NULL,
+    x = NULL,
+    y = "Effect with 95% error bars",
+    color = "Significant"
+  ) +
+  theme_classic() +
+  theme(
+    axis.text.x = element_blank(),
+    axis.ticks.x = element_blank(),
+    panel.grid.major.x = element_blank()
+  )
+
+
+p_types <- ggplot(df_parsed, aes(x = model_ord, 
+                                 y = fct_rev(as.factor(ideo)))) +
+  geom_point(aes(color = factor(sig)), shape = 124, size = 4) +
+  scale_color_manual(values = c("0" = "grey70", "1" = "blue")) +
+  labs(x = "Models ordered by coefficient", y = "Effect type", color = "Significant") +
+  theme_classic() +
+  theme(panel.grid.major.x = element_blank())
+```
+
+
+```{r spec}
+agg_png(here("results", "FigS3.png"), res = 144, width = 1500, height = 750)
+
+p_curve / p_types + plot_layout(heights = c(3, 1))
+
+dev.off()
+
+include_graphics(here("results", "FigS3.png"))
+
+
+```
+
+### Significant effects %
+
+There are a total of `r length(df_parsed$sig)` model specifications, of which 
+`r sum(df_parsed$sig == 1)` or `r round(100 * mean(df_parsed$sig), 1)`% 
+are significant at *p* < 0.10 level.
+
+If we remove models with omitted confounder bias because discipline is not in the model there are a total of `r length(df_parsed$sig[df_parsed$confound == 0])` model specifications of which 
+`r sum(df_parsed$sig[df_parsed$confound == 0 & df_parsed$sig == 1])` or `r round(100 * mean(df_parsed$sig[df_parsed$confound == 0]), 1)`% 
+are significant at *p* < 0.10 level.
+
+
+
