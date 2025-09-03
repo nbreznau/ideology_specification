@@ -99,7 +99,7 @@ p_curve <- ggplot(df_parsed, aes(x = model_ord, y = effect)) +
     title = NULL,
     x = NULL,
     y = "Effect with 95% error bars",
-    color = "Significant"
+    color = "p < 0.10"
   ) +
   theme_classic() +
   theme(
@@ -113,14 +113,15 @@ p_types <- ggplot(df_parsed, aes(x = model_ord,
                                  y = fct_rev(as.factor(ideo)))) +
   geom_point(aes(color = factor(sig)), shape = 124, size = 4) +
   scale_color_manual(values = c("0" = "grey70", "1" = "blue")) +
-  labs(x = "Models ordered by coefficient", y = "Effect type", color = "Significant") +
+  labs(x = "Models ordered by coefficient", y = "Effect type", color = "p < 0.10") +
   theme_classic() +
   theme(panel.grid.major.x = element_blank())
 ```
 
+### Paper version
 
 ```{r spec}
-agg_png(here("results", "FigS3.png"), res = 144, width = 1500, height = 750)
+agg_png(here("results", "FigS3.png"), res = 288, width = 3000, height = 1500)
 
 p_curve / p_types + plot_layout(heights = c(3, 1))
 

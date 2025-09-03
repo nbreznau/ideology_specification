@@ -107,7 +107,7 @@ df <- df %>%
   arrange(ame_combo_mean) %>%
   mutate(unique_combo_numeric = as.integer(factor(unique_combo, levels = unique(unique_combo))))
 
-# Step 2: Calculate the density for each index group and adjust y-axis positions to avoid overlap
+# Calculate the density for each index group and adjust y-axis positions to avoid overlap
 # Define offsets for each index group (adjust these values as needed)
 offsets <- c(0.2, 0, -0.2)  # Offset for index == 1, index == 2, and index == 3
 ```
@@ -118,7 +118,7 @@ offsets <- c(0.2, 0, -0.2)  # Offset for index == 1, index == 2, and index == 3
 range02 <- c(min(df$unique_combo_numeric[df$ame_combo_mean > -0.02]), max(df$unique_combo_numeric[df$ame_combo_mean < 0.02]), unique(df$unique_combo_numeric[df$ame_combo_mean < .0003 & df$ame_combo_mean > .0002]))
 
 
-# Step 3: Plot using geom_density with the offset
+# Plot using geom_density with the offset
 
 f5a1 <- ggplot() +
 
@@ -180,14 +180,11 @@ f5a2 <- ggplot(df_long, aes(x = unique_combo_numeric, y = y)) +
 
 #### Combine
 ```{r f4arrange}
-agg_png(here("results", "Fig4A.png"), res = 144, height = 800, width = 800)
 
 f5a <- ggarrange(f5a1, f5a2, ncol = 1, nrow = 2, align = "v", heights = c(3,2))
 f5a
 
-dev.off()
 
-knitr::include_graphics(here("results", "Fig4A.png"))
 ```
 ### RGB
 
@@ -196,7 +193,7 @@ knitr::include_graphics(here("results", "Fig4A.png"))
 range02 <- c(min(df$unique_combo_numeric[df$ame_combo_mean > -0.02]), max(df$unique_combo_numeric[df$ame_combo_mean < 0.02]), unique(df$unique_combo_numeric[df$ame_combo_mean < .0003 & df$ame_combo_mean > .0002]))
 
 
-# Step 3: Plot using geom_density with the offset
+# Plot using geom_density with the offset
 
 f5a1r <- ggplot() +
 
@@ -259,7 +256,7 @@ f5a2r <- ggplot(df_long, aes(x = unique_combo_numeric, y = y)) +
 
 #### Combine
 ```{r f4arrangergb}
-agg_png(here("results", "Fig2A.png"), res = 144, height = 800, width = 800)
+agg_png(here("results", "Fig2A.png"), res = 288, height = 1600, width = 1600)
 
 f5ar <- ggarrange(f5a1r, f5a2r, ncol = 1, nrow = 2, align = "v", heights = c(3,2))
 f5ar
@@ -310,7 +307,7 @@ ggplot() +
 #### RGB
 
 ```{r 5brgb}
-agg_png(here("results", "Fig2B.png"), res = 144, height = 500, width = 600)
+agg_png(here("results", "Fig2B.png"), res = 288, height = 1000, width = 1200)
 
 ggplot() +
   stat_density(data = df, aes(x = ame_combo_mean, group = index, color = factor(index)),
