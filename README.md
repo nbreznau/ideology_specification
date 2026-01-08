@@ -5,8 +5,8 @@ Harvard University <br>
 [Nate Brezau](https://sites.google.com/site/nbreznau/) <br>
 German Institute for Adult Education - Leibniz Institute for Lifelong Learning
 
-### Working NBER Paper
-Borjas, George J., and Nate Breznau. 2024. “Ideological Bias in Estimates of the Impact of Immigration.” [https://www.nber.org/papers/w33274](https://www.nber.org/papers/w33274)
+### Published Paper
+Borjas, George J., and Nate Breznau. 2026. "Ideological bias in the production of research findings". Science Advances 12(1). [https://www.science.org/doi/10.1126/sciadv.adz7173](https://www.science.org/doi/10.1126/sciadv.adz7173)
 
 
 <br>
