@@ -1,0 +1,255 @@
+---
+title: "07 AB Response"
+output: 
+---
+
+01_Data_Prep.Rmd generates the data used below.
+
+# Setup
+
+```{r}
+
+
+library('tidyverse')
+library('here')
+library('weights')
+library('miceadds')
+
+```
+# Helper Functions
+
+```{r}
+add_asterisk_if_significant <- function(coef, se) {
+  # Calculate the z-score
+  z <- abs(coef / se)
+  # Calculate the two-tailed p-value
+  p_value <- 2 * (1 - pnorm(z))
+  # Add an asterisk if p-value < 0.01
+  if (p_value < 0.10) {
+    return(paste0(format(round(coef, 3), nsmall = 3), "*"))
+  } else {
+    return(format(round(coef, 3), nsmall = 3))
+  }
+}
+
+add_asterisk_if_significant_cluster <- function(coef, se) {
+  # Calculate the z-score
+  z <- abs(coef / se)
+  # Calculate the two-tailed p-value
+  p_value <- 2 * (1 - pnorm(z))
+  # Add an asterisk if p-value < 0.10
+  if (p_value < 0.10) {
+    return(paste0(format(round(coef, 3), nsmall = 3), "*"))
+  } else {
+    return(format(round(coef, 3), nsmall = 3))
+  }
+}
+
+add_asterisk_if_significant_by_row <- function(table, coef_rows, significance_level = 0.10) {
+  # Loop over each specified coefficient row
+  for (row in coef_rows) {
+    # Loop over each cell in the specified row
+    for (col in seq_len(ncol(table))) {
+      # Try to convert the coefficient to numeric, ignoring non-numeric entries
+      coef_value <- suppressWarnings(as.numeric(table[row, col]))
+      
+      # Proceed only if coef_value is numeric and not NA
+      if (!is.na(coef_value)) {
+        # Extract the standard error, removing parentheses and converting to numeric
+        se_string <- table[row + 1, col]  # Get SE as a string
+        se_value <- suppressWarnings(as.numeric(gsub("[()]", "", se_string)))  # Remove parentheses and convert to numeric
+        
+        # Check if the SE is valid before calculating significance
+        if (!is.na(se_value)) {
+          # Calculate z-score and p-value
+          z_score <- abs(coef_value / se_value)
+          p_value <- 2 * (1 - pnorm(z_score))
+          
+          # Add asterisk to coefficient if p-value < significance level
+          if (p_value < significance_level) {
+            table[row, col] <- paste0(format(coef_value, nsmall = 3), "*")
+          }
+        }
+      }
+    }
+  }
+  return(table)
+}
+```
+
+
+# Data
+
+```{r}
+
+df <- read_rds(here("data", "df.rds"))
+df_dyad <- read_csv(here("data", "df_dyad.csv"))
+
+```
+
+# Claim 1. Bi-Variate Correlations
+
+```{r}
+
+# Define the variables to correlate
+vars <- c("AME", "pos10s", "neg10s", "group1", "group3", "p12", "p56", "proindex", "pindex")
+
+# Initialize empty matrices for correlations and p-values
+n_vars <- length(vars)
+cor_matrix <- matrix(NA, n_vars, n_vars, dimnames = list(vars, vars))
+p_matrix <- matrix(NA, n_vars, n_vars, dimnames = list(vars, vars))
+
+# Loop through the variables to calculate weighted correlations and p-values
+for (i in 1:n_vars) {
+  for (j in 1:n_vars) {
+    if (i == j) {
+      cor_matrix[i, j] <- 1
+      p_matrix[i, j] <- 0
+    } else {
+      # wtd.cor computes the weighted correlation and its p-value
+      wt_cor <- wtd.cor(df[[vars[i]]], df[[vars[j]]], weight = df$aw)
+      cor_matrix[i, j] <- wt_cor[1, "correlation"]
+      p_matrix[i, j] <- wt_cor[1, "p.value"]
+    }
+  }
+}
+
+# Create a function to format to 2 decimal places and apply custom stars
+add_stars <- function(cor_val, p_val) {
+  stars <- ""
+  if (is.na(p_val)) {
+    return(NA)
+  } else if (p_val < 0.05) {
+    stars <- "***"
+  } else if (p_val < 0.10) {
+    stars <- "**"
+  } else if (p_val < 0.20) {
+    stars <- "*"
+  }
+  
+  # Format correlation to 2 decimals and append the stars
+  paste0(sprintf("%.2f", cor_val), stars)
+}
+
+# Apply the formatting function to the matrix
+formatted_matrix <- matrix(NA, n_vars, n_vars, dimnames = list(vars, vars))
+for (i in 1:n_vars) {
+  for (j in 1:n_vars) {
+    if (i == j) {
+      formatted_matrix[i, j] <- "1.00"
+    } else {
+      formatted_matrix[i, j] <- add_stars(cor_matrix[i, j], p_matrix[i, j])
+    }
+  }
+}
+
+# Convert to a dataframe and export to CSV
+final_df <- as.data.frame(formatted_matrix)
+write.csv(final_df, here("data", "01_Claim_weighted_correlations.csv"), row.names = TRUE)
+
+# Print to console to verify
+print(final_df)
+
+```
+# Claim 5. Team 33 and 47
+
+```{r}
+df <- df %>%
+  mutate(counter3 = counter,
+         counter3 = ifelse(u_teamid %in% c(33, 47), 3005, counter3),
+         # make it so that the uncommon disciplines land in one category
+         degree3 = case_when(backgr_degree1 %in% c(1, 2, 5, 6) ~ 1,
+                             backgr_degree1 == 3 ~ 3,
+                             backgr_degree1 == 4 ~ 4,
+                             TRUE ~ 2))
+
+# original 3 main models without discipline
+m_1 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3, weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_1n <- lm.cluster(formula=neg10s ~ group3 + stats_brw + topic_brw + t2 + t3, weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_1p <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3, weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+# Results with alternative coding of team 33 and 47 as one discipline
+m_1c <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(counter3), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_1nc <- lm.cluster(formula=neg10s ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(counter3), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_1pc <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(counter3), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+# Results with three disciplines (sociology, political science, the rest common, and those uncommon or NA)
+m_1c3 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(degree3), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_1nc3 <- lm.cluster(formula=neg10s ~ group3 + stats_brw + topic_brw + t2 + t3 + factor(degree3), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+m_1pc3 <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 + factor(degree3), weights = 1/df$nmodel, cluster = "u_teamid", data = df)
+
+```
+
+# Table Claim 5.
+
+```{r}
+
+get_formatted_coef <- function(model, var_name) {
+  # Extract the summary, which contains the cluster-robust standard errors
+  sum_mat <- summary(model)
+  
+  # Handle different package structures for lm.cluster (e.g., miceadds)
+  if (is.matrix(sum_mat) || is.data.frame(sum_mat)) {
+    coef_table <- sum_mat
+  } else if ("res" %in% names(sum_mat)) {
+    coef_table <- sum_mat$res
+  } else {
+    coef_table <- coef(sum_mat)
+  }
+  
+  # If the variable exists in the model, extract and format
+  if (var_name %in% rownames(coef_table)) {
+    estimate <- coef_table[var_name, 1] # 1st column: Estimate
+    se <- coef_table[var_name, 2]       # 2nd column: Std. Error
+    
+    # Apply your custom formatting function
+    return(add_asterisk_if_significant_cluster(estimate, se))
+  } else {
+    # Return a dash (or NA) if the variable isn't in this specific model
+    return("-") 
+  }
+}
+
+models <- list(
+  "1.AME, no discipline"         = m_1,
+  "2.Neg10s, no disc"     = m_1n,
+  "3.Pos10s, no disc"     = m_1p,
+  "4.AME, 33/47 combined"         = m_1c,
+  "5.Neg10s, 33/47 comb"     = m_1nc,
+  "6.Pos10s, 33/47 comb"     = m_1pc,
+  "7.AME, 4-disciplines"     = m_1c3,
+  "8.Neg10s, 4-disc" = m_1nc3,
+  "9.Pos10s, 4-disc" = m_1pc3
+)
+
+# build the rows
+table_data <- lapply(names(models), function(m_name) {
+  mod <- models[[m_name]]
+  data.frame(
+    Model = m_name,
+    Group3 = get_formatted_coef(mod, "group3"),
+    Group1 = get_formatted_coef(mod, "group1"),
+    stringsAsFactors = FALSE
+  )
+})
+
+
+results_table <- do.call(rbind, table_data)
+
+write.csv(results_table, file = here("results", "response_table.csv"), row.names = FALSE)
+print(results_table)
+```
+
+## Colophon
+
+```{r colo}
+
+sessionInfo()
+
+```
