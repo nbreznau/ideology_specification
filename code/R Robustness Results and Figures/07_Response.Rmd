@@ -151,7 +151,94 @@ write.csv(final_df, here("data", "01_Claim_weighted_correlations.csv"), row.name
 print(final_df)
 
 ```
-# Claim 5. Team 33 and 47
+
+
+# Claim 2. Singularities
+
+## 2.1 Are any teams dropped?
+
+```{r}
+m1 <- lm(AME ~ proindex + stats_brw + topic_brw + t2 + t3 + factor(mdegree), weights = 1/df$nmodel, data = df)
+
+alias(m1)
+
+```
+No, all teams remain in the analysis because they are not technically singularities by definition. The teams have multiple unique values on the dependent variable, so they are not perfectly predicted by the independent variable counter. However, as pointed out by A&B, the 80 cases where team is uniquely identified by counter do not play a role in the regression coefficient for ideology.
+
+## 2.2 What teams are problematic?
+
+```{r}
+singular_teams <- df %>%
+  group_by(mdegree) %>%
+  summarise(
+    n_teams = n_distinct(u_teamid),
+    u_teamid = unique(u_teamid) 
+  ) %>%
+  filter(n_teams == 1) %>%
+  select(mdegree, u_teamid) 
+
+singular_counter <- df %>%
+  group_by(counter) %>%
+  summarise(
+    n_teams = n_distinct(u_teamid),
+    u_teamid = unique(u_teamid) 
+  ) %>%
+  filter(n_teams == 1) %>%
+  select(counter, u_teamid) 
+
+singular_counter2 <- df %>%
+  group_by(counter2) %>%
+  summarise(
+    n_teams = n_distinct(u_teamid),
+    u_teamid = unique(u_teamid) 
+  ) %>%
+  filter(n_teams == 1) %>%
+  select(counter2, u_teamid) 
+
+singular_degree1 <- df %>%
+  group_by(backgr_degree1) %>%
+  summarise(
+    n_teams = n_distinct(u_teamid),
+    u_teamid = unique(u_teamid) 
+  ) %>%
+  filter(n_teams == 1) %>%
+  select(backgr_degree1, u_teamid)
+
+singular_teams_dyad <- df_dyad %>%
+  group_by(backgr_degree) %>%
+  summarise(
+    n_teams = n_distinct(u_teamid),
+    u_teamid = unique(u_teamid) 
+  ) %>%
+  filter(n_teams == 1) %>%
+  select(backgr_degree, u_teamid)
+
+
+print(singular_teams)
+print(singular_counter)
+print(singular_counter2)
+print(singular_degree1)
+print(singular_teams_dyad)
+
+df %>%
+  filter(u_teamid %in% c(33, 46, 47, 59)) %>%
+  select(u_teamid, team_size) %>%
+  distinct()
+```
+The dyadic data have no problematic teams. Team 70 is not a unique discipline. Teams 47 and 59 have single team members but disciplines that are not unique (they were just the only teams with one team member that had that discipline makig them a 'unique' combination).
+
+## 2.3 Split multiverse - A&B's false claims
+
+A&B have made two blatantly false statements in their paper: “B&B note that the association only becomes significant after adjusting for the disciplinary composition of the teams” and in the Abstract that “the association hinges on a coding error.” 
+
+```{r}
+
+source(here("code", "sub", "AB_response_spec.R"))
+
+include_graphics(here("results", "Fig1_AB_Resp.png"))
+
+```
+
 
 ```{r}
 df <- df %>%
@@ -208,7 +295,6 @@ get_formatted_coef <- function(model, var_name) {
     estimate <- coef_table[var_name, 1] # 1st column: Estimate
     se <- coef_table[var_name, 2]       # 2nd column: Std. Error
     
-    # Apply your custom formatting function
     return(add_asterisk_if_significant_cluster(estimate, se))
   } else {
     # Return a dash (or NA) if the variable isn't in this specific model
