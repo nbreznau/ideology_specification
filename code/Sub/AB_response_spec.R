@@ -1,10 +1,3 @@
-library(dplyr)
-library(ragg)
-library(ggplot2)
-library(readxl)
-
-
-df_dyadx <- read_xlsx(here("code", "Stata Main Results", "ideology_resultsd_ext.xlsx"))
 
 
 df_parsed_dyad <- df_dyadx %>%
@@ -56,7 +49,7 @@ p_curve_nosing <- ggplot(df_parsed_dyad, aes(x = model_ord, y = effect)) +
 
 agg_png(here("results", "Fig1_AB_Resp.png"), res = 288, width = 3000, height = 1500)
 
-p_curve_nosing
+print(p_curve_nosing)
 
 dev.off()
 
@@ -74,7 +67,7 @@ df_parsed_dyad <- df_parsed_dyad %>%
     target_dummy = if_else(model_num >= 7 & model_num <= 18, 1, 0)
   )
 
-# 2. Calculate the percentage significant by group
+#Calculate the percentage significant by group
 sig_comparison <- df_parsed_dyad %>%
   group_by(target_dummy) %>%
   summarise(

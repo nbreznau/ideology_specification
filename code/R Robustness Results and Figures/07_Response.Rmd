@@ -14,6 +14,10 @@ library('tidyverse')
 library('here')
 library('weights')
 library('miceadds')
+library('knitr')
+library('readxl')
+library('ragg')
+library('ggplot2')
 
 ```
 # Helper Functions
@@ -232,24 +236,58 @@ The dyadic data have no problematic teams. Team 70 is not a unique discipline. T
 A&B have made two blatantly false statements in their paper: “B&B note that the association only becomes significant after adjusting for the disciplinary composition of the teams” and in the Abstract that “the association hinges on a coding error.” 
 
 ```{r}
+# data from dyads
+df_dyadx <- read_xlsx(here("code", "Stata Main Results", "ideology_resultsd_ext.xlsx"))
 
-source(here("code", "sub", "AB_response_spec.R"))
+
+source(here("code", "Sub", "AB_response_spec.R"))
 
 include_graphics(here("results", "Fig1_AB_Resp.png"))
 
 ```
 
+# Claim 4. Ideology is significant
 
 ```{r}
 df <- df %>%
-  mutate(counter3 = counter,
-         counter3 = ifelse(u_teamid %in% c(33, 47), 3005, counter3),
-         # make it so that the uncommon disciplines land in one category
-         degree3 = case_when(backgr_degree1 %in% c(1, 2, 5, 6) ~ 1,
-                             backgr_degree1 == 3 ~ 3,
-                             backgr_degree1 == 4 ~ 4,
-                             TRUE ~ 2))
+  mutate(soc_on_team = ifelse(backgr_degree1 == 3, 1,
+                       ifelse(backgr_degree2 == 3, 1,
+                       ifelse(backgr_degree3 == 3, 1, 0))),
+         polsci_on_team = ifelse(backgr_degree1 == 4, 1,
+                       ifelse(backgr_degree2 == 4, 1,
+                       ifelse(backgr_degree3 == 4, 1, 0))),
+         sing_dummy_1 = ifelse(u_teamid %in% c(33, 46, 47, 59), 1, 0),
+         sing_dummy_2.1 = ifelse(u_teamid %in% c(46, 47), 1, 0),
+         sing_dummy_2.2 = ifelse(u_teamid %in% c(33, 59), 1, 0))
 
+# now our own multiverse
+source(here("code", "Sub", "AB_response_multi.R"))
+```
+
+```{r}
+agg_png(here("results", "Fig2_AB_Multi.png"), res = 288, width = 3000, height = 1500)
+
+spec_curve
+
+dev.off()
+
+include_graphics(here("results", "Fig2_AB_Multi.png"))
+```
+
+```{r}
+# Calculate overall percentage significant
+pct_significant <- final_results %>%
+  filter(!is.na(sig)) %>% # Safely ignore any models that failed to compute
+  summarise(
+    total_models_run = n(),
+    significant_count = sum(sig == 1),
+    percent_significant = mean(sig == 1) * 100
+  )
+
+print(pct_significant)
+```
+
+```{r}
 # original 3 main models without discipline
 m_1 <- lm.cluster(formula=AME ~ group3 + stats_brw + topic_brw + t2 + t3, weights = 1/df$nmodel, cluster = "u_teamid", data = df)
 
