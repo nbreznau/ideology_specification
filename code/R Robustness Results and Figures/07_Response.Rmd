@@ -20,6 +20,7 @@ library('ragg')
 library('ggplot2')
 
 ```
+
 # Helper Functions
 
 ```{r}
@@ -311,7 +312,7 @@ m_1pc3 <- lm.cluster(formula=pos10s ~ group1 + stats_brw + topic_brw + t2 + t3 +
 
 ```
 
-# Table Claim 5.
+# Unused additional table
 
 ```{r}
 
